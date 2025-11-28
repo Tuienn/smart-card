@@ -1,0 +1,548 @@
+{
+	"info": {
+		"_postman_id": "smart-card-api-collection",
+		"name": "SmartCard API Collection",
+		"description": "Collection để test tất cả API endpoints của SmartCard Application",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "userPin",
+			"value": "123456",
+			"type": "string"
+		},
+		{
+			"key": "adminPin",
+			"value": "admin123",
+			"type": "string"
+		},
+		{
+			"key": "newUserPin",
+			"value": "newpass123",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Kết nối thẻ",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has success field\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"});",
+							"",
+							"pm.test(\"Response has message field\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/connect",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"connect"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Khởi tạo thẻ",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response structure is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});",
+							"",
+							"pm.test(\"Initialization successful\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.include('thành công');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userPin\": \"{{userPin}}\",\n    \"adminPin\": \"{{adminPin}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/initialize",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"initialize"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Lấy SALT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has SALT data\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success', true);",
+							"    pm.expect(jsonData).to.have.property('data');",
+							"    pm.expect(jsonData.data).to.have.property('userSalt');",
+							"    pm.expect(jsonData.data).to.have.property('adminSalt');",
+							"});",
+							"",
+							"// Lưu SALT để sử dụng cho các request khác",
+							"if (pm.response.code === 200) {",
+							"    var jsonData = pm.response.json();",
+							"    if (jsonData.success && jsonData.data) {",
+							"        pm.collectionVariables.set(\"userSalt\", jsonData.data.userSalt);",
+							"        pm.collectionVariables.set(\"adminSalt\", jsonData.data.adminSalt);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/salt",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"salt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Xác thực User PIN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 401\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+							"});",
+							"",
+							"pm.test(\"Response structure is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"Verification successful\", function () {",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData.success).to.be.true;",
+							"        pm.expect(jsonData.message).to.include('thành công');",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pin\": \"{{userPin}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/verify-user-pin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"verify-user-pin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Xác thực Admin PIN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 401\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+							"});",
+							"",
+							"pm.test(\"Response structure is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"Admin verification successful\", function () {",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData.success).to.be.true;",
+							"        pm.expect(jsonData.message).to.include('thành công');",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pin\": \"{{adminPin}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/verify-admin-pin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"verify-admin-pin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Đọc dữ liệu từ thẻ",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 401\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+							"});",
+							"",
+							"pm.test(\"Response structure is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"Data retrieved successfully\", function () {",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData.success).to.be.true;",
+							"        pm.expect(jsonData).to.have.property('data');",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/data",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"data"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Ghi dữ liệu vào thẻ",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 401\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+							"});",
+							"",
+							"pm.test(\"Response structure is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"Data written successfully\", function () {",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData.success).to.be.true;",
+							"        pm.expect(jsonData.message).to.include('thành công');",
+							"    });",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"data\": \"Hello World! Test data từ Postman\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/data",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"data"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. Đổi User PIN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 401\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+							"});",
+							"",
+							"pm.test(\"Response structure is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"PIN changed successfully\", function () {",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData.success).to.be.true;",
+							"        pm.expect(jsonData.message).to.include('thành công');",
+							"    });",
+							"    // Cập nhật userPin variable với PIN mới",
+							"    pm.collectionVariables.set(\"userPin\", pm.collectionVariables.get(\"newUserPin\"));",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"newPin\": \"{{newUserPin}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/change-user-pin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"change-user-pin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9. Reset User PIN (Admin)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 401\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+							"});",
+							"",
+							"pm.test(\"Response structure is correct\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success');",
+							"    pm.expect(jsonData).to.have.property('message');",
+							"});",
+							"",
+							"if (pm.response.code === 200) {",
+							"    pm.test(\"PIN reset successfully\", function () {",
+							"        var jsonData = pm.response.json();",
+							"        pm.expect(jsonData.success).to.be.true;",
+							"        pm.expect(jsonData.message).to.include('thành công');",
+							"    });",
+							"    // Reset userPin về giá trị ban đầu",
+							"    pm.collectionVariables.set(\"userPin\", \"123456\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"newPin\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/reset-user-pin",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"reset-user-pin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10. Ngắt kết nối thẻ",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Disconnection successful\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('success', true);",
+							"    pm.expect(jsonData.message).to.include('ngắt kết nối');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/card/disconnect",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"card",
+						"disconnect"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
