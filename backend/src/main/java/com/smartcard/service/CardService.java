@@ -66,7 +66,8 @@ public class CardService {
         if (data != null) {
             command = new CommandAPDU(cla, ins, p1, p2, data);
         } else {
-            command = new CommandAPDU(cla, ins, p1, p2);
+            // Thêm Le=256 để yêu cầu response dài hơn
+            command = new CommandAPDU(cla, ins, p1, p2, 256);
         }
 
         System.out.println(">> Gửi: " + HexUtils.bytesToHex(command.getBytes()));
@@ -107,7 +108,7 @@ public class CardService {
     }
 
     /**
-     * INITIALIZE (INS=0x60): Khởi tạo thẻ lần đầu
+     * INITIALIZE (INS=0x08): Khởi tạo thẻ lần đầu
      * Input: userPin (plaintext), adminPin (plaintext)
      * Host tạo SALT và tính KEK, sau đó gửi xuống thẻ
      */
@@ -187,7 +188,7 @@ public class CardService {
     }
 
     /**
-     * VERIFY_USER_PIN (INS=0x20): Xác thực user PIN
+     * VERIFY_USER_PIN (INS=0x02): Xác thực user PIN
      * @param pin PIN dạng plain text
      * @return true nếu xác thực thành công
      */
@@ -226,7 +227,7 @@ public class CardService {
     }
 
     /**
-     * VERIFY_ADMIN_PIN (INS=0x21): Xác thực admin PIN
+     * VERIFY_ADMIN_PIN (INS=0x03): Xác thực admin PIN
      * @param pin PIN dạng plain text
      * @return thông báo kết quả
      */
@@ -265,7 +266,7 @@ public class CardService {
     }
 
     /**
-     * CHANGE_USER_PIN (INS=0x30): Đổi PIN user (cần xác thực user trước)
+     * CHANGE_USER_PIN (INS=0x04): Đổi PIN user (cần xác thực user trước)
      * @param newPin PIN mới dạng plain text
      * @return thông báo kết quả
      */
@@ -307,7 +308,7 @@ public class CardService {
     }
 
     /**
-     * RESET_USER_PIN (INS=0x31): Admin reset PIN user
+     * RESET_USER_PIN (INS=0x05): Admin reset PIN user
      * @param newPin PIN mới cho user
      * @return thông báo kết quả
      */
@@ -349,7 +350,7 @@ public class CardService {
     }
 
     /**
-     * GET_DATA (INS=0x40): Đọc dữ liệu đã mã hóa (cần xác thực trước)
+     * GET_DATA (INS=0x06): Đọc dữ liệu đã mã hóa (cần xác thực trước)
      * @return dữ liệu plain text
      */
     public String getData() {
@@ -391,7 +392,7 @@ public class CardService {
     }
 
     /**
-     * SET_DATA (INS=0x50): Ghi dữ liệu và mã hóa (cần xác thực trước)
+     * SET_DATA (INS=0x07): Ghi dữ liệu và mã hóa (cần xác thực trước)
      * @param data dữ liệu plain text
      * @return thông báo kết quả
      */

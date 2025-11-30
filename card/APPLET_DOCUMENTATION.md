@@ -44,7 +44,7 @@ Master Key (M) ─────────────────────�
 
 ## Các lệnh APDU (INS codes)
 
-### 1. INITIALIZE (0x60)
+### 1. INITIALIZE (0x08)
 **Mục đích:** Khởi tạo thẻ lần đầu, tạo Master Key ngẫu nhiên và mã hóa với KEK.
 
 **Input:**
@@ -69,7 +69,7 @@ Tổng: 96 bytes
 
 ---
 
-### 2. GET_SALT (0x10)
+### 2. GET_SALT (0x01)
 **Mục đích:** Lấy SALT để host tính toán Argon2.
 
 **Input:** Không
@@ -86,7 +86,7 @@ Tổng: 32 bytes
 
 ---
 
-### 3. VERIFY_USER_PIN (0x20)
+### 3. VERIFY_USER_PIN (0x02)
 **Mục đích:** Xác thực user bằng KEK_user từ Argon2(PIN_user).
 
 **Input:**
@@ -115,7 +115,7 @@ KEK_user (32 bytes)
 
 ---
 
-### 4. VERIFY_ADMIN_PIN (0x21)
+### 4. VERIFY_ADMIN_PIN (0x03)
 **Mục đích:** Xác thực admin bằng KEK_admin từ Argon2(PIN_admin).
 
 **Input:**
@@ -132,7 +132,7 @@ KEK_admin (32 bytes)
 
 ---
 
-### 5. CHANGE_USER_PIN (0x30)
+### 5. CHANGE_USER_PIN (0x04)
 **Mục đích:** Đổi PIN user (cần xác thực user trước).
 
 **Điều kiện:** userAuthenticated = true
@@ -155,7 +155,7 @@ Tổng: 48 bytes
 
 ---
 
-### 6. RESET_USER_PIN (0x31)
+### 6. RESET_USER_PIN (0x05)
 **Mục đích:** Admin reset PIN user (cần xác thực admin).
 
 **Điều kiện:** adminAuthenticated = true
@@ -183,7 +183,7 @@ Tổng: 48 bytes
 
 ---
 
-### 7. GET_DATA (0x40)
+### 7. GET_DATA (0x06)
 **Mục đích:** Đọc dữ liệu đã mã hóa.
 
 **Điều kiện:** userAuthenticated = true HOẶC adminAuthenticated = true
@@ -203,7 +203,7 @@ Tổng: 48 bytes
 
 ---
 
-### 8. SET_DATA (0x50)
+### 8. SET_DATA (0x07)
 **Mục đích:** Ghi dữ liệu và mã hóa.
 
 **Điều kiện:** userAuthenticated = true HOẶC adminAuthenticated = true
@@ -427,14 +427,14 @@ SALT_admin = os.urandom(16)
 KEK_user = compute_kek("123456", SALT_user)
 KEK_admin = compute_kek("admin123", SALT_admin)
 
-INITIALIZE = [0x00, 0x60, 0x00, 0x00, 0x60]
+INITIALIZE = [0x00, 0x08, 0x00, 0x00, 0x08]
 INITIALIZE += list(KEK_user) + list(SALT_user)
 INITIALIZE += list(KEK_admin) + list(SALT_admin)
 data, sw1, sw2 = connection.transmit(INITIALIZE)
 print(f"Initialize: {sw1:02X}{sw2:02X}")
 
 # 2. Lấy SALT
-GET_SALT = [0x00, 0x10, 0x00, 0x00, 0x00]
+GET_SALT = [0x00, 0x01, 0x00, 0x00, 0x00]
 data, sw1, sw2 = connection.transmit(GET_SALT)
 SALT_user_card = bytes(data[0:16])
 SALT_admin_card = bytes(data[16:32])
@@ -442,7 +442,7 @@ SALT_admin_card = bytes(data[16:32])
 # 3. Verify user PIN
 pin = input("Enter user PIN: ")
 KEK_user = compute_kek(pin, SALT_user_card)
-VERIFY = [0x00, 0x20, 0x00, 0x00, 0x20] + list(KEK_user)
+VERIFY = [0x00, 0x02, 0x00, 0x00, 0x02] + list(KEK_user)
 data, sw1, sw2 = connection.transmit(VERIFY)
 if sw1 == 0x90 and sw2 == 0x00:
     print("✓ User authenticated")
@@ -451,11 +451,11 @@ else:
 
 # 4. Ghi dữ liệu
 plaintext = b"Secret message"
-SET_DATA = [0x00, 0x50, 0x00, 0x00, len(plaintext)] + list(plaintext)
+SET_DATA = [0x00, 0x07, 0x00, 0x00, len(plaintext)] + list(plaintext)
 data, sw1, sw2 = connection.transmit(SET_DATA)
 
 # 5. Đọc dữ liệu
-GET_DATA = [0x00, 0x40, 0x00, 0x00, 0x00]
+GET_DATA = [0x00, 0x06, 0x00, 0x00, 0x00]
 data, sw1, sw2 = connection.transmit(GET_DATA)
 print(f"Data: {bytes(data).rstrip(b'\\x00')}")
 ```

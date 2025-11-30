@@ -8,14 +8,14 @@ public class AppletConsts {
     public static final byte CLA = (byte) 0x00;
 
     // INS (Instruction - Các lệnh theo APPLET_DOCUMENTATION)
-    public static final byte INS_GET_SALT         = (byte) 0x10;
-    public static final byte INS_VERIFY_USER_PIN  = (byte) 0x20;
-    public static final byte INS_VERIFY_ADMIN_PIN = (byte) 0x21;
-    public static final byte INS_CHANGE_USER_PIN  = (byte) 0x30;
-    public static final byte INS_RESET_USER_PIN   = (byte) 0x31;
-    public static final byte INS_GET_DATA         = (byte) 0x40;
-    public static final byte INS_SET_DATA         = (byte) 0x50;
-    public static final byte INS_INITIALIZE       = (byte) 0x60;
+    public static final byte INS_GET_SALT         = (byte) 0x01;
+    public static final byte INS_VERIFY_USER_PIN  = (byte) 0x02;
+    public static final byte INS_VERIFY_ADMIN_PIN = (byte) 0x03;
+    public static final byte INS_CHANGE_USER_PIN  = (byte) 0x04;
+    public static final byte INS_RESET_USER_PIN   = (byte) 0x05;
+    public static final byte INS_GET_DATA         = (byte) 0x06;
+    public static final byte INS_SET_DATA         = (byte) 0x07;
+    public static final byte INS_INITIALIZE       = (byte) 0x08;
 
     // SW (Status Word - Mã trạng thái)
     public static final int SW_SUCCESS = 0x9000;
