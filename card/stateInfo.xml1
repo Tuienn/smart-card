@@ -5,13 +5,9 @@
 </PkgNodes>
 </ExpandNodes>
 <FileNodes>
-<fnode>
-<fileName>src\Entertainment\Entertainment.java</fileName>
-<line>205</line>
-</fnode>
 <ActiveFile>
-<fileName>src\Entertainment\test2.java</fileName>
-<line>7</line>
+<fileName>src\Entertainment\Entertainment.java</fileName>
+<line>77</line>
 </ActiveFile>
 </FileNodes>
 </StateInfo>

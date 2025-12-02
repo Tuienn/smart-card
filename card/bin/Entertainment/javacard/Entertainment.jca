@@ -1,5 +1,5 @@
 // converted by version  [v3.0.4]
-// on Fri Nov 28 13:03:40 ICT 2025
+// on Sun Nov 30 23:18:07 ICT 2025
 
 .package Entertainment {
 	.aid 0x11:0x22:0x33:0x44:0x55;
@@ -14,7 +14,6 @@
 
 	.applet {
 		0x11:0x22:0x33:0x44:0x55:0x0 Entertainment;
-		0x11:0x22:0x33:0x44:0x55:0x2 test2;
 	}
 
 	.constantPool {
@@ -55,23 +54,29 @@
 		// 17
 		instanceFieldRef boolean Entertainment/adminAuthenticated;
 		// 18
-		instanceFieldRef byte[] test2/xValue;
+		.classRef 1.20;		// javacard/security/AESKey
 		// 19
-		instanceFieldRef byte[] test2/yValue;
+		staticMethodRef Entertainment/<init>()V;
 		// 20
-		instanceFieldRef byte[] test2/cvmRules;
+		staticMethodRef 2.1.0(BZ)Ljavacardx/crypto/Cipher;;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+			.descriptor	Ljavacardx/crypto/Cipher;	2.1;
+
 		// 21
-		instanceFieldRef byte[] test2/secret;
+		staticMethodRef 0.8.13(SB)[B;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 		// 22
-		instanceFieldRef 0.9 test2/pin;
+		staticMethodRef 1.11.0(BZ)Ljavacard/security/MessageDigest;;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
+			.descriptor	Ljavacard/security/MessageDigest;	1.11;
+
 		// 23
-		instanceFieldRef 1.8 test2/smartcard_rsa_private;
+		.classRef Entertainment;
 		// 24
-		instanceFieldRef 1.9 test2/smartcard_rsa_public;
+		staticMethodRef 1.14.0(B)Ljavacard/security/RandomData;;		// javacard/security/RandomData.getInstance(B)Ljavacard/security/RandomData;
+			.descriptor	Ljavacard/security/RandomData;	1.14;
+
 		// 25
-		instanceFieldRef 2.1 test2/rsaCipher;
+		virtualMethodRef 0.3.2([BSB)V;		// register([BSB)V
 		// 26
-		instanceFieldRef short test2/balance;
+		staticMethodRef 0.3.0()V;		// javacard/framework/Applet.<init>()V
 		// 27
 		staticMethodRef 1.13.0(BSZ)Ljavacard/security/Key;;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
 			.descriptor	Ljavacard/security/Key;	1.0;
@@ -150,113 +155,6 @@
 		virtualMethodRef 2.1.1([BSS[BS)S;		// doFinal([BSS[BS)S
 		// 55
 		.classRef 3.2;		// java/lang/Exception
-		// 56
-		.classRef 1.20;		// javacard/security/AESKey
-		// 57
-		staticMethodRef Entertainment/<init>()V;
-		// 58
-		staticMethodRef 2.1.0(BZ)Ljavacardx/crypto/Cipher;;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
-			.descriptor	Ljavacardx/crypto/Cipher;	2.1;
-
-		// 59
-		staticMethodRef 0.8.13(SB)[B;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
-		// 60
-		.classRef 0.9;		// javacard/framework/OwnerPIN
-		// 61
-		staticMethodRef 0.9.0(BB)V;		// javacard/framework/OwnerPIN.<init>(BB)V
-		// 62
-		staticMethodRef 1.11.0(BZ)Ljavacard/security/MessageDigest;;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
-			.descriptor	Ljavacard/security/MessageDigest;	1.11;
-
-		// 63
-		virtualMethodRef 0.9.8([BSB)V;		// update([BSB)V
-		// 64
-		virtualMethodRef 0.3.1()V;		// register()V
-		// 65
-		staticMethodRef test2/initializeKeys()V;
-		// 66
-		.classRef 1.8;		// javacard/security/RSAPrivateKey
-		// 67
-		.classRef Entertainment;
-		// 68
-		.classRef 1.9;		// javacard/security/RSAPublicKey
-		// 69
-		staticMethodRef 1.14.0(B)Ljavacard/security/RandomData;;		// javacard/security/RandomData.getInstance(B)Ljavacard/security/RandomData;
-			.descriptor	Ljavacard/security/RandomData;	1.14;
-
-		// 70
-		.classRef 1.16;		// javacard/security/KeyPair
-		// 71
-		staticMethodRef 1.16.1(Ljavacard/security/PublicKey;Ljavacard/security/PrivateKey;)V;		// javacard/security/KeyPair.<init>(Ljavacard/security/PublicKey;Ljavacard/security/PrivateKey;)V
-			.descriptor	Ljavacard/security/PublicKey;	1.3;
-			.descriptor	Ljavacard/security/PrivateKey;	1.2;
-
-		// 72
-		virtualMethodRef 1.16.1()V;		// genKeyPair()V
-		// 73
-		virtualMethodRef 1.16.3()Ljavacard/security/PublicKey;;		// getPublic()Ljavacard/security/PublicKey;
-			.descriptor	Ljavacard/security/PublicKey;	1.3;
-
-		// 74
-		virtualMethodRef 1.16.2()Ljavacard/security/PrivateKey;;		// getPrivate()Ljavacard/security/PrivateKey;
-			.descriptor	Ljavacard/security/PrivateKey;	1.2;
-
-		// 75
-		virtualMethodRef 0.3.2([BSB)V;		// register([BSB)V
-		// 76
-		.classRef 1.12;		// javacard/security/CryptoException
-		// 77
-		virtualMethodRef 0.9.1([BSB)Z;		// check([BSB)Z
-		// 78
-		virtualMethodRef 0.10.7()S;		// setOutgoing()S
-		// 79
-		virtualMethodRef 0.10.9(S)V;		// setOutgoingLength(S)V
-		// 80
-		virtualMethodRef 0.10.4(SS)V;		// sendBytes(SS)V
-		// 81
-		staticMethodRef test2/decryptPin([B)[B;
-		// 82
-		.classRef test2;
-		// 83
-		staticMethodRef test2/<init>([BSB)V;
-		// 84
-		virtualMethodRef 0.9.2()B;		// getTriesRemaining()B
-		// 85
-		virtualMethodRef 0.9.5()V;		// reset()V
-		// 86
-		virtualMethodRef 0.10.14()Z;		// isISOInterindustryCLA()Z
-		// 87
-		staticMethodRef test2/getBalance(Ljavacard/framework/APDU;)V;
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-		// 88
-		staticMethodRef test2/debit(Ljavacard/framework/APDU;)V;
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-		// 89
-		staticMethodRef test2/credit(Ljavacard/framework/APDU;)V;
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-		// 90
-		staticMethodRef test2/verify(Ljavacard/framework/APDU;)V;
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-		// 91
-		staticMethodRef test2/get_cardholder_methods(Ljavacard/framework/APDU;)V;
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-		// 92
-		staticMethodRef test2/encryptPin(Ljavacard/framework/APDU;)V;
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-		// 93
-		staticMethodRef test2/checkEncryptedPin(Ljavacard/framework/APDU;)V;
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-		// 94
-		virtualMethodRef 0.9.4()Z;		// isValidated()Z
-		// 95
-		staticMethodRef 0.3.0()V;		// javacard/framework/Applet.<init>()V
 	}
 
 	.class public Entertainment 0 extends 0.3 {		// extends javacard/framework/Applet
@@ -280,19 +178,19 @@
 			private byte adminPinTries 15;		// B
 			private boolean userAuthenticated 16;		// Z
 			private boolean adminAuthenticated 17;		// Z
-			private static final byte INS_GET_SALT = 16;		// B
-			private static final byte INS_VERIFY_USER_PIN = 32;		// B
-			private static final byte INS_VERIFY_ADMIN_PIN = 33;		// B
-			private static final byte INS_CHANGE_USER_PIN = 48;		// B
-			private static final byte INS_RESET_USER_PIN = 49;		// B
-			private static final byte INS_GET_DATA = 64;		// B
-			private static final byte INS_SET_DATA = 80;		// B
-			private static final byte INS_INITIALIZE = 96;		// B
+			private static final byte INS_GET_SALT = 1;		// B
+			private static final byte INS_VERIFY_USER_PIN = 2;		// B
+			private static final byte INS_VERIFY_ADMIN_PIN = 3;		// B
+			private static final byte INS_CHANGE_USER_PIN = 4;		// B
+			private static final byte INS_RESET_USER_PIN = 5;		// B
+			private static final byte INS_GET_DATA = 6;		// B
+			private static final byte INS_SET_DATA = 7;		// B
+			private static final byte INS_INITIALIZE = 8;		// B
 			private static final short SW_AUTHENTICATION_METHOD_BLOCKED = 27011;		// S
 			private static final short SALT_LENGTH = 16;		// S
 			private static final short MASTER_KEY_LENGTH = 32;		// S
 			private static final short HASH_LENGTH = 32;		// S
-			private static final short MAX_DATA_LENGTH = 512;		// S
+			private static final short MAX_DATA_LENGTH = 255;		// S
 			private static final short AES_BLOCK_SIZE = 16;		// S
 			private static final byte MAX_PIN_TRIES = 5;		// B
 		}
@@ -315,9 +213,9 @@
 			.stack 5;
 			.locals 0;
 
-				L0:	new 67;		// Entertainment/Entertainment
+				L0:	new 23;		// Entertainment/Entertainment
 					dup;
-					invokespecial 57;		// Entertainment/Entertainment.<init>()V
+					invokespecial 19;		// Entertainment/Entertainment.<init>()V
 					aload_0;
 					sload_1;
 					sconst_1;
@@ -325,7 +223,7 @@
 					aload_0;
 					sload_1;
 					baload;
-					invokevirtual 75;		// register([BSB)V
+					invokevirtual 25;		// register([BSB)V
 					return;
 		}
 
@@ -334,7 +232,7 @@
 			.locals 0;
 
 				L0:	aload_0;
-					invokespecial 95;		// javacard/framework/Applet.<init>()V
+					invokespecial 26;		// javacard/framework/Applet.<init>()V
 					aload_0;
 					bspush 16;
 					newarray 11;
@@ -356,7 +254,7 @@
 					newarray 11;
 					putfield_a 4;		// reference Entertainment/Entertainment.hashM
 					aload_0;
-					sspush 512;
+					sspush 255;
 					newarray 11;
 					putfield_a 5;		// reference Entertainment/Entertainment.encData
 					aload_0;
@@ -371,38 +269,38 @@
 					aload_0;
 					bspush 32;
 					sconst_2;
-					invokestatic 59;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 21;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 9;		// reference Entertainment/Entertainment.masterKeyRAM
 					aload_0;
-					bspush 64;
+					sspush 256;
 					sconst_2;
-					invokestatic 59;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 21;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 10;		// reference Entertainment/Entertainment.tempBuffer
 					aload_0;
 					bspush 16;
 					sconst_2;
-					invokestatic 59;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 21;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 11;		// reference Entertainment/Entertainment.ivBuffer
 					aload_0;
 					bspush 15;
 					sspush 256;
 					sconst_0;
 					invokestatic 27;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
-					checkcast 0 56;		// T_CLASSORINTERFACE javacard/security/AESKey
+					checkcast 0 18;		// T_CLASSORINTERFACE javacard/security/AESKey
 					putfield_a 12;		// reference Entertainment/Entertainment.aesKey
 					aload_0;
 					bspush 13;
 					sconst_0;
-					invokestatic 58;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+					invokestatic 20;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
 					putfield_a 13;		// reference Entertainment/Entertainment.aesCipher
 					aload_0;
 					sconst_4;
 					sconst_0;
-					invokestatic 62;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
+					invokestatic 22;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
 					putfield_a 14;		// reference Entertainment/Entertainment.sha256
 					aload_0;
 					sconst_2;
-					invokestatic 69;		// javacard/security/RandomData.getInstance(B)Ljavacard/security/RandomData;
+					invokestatic 24;		// javacard/security/RandomData.getInstance(B)Ljavacard/security/RandomData;
 					putfield_a 15;		// reference Entertainment/Entertainment.random
 					aload_0;
 					sconst_0;
@@ -439,7 +337,7 @@
 					baload;
 					sstore_3;
 				L4:	sload_3;
-					slookupswitch L13 8 16 L6 32 L7 33 L8 48 L9 49 L10 64 L11 80 L12 96 L5;
+					stableswitch L13 1 8 L6 L7 L8 L9 L10 L11 L12 L5;
 				L5:	aload_0;
 					aload_1;
 					invokespecial 31;		// Entertainment/Entertainment.initialize(Ljavacard/framework/APDU;)V
@@ -491,12 +389,17 @@
 					sstore_3;
 				L2:	bspush 96;
 					sstore 4;
-				L3:	sconst_5;
+				L3:	sload 4;
+					sspush 255;
+					if_scmple L5;
+				L4:	sspush 26368;
+					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
+				L5:	sconst_5;
 					sstore 5;
-				L4:	sload_3;
+				L6:	sload_3;
 					sload 4;
-					if_scmpge L6;
-				L5:	sload_3;
+					if_scmpge L8;
+				L7:	sload_3;
 					aload_1;
 					sload 5;
 					invokevirtual 41;		// receiveBytes(S)S
@@ -506,13 +409,13 @@
 					sload_3;
 					sadd;
 					sstore 5;
-					goto L4;
-				L6:	sload_3;
+					goto L6;
+				L8:	sload_3;
 					sload 4;
-					if_scmpeq L8;
-				L7:	sspush 26368;
+					if_scmpeq L10;
+				L9:	sspush 26368;
 					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L8:	getfield_a_this 15;		// reference Entertainment/Entertainment.random
+				L10:	getfield_a_this 15;		// reference Entertainment/Entertainment.random
 					getfield_a_this 9;		// reference Entertainment/Entertainment.masterKeyRAM
 					sconst_0;
 					bspush 32;
@@ -529,9 +432,9 @@
 					pop;
 					sconst_5;
 					sstore 6;
-				L9:	getfield_a_this 10;		// reference Entertainment/Entertainment.tempBuffer
+				L11:	getfield_a_this 10;		// reference Entertainment/Entertainment.tempBuffer
 					astore 7;
-				L10:	aload_2;
+				L12:	aload_2;
 					sload 6;
 					aload 7;
 					sconst_0;
@@ -550,7 +453,7 @@
 					bspush 32;
 					newarray 11;
 					astore 8;
-				L11:	aload_2;
+				L13:	aload_2;
 					sload 6;
 					aload 8;
 					sconst_0;
@@ -957,7 +860,12 @@
 					sconst_0;
 					invokespecial 51;		// Entertainment/Entertainment.decryptData([B[BSS[BS)S
 					sstore_3;
-				L7:	aload_1;
+				L7:	sload_3;
+					sspush 255;
+					if_scmple L9;
+				L8:	sspush 26368;
+					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
+				L9:	aload_1;
 					sconst_0;
 					sload_3;
 					invokevirtual 48;		// setOutgoingAndSend(SS)V
@@ -990,26 +898,29 @@
 					sspush 255;
 					sand;
 					sstore 5;
-				L7:	sload_3;
+				L7:	sload 5;
+					sspush 255;
+					if_scmpgt L9;
+				L8:	sload 5;
+					sspush 255;
+					if_scmple L10;
+				L9:	sspush 26368;
+					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
+				L10:	sload_3;
 					sload 5;
-					if_scmpge L11;
-				L8:	aload_1;
+					if_scmpge L14;
+				L11:	aload_1;
 					sconst_5;
 					sload_3;
 					sadd;
 					invokevirtual 41;		// receiveBytes(S)S
 					sstore 6;
-				L9:	sload_3;
+				L12:	sload_3;
 					sload 6;
 					sadd;
 					sstore_3;
-				L10:	goto L7;
-				L11:	sload 5;
-					sspush 512;
-					if_scmple L13;
-				L12:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L13:	sload 5;
+				L13:	goto L10;
+				L14:	sload 5;
 					s2i;
 					bipush 16;
 					iadd;
@@ -1021,7 +932,7 @@
 					imul;
 					i2s;
 					sstore 6;
-				L14:	aload_0;
+				L15:	aload_0;
 					aload_0;
 					getfield_a_this 9;		// reference Entertainment/Entertainment.masterKeyRAM
 					aload_2;
@@ -1042,7 +953,7 @@
 				L0:	getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					aload_1;
 					sconst_0;
-					invokeinterface 3 56 4;		// javacard/security/AESKey
+					invokeinterface 3 18 4;		// javacard/security/AESKey
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					sconst_2;
@@ -1070,7 +981,7 @@
 				L0:	getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					aload_1;
 					sconst_0;
-					invokeinterface 3 56 4;		// javacard/security/AESKey
+					invokeinterface 3 18 4;		// javacard/security/AESKey
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					sconst_1;
@@ -1114,7 +1025,7 @@
 					getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					aload_1;
 					sconst_0;
-					invokeinterface 3 56 4;		// javacard/security/AESKey
+					invokeinterface 3 18 4;		// javacard/security/AESKey
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					sconst_2;
@@ -1138,7 +1049,7 @@
 				L0:	getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					aload_1;
 					sconst_0;
-					invokeinterface 3 56 4;		// javacard/security/AESKey
+					invokeinterface 3 18 4;		// javacard/security/AESKey
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					getfield_a_this 12;		// reference Entertainment/Entertainment.aesKey
 					sconst_1;
@@ -1165,798 +1076,6 @@
 					sconst_0;
 					invokestatic 47;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
-					return;
-		}
-
-	}
-
-	.class public test2 1 extends 0.3 {		// extends javacard/framework/Applet
-
-		.fields {
-			private 1.8 smartcard_rsa_private 0;		// Ljavacard/security/RSAPrivateKey;
-			private 1.9 smartcard_rsa_public 1;		// Ljavacard/security/RSAPublicKey;
-			private 2.1 rsaCipher 2;		// Ljavacardx/crypto/Cipher;
-			 0.9 pin 3;		// Ljavacard/framework/OwnerPIN;
-			 byte[] xValue 4;		// [B
-			 byte[] yValue 5;		// [B
-			 byte[] cvmRules 6;		// [B
-			 byte[] secret 7;		// [B
-			 short balance 8;		// S
-			static final byte Entertainment_CLA = -128;		// B
-			static final byte VERIFY = 32;		// B
-			static final byte CREDIT = 48;		// B
-			static final byte DEBIT = 64;		// B
-			static final byte GET_BALANCE = 80;		// B
-			static final byte GET_CARDHOLDER_METHODS = 112;		// B
-			static final byte ENCRYPT_PIN = -112;		// B
-			static final byte CHECK_ENCRYPTED_PIN = 0;		// B
-			static final short MAX_BALANCE = 32767;		// S
-			static final byte MAX_TRANSACTION_AMOUNT = 127;		// B
-			static final byte PIN_TRY_LIMIT = 3;		// B
-			static final byte MAX_PIN_SIZE = 8;		// B
-			static final short SW_VERIFICATION_FAILED = 25344;		// S
-			static final short SW_PIN_VERIFICATION_REQUIRED = 25345;		// S
-			static final short SW_INVALID_TRANSACTION_AMOUNT = 27267;		// S
-			static final short SW_EXCEED_MAXIMUM_BALANCE = 27268;		// S
-			static final short SW_NEGATIVE_BALANCE = 27269;		// S
-		}
-
-		.publicMethodTable 4 {
-			equals(Ljava/lang/Object;)Z;
-			register()V;
-			register([BSB)V;
-			selectingApplet()Z;
-			deselect()V;
-			getShareableInterfaceObject(Ljavacard/framework/AID;B)Ljavacard/framework/Shareable;;
-			select()Z;
-			process(Ljavacard/framework/APDU;)V;
-		}
-
-		.packageMethodTable 0 {
-		}
-
-		.method private <init>([BSB)V {
-			.stack 5;
-			.locals 3;
-
-				L0:	aload_0;
-					invokespecial 95;		// javacard/framework/Applet.<init>()V
-					aload_0;
-					sconst_4;
-					newarray 11;
-					dup;
-					sconst_0;
-					sconst_0;
-					bastore;
-					dup;
-					sconst_1;
-					sconst_0;
-					bastore;
-					dup;
-					sconst_2;
-					sconst_0;
-					bastore;
-					dup;
-					sconst_3;
-					bspush 50;
-					bastore;
-					putfield_a 18;		// reference Entertainment/test2.xValue
-					aload_0;
-					sconst_4;
-					newarray 11;
-					dup;
-					sconst_0;
-					sconst_0;
-					bastore;
-					dup;
-					sconst_1;
-					sconst_0;
-					bastore;
-					dup;
-					sconst_2;
-					sconst_0;
-					bastore;
-					dup;
-					sconst_3;
-					bspush 100;
-					bastore;
-					putfield_a 19;		// reference Entertainment/test2.yValue
-					aload_0;
-					bspush 6;
-					newarray 11;
-					dup;
-					sconst_0;
-					bspush -33;
-					bastore;
-					dup;
-					sconst_1;
-					bspush 6;
-					bastore;
-					dup;
-					sconst_2;
-					bspush -63;
-					bastore;
-					dup;
-					sconst_3;
-					bspush 8;
-					bastore;
-					dup;
-					sconst_4;
-					bspush -60;
-					bastore;
-					dup;
-					sconst_5;
-					bspush 9;
-					bastore;
-					putfield_a 20;		// reference Entertainment/test2.cvmRules
-					aload_0;
-					sconst_5;
-					newarray 11;
-					dup;
-					sconst_0;
-					sconst_1;
-					bastore;
-					dup;
-					sconst_1;
-					sconst_2;
-					bastore;
-					dup;
-					sconst_2;
-					sconst_3;
-					bastore;
-					dup;
-					sconst_3;
-					sconst_4;
-					bastore;
-					dup;
-					sconst_4;
-					sconst_5;
-					bastore;
-					putfield_a 21;		// reference Entertainment/test2.secret
-					aload_0;
-					new 60;		// javacard/framework/OwnerPIN
-					dup;
-					sconst_3;
-					bspush 8;
-					invokespecial 61;		// javacard/framework/OwnerPIN.<init>(BB)V
-					putfield_a 22;		// reference Entertainment/test2.pin
-					aload_1;
-					sload_2;
-					baload;
-					sstore 4;
-				L1:	sload_2;
-					sload 4;
-					sadd;
-					sconst_1;
-					sadd;
-					sstore_2;
-					aload_1;
-					sload_2;
-					baload;
-					sstore 5;
-				L2:	sload_2;
-					sload 5;
-					sadd;
-					sconst_1;
-					sadd;
-					sstore_2;
-					aload_1;
-					sload_2;
-					baload;
-					sstore 6;
-				L3:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					aload_1;
-					sload_2;
-					sconst_1;
-					sadd;
-					sload 6;
-					invokevirtual 63;		// update([BSB)V
-					aload_0;
-					invokevirtual 64;		// register()V
-					aload_0;
-					invokespecial 65;		// Entertainment/test2.initializeKeys()V
-					return;
-		}
-
-		.method private initializeKeys()V {
-			.stack 4;
-			.locals 1;
-
-				L0:	aload_0;
-					sconst_5;
-					sspush 512;
-					sconst_0;
-					invokestatic 27;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
-					checkcast 0 66;		// T_CLASSORINTERFACE javacard/security/RSAPrivateKey
-					putfield_a 23;		// reference Entertainment/test2.smartcard_rsa_private
-					aload_0;
-					sconst_4;
-					sspush 512;
-					sconst_0;
-					invokestatic 27;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
-					checkcast 0 68;		// T_CLASSORINTERFACE javacard/security/RSAPublicKey
-					putfield_a 24;		// reference Entertainment/test2.smartcard_rsa_public
-					new 70;		// javacard/security/KeyPair
-					dup;
-					getfield_a_this 24;		// reference Entertainment/test2.smartcard_rsa_public
-					getfield_a_this 23;		// reference Entertainment/test2.smartcard_rsa_private
-					invokespecial 71;		// javacard/security/KeyPair.<init>(Ljavacard/security/PublicKey;Ljavacard/security/PrivateKey;)V
-					astore_1;
-				L1:	aload_1;
-					invokevirtual 72;		// genKeyPair()V
-					aload_0;
-					aload_1;
-					invokevirtual 73;		// getPublic()Ljavacard/security/PublicKey;
-					checkcast 0 68;		// T_CLASSORINTERFACE javacard/security/RSAPublicKey
-					putfield_a 24;		// reference Entertainment/test2.smartcard_rsa_public
-					aload_0;
-					aload_1;
-					invokevirtual 74;		// getPrivate()Ljavacard/security/PrivateKey;
-					checkcast 0 66;		// T_CLASSORINTERFACE javacard/security/RSAPrivateKey
-					putfield_a 23;		// reference Entertainment/test2.smartcard_rsa_private
-					aload_0;
-					bspush 10;
-					sconst_0;
-					invokestatic 58;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
-					putfield_a 25;		// reference Entertainment/test2.rsaCipher
-					return;
-		}
-
-		.method private encryptPin(Ljavacard/framework/APDU;)V {
-			.stack 6;
-			.locals 7;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore_2;
-				L1:	aload_2;
-					sconst_4;
-					baload;
-					sstore_3;
-				L2:	aload_1;
-					invokevirtual 40;		// setIncomingAndReceive()S
-					s2b;
-					sstore 4;
-				L3:	sload_3;
-					sload 4;
-					if_scmpeq L5;
-				L4:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L5:	sload 4;
-					newarray 11;
-					astore 5;
-				L6:	sconst_0;
-					sstore 6;
-				L7:	sload 6;
-					sload_3;
-					if_scmpge L9;
-				L8:	aload 5;
-					sload 6;
-					aload_2;
-					sconst_5;
-					sload 6;
-					sadd;
-					baload;
-					bastore;
-					sinc 6 1;
-					goto L7;
-				L9:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					aload 5;
-					sconst_0;
-					aload 5;
-					arraylength;
-					s2b;
-					invokevirtual 77;		// check([BSB)Z
-					ifne L11;
-				L10:	sspush 25344;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L11:	aload_1;
-					invokevirtual 78;		// setOutgoing()S
-					sstore 6;
-				L12:	sload 6;
-					sconst_2;
-					if_scmpge L14;
-				L13:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L14:	aload_1;
-					bspush 64;
-					invokevirtual 79;		// setOutgoingLength(S)V
-					aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore 7;
-				L15:	getfield_a_this 25;		// reference Entertainment/test2.rsaCipher
-					getfield_a_this 24;		// reference Entertainment/test2.smartcard_rsa_public
-					sconst_2;
-					invokevirtual 53;		// init(Ljavacard/security/Key;B)V
-					getfield_a_this 25;		// reference Entertainment/test2.rsaCipher
-					aload 5;
-					sconst_0;
-					aload 5;
-					arraylength;
-					aload 7;
-					sconst_0;
-					invokevirtual 54;		// doFinal([BSS[BS)S
-					sstore 8;
-				L16:	aload_1;
-					sconst_0;
-					sload 8;
-					invokevirtual 80;		// sendBytes(SS)V
-				L17:	goto L20;
-				L18:	astore 6;
-				L19:	sspush 27010;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L20:	return;
-			.exceptionTable {
-				// start_block end_block handler_block catch_type_index
-				L11 L17 L18 76;
-			}
-		}
-
-		.method private decryptPin([B)[B {
-			.stack 6;
-			.locals 4;
-
-				L0:	bspush 64;
-					newarray 11;
-					astore_2;
-				L1:	getfield_a_this 25;		// reference Entertainment/test2.rsaCipher
-					getfield_a_this 23;		// reference Entertainment/test2.smartcard_rsa_private
-					sconst_1;
-					invokevirtual 53;		// init(Ljavacard/security/Key;B)V
-					getfield_a_this 25;		// reference Entertainment/test2.rsaCipher
-					aload_1;
-					sconst_0;
-					aload_1;
-					arraylength;
-					aload_2;
-					sconst_0;
-					invokevirtual 54;		// doFinal([BSS[BS)S
-					sstore_3;
-				L2:	sload_3;
-					newarray 11;
-					astore 4;
-				L3:	sconst_0;
-					sstore 5;
-				L4:	sload 5;
-					sload_3;
-					if_scmpge L6;
-				L5:	aload 4;
-					sload 5;
-					aload_2;
-					sload 5;
-					baload;
-					bastore;
-					sinc 5 1;
-					goto L4;
-				L6:	aload 4;
-				L7:	areturn;
-				L8:	astore_2;
-				L9:	aconst_null;
-					areturn;
-			.exceptionTable {
-				// start_block end_block handler_block catch_type_index
-				L0 L7 L8 76;
-			}
-		}
-
-		.method private checkEncryptedPin(Ljavacard/framework/APDU;)V {
-			.stack 5;
-			.locals 5;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore_2;
-				L1:	aload_2;
-					sconst_4;
-					baload;
-					sstore_3;
-				L2:	aload_1;
-					invokevirtual 40;		// setIncomingAndReceive()S
-					s2b;
-					sstore 4;
-				L3:	sload_3;
-					bspush 64;
-					if_scmpne L5;
-				L4:	sload 4;
-					bspush 64;
-					if_scmpeq L6;
-				L5:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L6:	bspush 64;
-					newarray 11;
-					astore 5;
-				L7:	sconst_0;
-					sstore 6;
-				L8:	sload 6;
-					sload_3;
-					if_scmpge L10;
-				L9:	aload 5;
-					sload 6;
-					aload_2;
-					sconst_5;
-					sload 6;
-					sadd;
-					baload;
-					bastore;
-					sinc 6 1;
-					goto L8;
-				L10:	aload_0;
-					aload 5;
-					invokespecial 81;		// Entertainment/test2.decryptPin([B)[B
-					astore 6;
-				L11:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					aload 6;
-					sconst_0;
-					aload 6;
-					arraylength;
-					s2b;
-					invokevirtual 77;		// check([BSB)Z
-					ifne L13;
-				L12:	sspush 25344;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L13:	return;
-		}
-
-		.method public static install([BSB)V 0 {
-			.stack 5;
-			.locals 0;
-
-				L0:	new 82;		// Entertainment/test2
-					dup;
-					aload_0;
-					sload_1;
-					sload_2;
-					invokespecial 83;		// Entertainment/test2.<init>([BSB)V
-					pop;
-					return;
-		}
-
-		.method public select()Z 6 {
-			.stack 1;
-			.locals 0;
-
-				L0:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					invokevirtual 84;		// getTriesRemaining()B
-					ifne L2;
-				L1:	sconst_0;
-					sreturn;
-				L2:	sconst_1;
-					sreturn;
-		}
-
-		.method public deselect()V 4 {
-			.stack 1;
-			.locals 0;
-
-				L0:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					invokevirtual 85;		// reset()V
-					return;
-		}
-
-		.method public process(Ljavacard/framework/APDU;)V 7 {
-			.stack 2;
-			.locals 1;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore_2;
-				L1:	aload_1;
-					invokevirtual 86;		// isISOInterindustryCLA()Z
-					ifeq L5;
-				L2:	aload_2;
-					sconst_1;
-					baload;
-					bspush -92;
-					if_scmpne L4;
-				L3:	return;
-				L4:	sspush 28160;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L5:	aload_2;
-					sconst_0;
-					baload;
-					bspush -128;
-					if_scmpeq L7;
-				L6:	sspush 28160;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L7:	aload_2;
-					sconst_1;
-					baload;
-					slookupswitch L15 7 -112 L13 0 L14 32 L11 48 L10 64 L9 80 L8 112 L12;
-				L8:	aload_0;
-					aload_1;
-					invokespecial 87;		// Entertainment/test2.getBalance(Ljavacard/framework/APDU;)V
-					return;
-				L9:	aload_0;
-					aload_1;
-					invokespecial 88;		// Entertainment/test2.debit(Ljavacard/framework/APDU;)V
-					return;
-				L10:	aload_0;
-					aload_1;
-					invokespecial 89;		// Entertainment/test2.credit(Ljavacard/framework/APDU;)V
-					return;
-				L11:	aload_0;
-					aload_1;
-					invokespecial 90;		// Entertainment/test2.verify(Ljavacard/framework/APDU;)V
-					return;
-				L12:	aload_0;
-					aload_1;
-					invokespecial 91;		// Entertainment/test2.get_cardholder_methods(Ljavacard/framework/APDU;)V
-					return;
-				L13:	aload_0;
-					aload_1;
-					invokespecial 92;		// Entertainment/test2.encryptPin(Ljavacard/framework/APDU;)V
-					return;
-				L14:	aload_0;
-					aload_1;
-					invokespecial 93;		// Entertainment/test2.checkEncryptedPin(Ljavacard/framework/APDU;)V
-					return;
-				L15:	sspush 27904;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-					return;
-		}
-
-		.method private credit(Ljavacard/framework/APDU;)V {
-			.stack 3;
-			.locals 4;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					invokevirtual 94;		// isValidated()Z
-					ifne L2;
-				L1:	sspush 25345;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L2:	aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore_2;
-				L3:	aload_2;
-					sconst_4;
-					baload;
-					sstore_3;
-				L4:	aload_1;
-					invokevirtual 40;		// setIncomingAndReceive()S
-					s2b;
-					sstore 4;
-				L5:	sload_3;
-					sconst_1;
-					if_scmpne L7;
-				L6:	sload 4;
-					sconst_1;
-					if_scmpeq L8;
-				L7:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L8:	aload_2;
-					sconst_5;
-					baload;
-					sstore 5;
-				L9:	sload 5;
-					bspush 127;
-					if_scmpgt L11;
-				L10:	sload 5;
-					ifge L12;
-				L11:	sspush 27267;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L12:	getfield_s_this 26;		// short Entertainment/test2.balance
-					sload 5;
-					sadd;
-					sspush 32767;
-					if_scmple L14;
-				L13:	sspush 27268;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L14:	aload_0;
-					getfield_s_this 26;		// short Entertainment/test2.balance
-					sload 5;
-					sadd;
-					putfield_s 26;		// short Entertainment/test2.balance
-					return;
-		}
-
-		.method private debit(Ljavacard/framework/APDU;)V {
-			.stack 3;
-			.locals 4;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					invokevirtual 94;		// isValidated()Z
-					ifne L2;
-				L1:	sspush 25345;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L2:	aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore_2;
-				L3:	aload_2;
-					sconst_4;
-					baload;
-					sstore_3;
-				L4:	aload_1;
-					invokevirtual 40;		// setIncomingAndReceive()S
-					s2b;
-					sstore 4;
-				L5:	sload_3;
-					sconst_1;
-					if_scmpne L7;
-				L6:	sload 4;
-					sconst_1;
-					if_scmpeq L8;
-				L7:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L8:	aload_2;
-					sconst_5;
-					baload;
-					sstore 5;
-				L9:	sload 5;
-					bspush 127;
-					if_scmpgt L11;
-				L10:	sload 5;
-					ifge L12;
-				L11:	sspush 27267;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L12:	getfield_s_this 26;		// short Entertainment/test2.balance
-					sload 5;
-					ssub;
-					ifge L14;
-				L13:	sspush 27269;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L14:	aload_0;
-					getfield_s_this 26;		// short Entertainment/test2.balance
-					sload 5;
-					ssub;
-					putfield_s 26;		// short Entertainment/test2.balance
-					return;
-		}
-
-		.method private getBalance(Ljavacard/framework/APDU;)V {
-			.stack 4;
-			.locals 2;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore_2;
-				L1:	aload_1;
-					invokevirtual 78;		// setOutgoing()S
-					sstore_3;
-				L2:	sload_3;
-					sconst_2;
-					if_scmpge L4;
-				L3:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L4:	aload_1;
-					sconst_2;
-					invokevirtual 79;		// setOutgoingLength(S)V
-					aload_2;
-					sconst_0;
-					getfield_s_this 26;		// short Entertainment/test2.balance
-					bspush 8;
-					sshr;
-					s2b;
-					bastore;
-					aload_2;
-					sconst_1;
-					getfield_s_this 26;		// short Entertainment/test2.balance
-					sspush 255;
-					sand;
-					s2b;
-					bastore;
-					aload_1;
-					sconst_0;
-					sconst_2;
-					invokevirtual 80;		// sendBytes(SS)V
-					return;
-		}
-
-		.method private verify(Ljavacard/framework/APDU;)V {
-			.stack 4;
-			.locals 2;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore_2;
-				L1:	aload_1;
-					invokevirtual 40;		// setIncomingAndReceive()S
-					s2b;
-					sstore_3;
-				L2:	getfield_a_this 22;		// reference Entertainment/test2.pin
-					aload_2;
-					sconst_5;
-					sload_3;
-					invokevirtual 77;		// check([BSB)Z
-					ifne L4;
-				L3:	sspush 25344;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L4:	return;
-		}
-
-		.method private get_cardholder_methods(Ljavacard/framework/APDU;)V {
-			.stack 4;
-			.locals 5;
-
-			.descriptor	Ljavacard/framework/APDU;	0.10;
-
-				L0:	aload_1;
-					invokevirtual 78;		// setOutgoing()S
-					sstore_2;
-				L1:	sload_2;
-					sconst_2;
-					if_scmpge L3;
-				L2:	sspush 26368;
-					invokestatic 39;		// javacard/framework/ISOException.throwIt(S)V
-				L3:	getfield_a_this 18;		// reference Entertainment/test2.xValue
-					arraylength;
-					getfield_a_this 19;		// reference Entertainment/test2.yValue
-					arraylength;
-					sadd;
-					getfield_a_this 20;		// reference Entertainment/test2.cvmRules
-					arraylength;
-					sadd;
-					sstore_3;
-				L4:	aload_1;
-					sload_3;
-					invokevirtual 79;		// setOutgoingLength(S)V
-					aload_1;
-					invokevirtual 30;		// getBuffer()[B
-					astore 4;
-				L5:	sconst_0;
-					sstore 5;
-				L6:	sconst_0;
-					sstore 6;
-				L7:	sload 6;
-					getfield_a_this 18;		// reference Entertainment/test2.xValue
-					arraylength;
-					if_scmpge L9;
-				L8:	aload 4;
-					sload 5;
-					getfield_a_this 18;		// reference Entertainment/test2.xValue
-					sload 6;
-					baload;
-					bastore;
-					sinc 5 1;
-					sinc 6 1;
-					goto L7;
-				L9:	sconst_0;
-					sstore 6;
-				L10:	sload 6;
-					getfield_a_this 19;		// reference Entertainment/test2.yValue
-					arraylength;
-					if_scmpge L12;
-				L11:	aload 4;
-					sload 5;
-					getfield_a_this 19;		// reference Entertainment/test2.yValue
-					sload 6;
-					baload;
-					bastore;
-					sinc 5 1;
-					sinc 6 1;
-					goto L10;
-				L12:	sconst_0;
-					sstore 6;
-				L13:	sload 6;
-					getfield_a_this 20;		// reference Entertainment/test2.cvmRules
-					arraylength;
-					if_scmpge L15;
-				L14:	aload 4;
-					sload 5;
-					getfield_a_this 20;		// reference Entertainment/test2.cvmRules
-					sload 6;
-					baload;
-					bastore;
-					sinc 5 1;
-					sinc 6 1;
-					goto L13;
-				L15:	aload_1;
-					sconst_0;
-					sload 5;
-					invokevirtual 80;		// sendBytes(SS)V
 					return;
 		}
 

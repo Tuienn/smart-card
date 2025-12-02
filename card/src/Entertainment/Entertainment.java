@@ -7,14 +7,14 @@ import javacardx.crypto.*;
 public class Entertainment extends Applet
 {
 	// INS codes
-	private static final byte INS_GET_SALT = (byte)0x10;
-	private static final byte INS_VERIFY_USER_PIN = (byte)0x20;
-	private static final byte INS_VERIFY_ADMIN_PIN = (byte)0x21;
-	private static final byte INS_CHANGE_USER_PIN = (byte)0x30;
-	private static final byte INS_RESET_USER_PIN = (byte)0x31;
-	private static final byte INS_GET_DATA = (byte)0x40;
-	private static final byte INS_SET_DATA = (byte)0x50;
-	private static final byte INS_INITIALIZE = (byte)0x60;
+	private static final byte INS_GET_SALT = (byte)0x01;
+	private static final byte INS_VERIFY_USER_PIN = (byte)0x02;
+	private static final byte INS_VERIFY_ADMIN_PIN = (byte)0x03;
+	private static final byte INS_CHANGE_USER_PIN = (byte)0x04;
+	private static final byte INS_RESET_USER_PIN = (byte)0x05;
+	private static final byte INS_GET_DATA = (byte)0x06;
+	private static final byte INS_SET_DATA = (byte)0x07;
+	private static final byte INS_INITIALIZE = (byte)0x08;
 	
 	// Custom status word for blocked authentication
 	private static final short SW_AUTHENTICATION_METHOD_BLOCKED = (short)0x6983;
@@ -23,7 +23,7 @@ public class Entertainment extends Applet
 	private static final short SALT_LENGTH = 16;
 	private static final short MASTER_KEY_LENGTH = 32;
 	private static final short HASH_LENGTH = 32;
-	private static final short MAX_DATA_LENGTH = 512;
+	private static final short MAX_DATA_LENGTH = 255;
 	private static final short AES_BLOCK_SIZE = 16;
 	private static final byte MAX_PIN_TRIES = 5;
 	
@@ -79,7 +79,7 @@ public class Entertainment extends Applet
 		masterKeyRAM = JCSystem.makeTransientByteArray(MASTER_KEY_LENGTH, JCSystem.CLEAR_ON_DESELECT);
 		
 		// Allocate temporary buffers
-		tempBuffer = JCSystem.makeTransientByteArray((short)64, JCSystem.CLEAR_ON_DESELECT);
+		tempBuffer = JCSystem.makeTransientByteArray((short)256, JCSystem.CLEAR_ON_DESELECT);
 		ivBuffer = JCSystem.makeTransientByteArray(AES_BLOCK_SIZE, JCSystem.CLEAR_ON_DESELECT);
 		
 		// Initialize crypto objects
@@ -146,7 +146,11 @@ public class Entertainment extends Applet
 	{
 		byte[] buf = apdu.getBuffer();
 		short receivedLen = apdu.setIncomingAndReceive();
-		short totalLen = (short)(MASTER_KEY_LENGTH * 2 + SALT_LENGTH * 2);
+		short totalLen = (short)((short)(MASTER_KEY_LENGTH * 2) + (short)(SALT_LENGTH * 2));
+		
+		// Check APDU length limit
+		if (totalLen > 255)
+			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
 		
 		// Receive all data
 		short offset = ISO7816.OFFSET_CDATA;
@@ -409,6 +413,10 @@ public class Entertainment extends Applet
 		// Decrypt data using M
 		short decryptedLen = decryptData(masterKeyRAM, encData, (short)0, encDataLength, buf, (short)0);
 		
+		// Check APDU response length limit
+		if (decryptedLen > 255)
+			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
+		
 		apdu.setOutgoingAndSend((short)0, decryptedLen);
 	}
 	
@@ -428,14 +436,15 @@ public class Entertainment extends Applet
 		short offset = ISO7816.OFFSET_CDATA;
 		short totalLen = (short)(buf[ISO7816.OFFSET_LC] & 0xFF);
 		
+		// Check APDU input length limit first
+		if (totalLen > 255 || totalLen > MAX_DATA_LENGTH)
+			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
+		
 		while (receivedLen < totalLen)
 		{
 			short len = apdu.receiveBytes((short)(ISO7816.OFFSET_CDATA + receivedLen));
 			receivedLen += len;
 		}
-		
-		if (totalLen > MAX_DATA_LENGTH)
-			ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
 		
 		// Pad data to AES block size
 		short paddedLen = (short)((totalLen + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE * AES_BLOCK_SIZE);
