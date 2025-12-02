@@ -16,11 +16,14 @@ import {
   PenLine,
   KeyRound,
   ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { verifyPinAction } from "../actions";
 import { isAuthVerified, setAuthVerified } from "@/lib/auth";
 
-type ViewState = "verify" | "menu";
+type ViewState = "verify" | "menu" | "locked";
+
+const MAX_PIN_ATTEMPTS = 5;
 
 // Get initial view based on auth state
 const getInitialView = (): ViewState => {
@@ -34,6 +37,7 @@ const UserPage: React.FC = () => {
   const router = useRouter();
   const otpRef = useRef<OtpViewRef>(null);
   const [currentView, setCurrentView] = useState<ViewState>(getInitialView);
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const [message, setMessage] = useState<MessageState>({
     type: null,
     text: "",
@@ -41,8 +45,15 @@ const UserPage: React.FC = () => {
 
   const clearMessage = () => setMessage({ type: null, text: "" });
 
+  const remainingAttempts = MAX_PIN_ATTEMPTS - failedAttempts;
+
   // Verify PIN
   const handleVerifyPin = async (pin?: string) => {
+    if (failedAttempts >= MAX_PIN_ATTEMPTS) {
+      setCurrentView("locked");
+      return;
+    }
+
     const userPin = pin || otpRef.current?.getValue();
 
     if (!userPin || userPin.length !== 6) {
@@ -57,18 +68,74 @@ const UserPage: React.FC = () => {
       if (result.success) {
         setMessage({ type: "success", text: result.message });
         setAuthVerified(); // Save to session storage
+        setFailedAttempts(0); // Reset on success
         setTimeout(() => {
           setCurrentView("menu");
           clearMessage();
         }, 1000);
       } else {
-        setMessage({ type: "error", text: result.message });
+        const newFailedAttempts = failedAttempts + 1;
+        setFailedAttempts(newFailedAttempts);
+
+        if (newFailedAttempts >= MAX_PIN_ATTEMPTS) {
+          setCurrentView("locked");
+        } else {
+          setMessage({
+            type: "error",
+            text: `${result.message}. Còn ${
+              MAX_PIN_ATTEMPTS - newFailedAttempts
+            } lần thử.`,
+          });
+        }
         otpRef.current?.clear();
       }
     } catch {
       setMessage({ type: "error", text: "Có lỗi xảy ra. Vui lòng thử lại." });
     }
   };
+
+  // Locked View - Account locked after max failed attempts
+  if (currentView === "locked") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-red-50 via-white to-rose-50 p-6">
+        <div className="max-w-2xl w-full">
+          <div className="text-center space-y-8">
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <div className="bg-linear-to-br from-red-500 to-rose-600 p-6 rounded-3xl shadow-2xl animate-pulse">
+                  <Lock className="size-16 text-white" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold bg-linear-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                Thẻ đã bị khóa
+              </h1>
+              <p className="text-lg text-gray-600">
+                Bạn đã nhập sai PIN quá {MAX_PIN_ATTEMPTS} lần
+              </p>
+            </div>
+
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center justify-center gap-2 text-red-600">
+                <Lock className="size-5" />
+                <span className="font-semibold">
+                  Tài khoản tạm thời bị khóa
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Vui lòng liên hệ quản trị viên để được reset mã PIN.
+              </p>
+              <button
+                onClick={() => router.push("/admin")}
+                className="mt-4 px-6 py-3 bg-linear-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                Liên hệ Admin
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Verify PIN View
   if (currentView === "verify") {
@@ -95,6 +162,29 @@ const UserPage: React.FC = () => {
             </div>
 
             <MessageAlert message={message} className="mt-4" />
+
+            {/* Attempts indicator */}
+            {failedAttempts > 0 && (
+              <div className="flex items-center justify-center gap-2">
+                <div className="flex gap-1">
+                  {Array.from({ length: MAX_PIN_ATTEMPTS }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-3 h-3 rounded-full transition-colors duration-300 ${
+                        i < failedAttempts ? "bg-red-500" : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span
+                  className={`text-sm font-medium ${
+                    remainingAttempts <= 2 ? "text-red-500" : "text-gray-500"
+                  }`}
+                >
+                  Còn {remainingAttempts} lần thử
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

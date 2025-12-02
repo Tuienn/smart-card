@@ -10,11 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ShieldAlert, KeyRound } from "lucide-react";
+import { ShieldUser, KeyRound, Lock } from "lucide-react";
 import { verifyAdminPinAction } from "../actions";
 import { isAdminAuthVerified, setAdminAuthVerified } from "@/lib/auth";
 
-type ViewState = "verify" | "menu";
+type ViewState = "verify" | "menu" | "locked";
+
+const MAX_PIN_ATTEMPTS = 5;
 
 const getInitialView = (): ViewState => {
   if (typeof window !== "undefined" && isAdminAuthVerified()) {
@@ -27,6 +29,7 @@ const AdminPage: React.FC = () => {
   const router = useRouter();
   const otpRef = useRef<OtpViewRef>(null);
   const [currentView, setCurrentView] = useState<ViewState>(getInitialView);
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const [message, setMessage] = useState<MessageState>({
     type: null,
     text: "",
@@ -34,7 +37,14 @@ const AdminPage: React.FC = () => {
 
   const clearMessage = () => setMessage({ type: null, text: "" });
 
+  const remainingAttempts = MAX_PIN_ATTEMPTS - failedAttempts;
+
   const handleVerifyAdminPin = async (pin?: string) => {
+    if (failedAttempts >= MAX_PIN_ATTEMPTS) {
+      setCurrentView("locked");
+      return;
+    }
+
     const adminPin = pin || otpRef.current?.getValue();
 
     if (!adminPin || adminPin.length !== 6) {
@@ -49,18 +59,68 @@ const AdminPage: React.FC = () => {
       if (result.success) {
         setMessage({ type: "success", text: result.message });
         setAdminAuthVerified();
+        setFailedAttempts(0); // Reset on success
         setTimeout(() => {
           setCurrentView("menu");
           clearMessage();
         }, 1000);
       } else {
-        setMessage({ type: "error", text: result.message });
+        const newFailedAttempts = failedAttempts + 1;
+        setFailedAttempts(newFailedAttempts);
+
+        if (newFailedAttempts >= MAX_PIN_ATTEMPTS) {
+          setCurrentView("locked");
+        } else {
+          setMessage({
+            type: "error",
+            text: `${result.message}. Còn ${
+              MAX_PIN_ATTEMPTS - newFailedAttempts
+            } lần thử.`,
+          });
+        }
         otpRef.current?.clear();
       }
     } catch {
       setMessage({ type: "error", text: "Có lỗi xảy ra. Vui lòng thử lại." });
     }
   };
+
+  // Locked View - Account locked after max failed attempts
+  if (currentView === "locked") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-100 via-white to-gray-50 p-6">
+        <div className="max-w-2xl w-full">
+          <div className="text-center space-y-8">
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <div className="bg-linear-to-br from-gray-600 to-gray-800 p-6 rounded-3xl shadow-2xl animate-pulse">
+                  <Lock className="size-16 text-white" />
+                </div>
+              </div>
+              <h1 className="text-4xl font-bold bg-linear-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+                Admin bị khóa
+              </h1>
+              <p className="text-lg text-gray-600">
+                Bạn đã nhập sai Admin PIN quá {MAX_PIN_ATTEMPTS} lần
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border-2 border-gray-300 rounded-2xl p-6 space-y-4">
+              <div className="flex items-center justify-center gap-2 text-gray-700">
+                <Lock className="size-5" />
+                <span className="font-semibold">
+                  Quyền truy cập Admin tạm thời bị khóa
+                </span>
+              </div>
+              <p className="text-gray-600">
+                Vui lòng liên hệ quản trị viên cấp cao để được hỗ trợ.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Verify Admin PIN View
   if (currentView === "verify") {
@@ -71,7 +131,7 @@ const AdminPage: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-center">
                 <div className="bg-linear-to-br from-red-500 to-rose-600 p-6 rounded-3xl shadow-2xl">
-                  <ShieldAlert className="size-16 text-white" />
+                  <ShieldUser className="size-16 text-white" />
                 </div>
               </div>
               <h1 className="text-4xl font-bold bg-linear-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
@@ -87,6 +147,29 @@ const AdminPage: React.FC = () => {
             </div>
 
             <MessageAlert message={message} className="mt-4" />
+
+            {/* Attempts indicator */}
+            {failedAttempts > 0 && (
+              <div className="flex items-center justify-center gap-2">
+                <div className="flex gap-1">
+                  {Array.from({ length: MAX_PIN_ATTEMPTS }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-3 h-3 rounded-full transition-colors duration-300 ${
+                        i < failedAttempts ? "bg-red-500" : "bg-gray-200"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span
+                  className={`text-sm font-medium ${
+                    remainingAttempts <= 2 ? "text-red-500" : "text-gray-500"
+                  }`}
+                >
+                  Còn {remainingAttempts} lần thử
+                </span>
+              </div>
+            )}
 
             <div className="pt-4 space-y-2 text-gray-500 text-sm">
               <p className="text-red-500 font-medium">
@@ -106,7 +189,7 @@ const AdminPage: React.FC = () => {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="bg-linear-to-br from-red-500 to-rose-600 p-4 rounded-2xl shadow-xl">
-              <ShieldAlert className="size-12 text-white" />
+              <ShieldUser className="size-12 text-white" />
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-linear-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">

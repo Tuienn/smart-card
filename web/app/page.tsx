@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MessageAlert, MessageState } from "@/components/common/message-alert";
-import { CreditCard, Loader2 } from "lucide-react";
+import { CreditCard, Loader2, User, ShieldUser } from "lucide-react";
 import { connectCardAction } from "./actions";
 
 const HomePage: React.FC = () => {
@@ -98,6 +98,32 @@ const HomePage: React.FC = () => {
             <p className="text-sm">
               🔒 Giữ thẻ ổn định trong quá trình kết nối
             </p>
+          </div>
+
+          {/* Auth Mode Buttons */}
+          <div className="pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-500 mb-4">
+              Hoặc chọn phương thức xác thực
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                onClick={() => router.push("/user")}
+                variant="outline"
+                className="flex items-center gap-2 px-6 py-3 border-2 border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400 rounded-xl transition-all duration-300"
+              >
+                <User className="size-5" />
+                Xác minh người dùng
+              </Button>
+
+              <Button
+                onClick={() => router.push("/admin")}
+                variant="outline"
+                className="flex items-center gap-2 px-6 py-3 border-2 border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 rounded-xl transition-all duration-300"
+              >
+                <ShieldUser className="size-5" />
+                Xác minh Admin
+              </Button>
+            </div>
           </div>
         </div>
       </div>
