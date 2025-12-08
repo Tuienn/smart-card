@@ -28,34 +28,39 @@ import java.util.ResourceBundle;
 public class CardRegistrationController implements Initializable {
 
     // Step indicators
-    @FXML private Label step1Label, step2Label, step3Label, step4Label;
-    @FXML private Region line1, line2, line3;
+    @FXML private Label step1Label, step2Label, step3Label, step4Label, step5Label;
+    @FXML private Region line1, line2, line3, line4;
     @FXML private Label stepTitle;
 
     // Content panels
     @FXML private StackPane contentStack;
-    @FXML private VBox step1Content, step2Content, step3Content, step4Content;
+    @FXML private VBox step1Content, step2Content, step3Content, step4Content, step5Content;
 
     // Step 1: User Info
     @FXML private StackPane avatarContainer;
     @FXML private ImageView avatarImage;
     @FXML private Label avatarPlaceholderText;
-    @FXML private TextField nameField, phoneField;
-    @FXML private PasswordField pinField, confirmPinField;
+    @FXML private TextField nameField, ageField;
     @FXML private ToggleButton maleBtn, femaleBtn;
 
-    // Step 2: Payment
+    // Step 2: PIN Keypad
+    @FXML private Label pinDot1, pinDot2, pinDot3, pinDot4, pinDot5, pinDot6;
+    @FXML private Label pinInstructionLabel;
+    private Label[] pinDots;
+    private StringBuilder pinBuilder = new StringBuilder();
+
+    // Step 3: Payment
     @FXML private VBox customAmountBox;
     @FXML private TextField customAmountField;
     @FXML private Label coinDisplay, selectedAmountLabel;
 
-    // Step 3: Card Writing
+    // Step 4: Card Writing
     @FXML private VBox cardWaitingState, cardWritingState, cardSuccessState, cardErrorState;
     @FXML private ProgressIndicator writeProgress;
     @FXML private Label writeStatusLabel, errorMessageLabel;
     @FXML private Button writeCardBtn;
 
-    // Step 4: Success
+    // Step 5: Success
     @FXML private Label summaryName, summaryPhone, summaryCoins;
 
     // Navigation
@@ -92,8 +97,66 @@ public class CardRegistrationController implements Initializable {
             }
         });
 
+        // Initialize PIN dots array
+        pinDots = new Label[]{pinDot1, pinDot2, pinDot3, pinDot4, pinDot5, pinDot6};
+
         // Initialize UI
         updateStepUI();
+    }
+
+    // ============ PIN Keypad Handlers ============
+
+    private static final int MAX_PIN_LENGTH = 6;
+
+    @FXML
+    private void onKeypadPress(ActionEvent event) {
+        if (pinBuilder.length() >= MAX_PIN_LENGTH) {
+            return;
+        }
+        Button btn = (Button) event.getSource();
+        String digit = (String) btn.getUserData();
+        pinBuilder.append(digit);
+        updatePinDisplay();
+    }
+
+    @FXML
+    private void onPinClearAll() {
+        pinBuilder.setLength(0);
+        updatePinDisplay();
+    }
+
+    @FXML
+    private void onPinBackspace() {
+        if (pinBuilder.length() > 0) {
+            pinBuilder.deleteCharAt(pinBuilder.length() - 1);
+            updatePinDisplay();
+        }
+    }
+
+    private void updatePinDisplay() {
+        int length = pinBuilder.length();
+        for (int i = 0; i < pinDots.length; i++) {
+            pinDots[i].getStyleClass().removeAll("pin-dot-filled", "pin-dot-empty");
+            if (i < length) {
+                pinDots[i].getStyleClass().add("pin-dot-filled");
+            } else {
+                pinDots[i].getStyleClass().add("pin-dot-empty");
+            }
+        }
+
+        // Update instruction based on state
+        if (length == 0) {
+            pinInstructionLabel.setText("Nhập mã PIN 6 số");
+            pinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
+        } else if (length < MAX_PIN_LENGTH) {
+            pinInstructionLabel.setText("Còn " + (MAX_PIN_LENGTH - length) + " số nữa");
+            pinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
+        } else {
+            pinInstructionLabel.setText("✓ Hoàn tất");
+            if (!pinInstructionLabel.getStyleClass().contains("pin-instruction-complete")) {
+                pinInstructionLabel.getStyleClass().add("pin-instruction-complete");
+            }
+        }
     }
 
     @FXML
@@ -234,7 +297,7 @@ public class CardRegistrationController implements Initializable {
                     new Thread(() -> {
                         try {
                             Thread.sleep(2000);
-                            Platform.runLater(() -> goToStep(4));
+                            Platform.runLater(() -> goToStep(5));
                         } catch (InterruptedException ignored) {}
                     }).start();
                 });
@@ -266,7 +329,7 @@ public class CardRegistrationController implements Initializable {
 
     @FXML
     private void onNext() {
-        if (currentStep == 4) {
+        if (currentStep == 5) {
             // Reset for new registration
             resetForm();
             goToStep(1);
@@ -279,7 +342,7 @@ public class CardRegistrationController implements Initializable {
         }
 
         // Save data and go to next step
-        if (currentStep < 4) {
+        if (currentStep < 5) {
             goToStep(currentStep + 1);
         }
     }
@@ -289,44 +352,39 @@ public class CardRegistrationController implements Initializable {
             case 1:
                 // Validate user info
                 String name = nameField.getText().trim();
-                String phone = phoneField.getText().trim();
-                String pin = pinField.getText();
-                String confirmPin = confirmPinField.getText();
+                String age = ageField.getText().trim();
 
                 if (name.isEmpty()) {
                     showAlert("Lỗi", "Vui lòng nhập họ tên");
                     nameField.requestFocus();
                     return false;
                 }
-                if (phone.isEmpty()) {
-                    showAlert("Lỗi", "Vui lòng nhập số điện thoại");
-                    phoneField.requestFocus();
+                if (age.isEmpty()) {
+                    showAlert("Lỗi", "Vui lòng nhập tuổi");
+                    ageField.requestFocus();
                     return false;
                 }
-                if (!phone.matches("\\d{10,11}")) {
-                    showAlert("Lỗi", "Số điện thoại không hợp lệ (10-11 số)");
-                    phoneField.requestFocus();
-                    return false;
-                }
-                if (pin.isEmpty() || pin.length() < 4 || pin.length() > 6) {
-                    showAlert("Lỗi", "Mã PIN phải từ 4-6 ký tự");
-                    pinField.requestFocus();
-                    return false;
-                }
-                if (!pin.equals(confirmPin)) {
-                    showAlert("Lỗi", "Mã PIN xác nhận không khớp");
-                    confirmPinField.requestFocus();
+                if (!age.matches("\\d+") || Integer.parseInt(age) < 1 || Integer.parseInt(age) > 150) {
+                    showAlert("Lỗi", "Tuổi không hợp lệ");
+                    ageField.requestFocus();
                     return false;
                 }
 
                 // Save user data
                 user.setName(name);
-                user.setPhone(phone);
-                user.setPin(pin);
                 user.setAvatar(avatarBytes);
                 return true;
 
             case 2:
+                // Validate PIN
+                if (pinBuilder.length() != MAX_PIN_LENGTH) {
+                    showAlert("Lỗi", "Vui lòng nhập đủ 6 số PIN");
+                    return false;
+                }
+                user.setPin(pinBuilder.toString());
+                return true;
+
+            case 3:
                 // Validate payment
                 updateCoinDisplay();
                 if (user.getAmountVND() <= 0) {
@@ -339,7 +397,7 @@ public class CardRegistrationController implements Initializable {
                 }
                 return true;
 
-            case 3:
+            case 4:
                 // Card writing - handled by onWriteCard
                 return true;
 
@@ -358,27 +416,36 @@ public class CardRegistrationController implements Initializable {
         updateStepIndicator(step1Label, line1, currentStep > 1, currentStep == 1);
         updateStepIndicator(step2Label, line2, currentStep > 2, currentStep == 2);
         updateStepIndicator(step3Label, line3, currentStep > 3, currentStep == 3);
-        updateStepIndicator(step4Label, null, false, currentStep == 4);
+        updateStepIndicator(step4Label, line4, currentStep > 4, currentStep == 4);
+        updateStepIndicator(step5Label, null, false, currentStep == 5);
 
         // Update content visibility
         step1Content.setVisible(currentStep == 1);
         step2Content.setVisible(currentStep == 2);
         step3Content.setVisible(currentStep == 3);
         step4Content.setVisible(currentStep == 4);
+        step5Content.setVisible(currentStep == 5);
 
         // Update navigation buttons
-        backBtn.setVisible(currentStep > 1 && currentStep < 4);
+        backBtn.setVisible(currentStep > 1 && currentStep < 5);
         
         switch (currentStep) {
             case 1:
                 stepTitle.setText("Đăng Ký Thông Tin");
+                nextBtn.setVisible(true);
                 nextBtn.setText("TIẾP TỤC ➡");
                 break;
             case 2:
-                stepTitle.setText("Chọn Gói Nạp Tiền");
+                stepTitle.setText("Tạo Mã PIN");
+                nextBtn.setVisible(true);
                 nextBtn.setText("TIẾP TỤC ➡");
                 break;
             case 3:
+                stepTitle.setText("Chọn Gói Nạp Tiền");
+                nextBtn.setVisible(true);
+                nextBtn.setText("TIẾP TỤC ➡");
+                break;
+            case 4:
                 stepTitle.setText("Ghi Thẻ");
                 nextBtn.setVisible(false);
                 // Reset card states
@@ -390,7 +457,7 @@ public class CardRegistrationController implements Initializable {
                 writeCardBtn.setDisable(false);
                 writeCardBtn.setText("🔐 BẮT ĐẦU GHI THẺ");
                 break;
-            case 4:
+            case 5:
                 stepTitle.setText("Hoàn Thành");
                 nextBtn.setVisible(true);
                 nextBtn.setText("🏠 VỀ TRANG CHỦ");
@@ -428,10 +495,12 @@ public class CardRegistrationController implements Initializable {
         selectedAmount = 0;
 
         nameField.clear();
-        phoneField.clear();
-        pinField.clear();
-        confirmPinField.clear();
+        ageField.clear();
         customAmountField.clear();
+        
+        // Reset PIN
+        pinBuilder.setLength(0);
+        updatePinDisplay();
         
         avatarImage.setImage(null);
         avatarPlaceholderText.setVisible(true);

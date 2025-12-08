@@ -16,20 +16,24 @@
     <top>
         <VBox alignment="CENTER" spacing="20" style="-fx-padding: 30 40 20 40;">
             <HBox alignment="CENTER" spacing="10" fx:id="stepIndicator">
-                <!-- Step 1 -->
+                <!-- Step 1: Đăng ký thông tin -->
                 <Label text="1" styleClass="step-indicator, step-active" fx:id="step1Label"/>
                 <Label text="→" fx:id="arrow1" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
                 
-                <!-- Step 2 -->
+                <!-- Step 2: Nhập PIN -->
                 <Label text="2" styleClass="step-indicator, step-inactive" fx:id="step2Label"/>
                 <Label text="→" fx:id="arrow2" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
                 
-                <!-- Step 3 -->
+                <!-- Step 3: Nạp tiền -->
                 <Label text="3" styleClass="step-indicator, step-inactive" fx:id="step3Label"/>
                 <Label text="→" fx:id="arrow3" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
                 
-                <!-- Step 4 -->
+                <!-- Step 4: Ghi thẻ -->
                 <Label text="4" styleClass="step-indicator, step-inactive" fx:id="step4Label"/>
+                <Label text="→" fx:id="arrow4" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+                
+                <!-- Step 5: Hoàn thành -->
+                <Label text="5" styleClass="step-indicator, step-inactive" fx:id="step5Label"/>
             </HBox>
             
             <Label fx:id="stepTitle" text="Đăng Ký Thông Tin" styleClass="title-medium"/>
@@ -69,17 +73,17 @@
                                        styleClass="text-field"/>
                         </VBox>
                         
-                        <!-- Phone Field -->
+                        <!-- Age Field -->
                         <VBox spacing="8">
-                            <Label text="Số Điện Thoại" styleClass="form-label"/>
-                            <TextField fx:id="phoneField" promptText="Nhập số điện thoại" 
+                            <Label text="Tuổi" styleClass="form-label"/>
+                            <TextField fx:id="ageField" promptText="Nhập tuổi của bạn" 
                                        styleClass="text-field"/>
                         </VBox>
                         
                         <!-- Gender Selection -->
                         <VBox spacing="8">
                             <Label text="Giới Tính" styleClass="form-label"/>
-                            <HBox styleClass="gender-toggle" spacing="0">
+                            <HBox styleClass="gender-toggle" spacing="0" alignment="CENTER">
                                 <ToggleButton fx:id="maleBtn" text="👨 Nam" 
                                               onAction="#onGenderSelect" userData="1"/>
                                 <ToggleButton fx:id="femaleBtn" text="👩 Nữ" 
@@ -87,24 +91,70 @@
                             </HBox>
                         </VBox>
                         
-                        <!-- PIN Field -->
-                        <VBox spacing="8">
-                            <Label text="Mã PIN (4-6 số)" styleClass="form-label"/>
-                            <PasswordField fx:id="pinField" promptText="Nhập mã PIN" 
-                                           styleClass="password-field"/>
-                        </VBox>
-                        
-                        <!-- Confirm PIN Field -->
-                        <VBox spacing="8">
-                            <Label text="Xác Nhận PIN" styleClass="form-label"/>
-                            <PasswordField fx:id="confirmPinField" promptText="Nhập lại mã PIN" 
-                                           styleClass="password-field"/>
-                        </VBox>
                     </VBox>
                 </VBox>
                 
-                <!-- STEP 2: Payment Amount -->
+                <!-- STEP 2: PIN Input with Keypad -->
                 <VBox fx:id="step2Content" alignment="CENTER" spacing="30" visible="false">
+                    <VBox styleClass="card-container" spacing="25" maxWidth="500" alignment="CENTER">
+                        
+                        <Label text="🔐 Tạo Mã PIN" styleClass="title-small"/>
+                        <Label text="Nhập mã PIN 6 số để bảo vệ thẻ của bạn" styleClass="text-secondary"/>
+                        
+                        <!-- PIN Display (6 dots) -->
+                        <HBox alignment="CENTER" spacing="15" fx:id="pinDotsContainer">
+                            <Label fx:id="pinDot1" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot2" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot3" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot4" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot5" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot6" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                        
+                        <!-- Numeric Keypad -->
+                        <GridPane hgap="15" vgap="15" alignment="CENTER" fx:id="keypadGrid">
+                            <!-- Row 1: 1, 2, 3 -->
+                            <Button text="1" styleClass="keypad-btn" onAction="#onKeypadPress" userData="1"
+                                    GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                            <Button text="2" styleClass="keypad-btn" onAction="#onKeypadPress" userData="2"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                            <Button text="3" styleClass="keypad-btn" onAction="#onKeypadPress" userData="3"
+                                    GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                            
+                            <!-- Row 2: 4, 5, 6 -->
+                            <Button text="4" styleClass="keypad-btn" onAction="#onKeypadPress" userData="4"
+                                    GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                            <Button text="5" styleClass="keypad-btn" onAction="#onKeypadPress" userData="5"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                            <Button text="6" styleClass="keypad-btn" onAction="#onKeypadPress" userData="6"
+                                    GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                            
+                            <!-- Row 3: 7, 8, 9 -->
+                            <Button text="7" styleClass="keypad-btn" onAction="#onKeypadPress" userData="7"
+                                    GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                            <Button text="8" styleClass="keypad-btn" onAction="#onKeypadPress" userData="8"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                            <Button text="9" styleClass="keypad-btn" onAction="#onKeypadPress" userData="9"
+                                    GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                            
+                            <!-- Row 4: Clear All, 0, Backspace -->
+                            <Button text="🗑️" styleClass="keypad-btn, keypad-btn-action" 
+                                    onAction="#onPinClearAll"
+                                    GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                            <Button text="0" styleClass="keypad-btn" onAction="#onKeypadPress" userData="0"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                            <Button text="⌫" styleClass="keypad-btn, keypad-btn-action" 
+                                    onAction="#onPinBackspace"
+                                    GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                        </GridPane>
+                        
+                        <!-- PIN Instruction -->
+                        <Label fx:id="pinInstructionLabel" text="Nhập mã PIN 6 số" styleClass="pin-instruction"/>
+                    </VBox>
+                </VBox>
+                
+                <!-- STEP 3: Payment Amount -->
+                <VBox fx:id="step3Content" alignment="CENTER" spacing="30" visible="false">
                     <VBox styleClass="card-container" spacing="30" maxWidth="700">
                         
                         <Label text="💰 Chọn Số Tiền Nạp" styleClass="title-small"/>
@@ -154,8 +204,8 @@
                     </VBox>
                 </VBox>
                 
-                <!-- STEP 3: Card Writing -->
-                <VBox fx:id="step3Content" alignment="CENTER" spacing="30" visible="false">
+                <!-- STEP 4: Card Writing -->
+                <VBox fx:id="step4Content" alignment="CENTER" spacing="30" visible="false">
                     <VBox styleClass="card-container" spacing="30" maxWidth="600" alignment="CENTER">
                         
                         <Label text="💳 Ghi Dữ Liệu Vào Thẻ" styleClass="title-small"/>
@@ -196,8 +246,8 @@
                     </VBox>
                 </VBox>
                 
-                <!-- STEP 4: Success -->
-                <VBox fx:id="step4Content" alignment="CENTER" spacing="30" visible="false">
+                <!-- STEP 5: Success -->
+                <VBox fx:id="step5Content" alignment="CENTER" spacing="30" visible="false">
                     <VBox styleClass="success-card" spacing="30" maxWidth="600" alignment="CENTER">
                         
                         <Label text="🎉" style="-fx-font-size: 80px;"/>

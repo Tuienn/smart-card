@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<!-- Reusable PIN Keypad Component -->
+<VBox xmlns="http://javafx.com/javafx/17" 
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.desktopapp.controller.PinKeypadController"
+      alignment="CENTER" spacing="20" styleClass="pin-keypad-container">
+    
+    <!-- PIN Display (6 dots) -->
+    <HBox alignment="CENTER" spacing="15" fx:id="pinDotsContainer">
+        <Label fx:id="pinDot1" styleClass="pin-dot, pin-dot-empty"/>
+        <Label fx:id="pinDot2" styleClass="pin-dot, pin-dot-empty"/>
+        <Label fx:id="pinDot3" styleClass="pin-dot, pin-dot-empty"/>
+        <Label fx:id="pinDot4" styleClass="pin-dot, pin-dot-empty"/>
+        <Label fx:id="pinDot5" styleClass="pin-dot, pin-dot-empty"/>
+        <Label fx:id="pinDot6" styleClass="pin-dot, pin-dot-empty"/>
+    </HBox>
+    
+    <!-- Numeric Keypad -->
+    <GridPane hgap="15" vgap="15" alignment="CENTER" fx:id="keypadGrid">
+        <!-- Row 1: 1, 2, 3 -->
+        <Button text="1" styleClass="keypad-btn" onAction="#onKeyPress" userData="1"
+                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <Button text="2" styleClass="keypad-btn" onAction="#onKeyPress" userData="2"
+                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <Button text="3" styleClass="keypad-btn" onAction="#onKeyPress" userData="3"
+                GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+        
+        <!-- Row 2: 4, 5, 6 -->
+        <Button text="4" styleClass="keypad-btn" onAction="#onKeyPress" userData="4"
+                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        <Button text="5" styleClass="keypad-btn" onAction="#onKeyPress" userData="5"
+                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        <Button text="6" styleClass="keypad-btn" onAction="#onKeyPress" userData="6"
+                GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+        
+        <!-- Row 3: 7, 8, 9 -->
+        <Button text="7" styleClass="keypad-btn" onAction="#onKeyPress" userData="7"
+                GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+        <Button text="8" styleClass="keypad-btn" onAction="#onKeyPress" userData="8"
+                GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        <Button text="9" styleClass="keypad-btn" onAction="#onKeyPress" userData="9"
+                GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+        
+        <!-- Row 4: Clear All, 0, Backspace -->
+        <Button fx:id="clearBtn" text="Xóa" styleClass="keypad-btn, keypad-btn-action" 
+                onAction="#onClearAll"
+                GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <Button text="0" styleClass="keypad-btn" onAction="#onKeyPress" userData="0"
+                GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <Button fx:id="backspaceBtn" text="⌫" styleClass="keypad-btn, keypad-btn-action" 
+                onAction="#onBackspace"
+                GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+    </GridPane>
+    
+    <!-- Instructions -->
+    <Label fx:id="instructionLabel" text="Nhập mã PIN 6 số" styleClass="pin-instruction"/>
+    
+</VBox>
