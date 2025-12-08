@@ -1,0 +1,65 @@
+# JavaCard Build Files
+*.class
+*.jar
+*.cap
+*.exp
+*.jca
+*.ijc
+
+# jCIDE Project Files
+*.jcproj.user
+*.suo
+*.user
+.vs/
+.vscode/
+
+# Build Output
+bin/
+build/
+out/
+target/
+dist/
+
+# Compiled Applet Files
+*.cap
+*.exp
+*.jca
+
+# Java Compiled Files
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE Files
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+
+# Temporary Files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Backup Files
+*.bak
+*.backup

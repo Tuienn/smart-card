@@ -2,6 +2,8 @@ module com.example.desktopapp {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.smartcardio;
+    requires webcam.capture;
+    requires java.desktop;
 
     opens com.example.desktopapp to javafx.fxml;
     opens com.example.desktopapp.controller to javafx.fxml;
