@@ -1,5 +1,5 @@
 // converted by version  [v3.0.4]
-// on Mon Dec 08 21:03:31 ICT 2025
+// on Mon Dec 08 22:40:29 ICT 2025
 
 .package Entertainment {
 	.aid 0x11:0x22:0x33:0x44:0x55;
@@ -76,9 +76,7 @@
 		// 28
 		staticMethodRef 1.16.0(BS)V;		// javacard/security/KeyPair.<init>(BS)V
 		// 29
-		staticMethodRef 1.11.0(BZ)Ljavacard/security/MessageDigest;;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
-			.descriptor	Ljavacard/security/MessageDigest;	1.11;
-
+		.classRef 3.2;		// java/lang/Exception
 		// 30
 		virtualMethodRef 1.16.2()Ljavacard/security/PrivateKey;;		// getPrivate()Ljavacard/security/PrivateKey;
 			.descriptor	Ljavacard/security/PrivateKey;	1.2;
@@ -86,7 +84,9 @@
 		// 31
 		.classRef 1.8;		// javacard/security/RSAPrivateKey
 		// 32
-		.classRef 1.12;		// javacard/security/CryptoException
+		staticMethodRef 1.11.0(BZ)Ljavacard/security/MessageDigest;;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
+			.descriptor	Ljavacard/security/MessageDigest;	1.11;
+
 		// 33
 		virtualMethodRef 1.16.3()Ljavacard/security/PublicKey;;		// getPublic()Ljavacard/security/PublicKey;
 			.descriptor	Ljavacard/security/PublicKey;	1.3;
@@ -94,9 +94,7 @@
 		// 34
 		.classRef 1.9;		// javacard/security/RSAPublicKey
 		// 35
-		staticMethodRef 1.15.0(BZ)Ljavacard/security/Signature;;		// javacard/security/Signature.getInstance(BZ)Ljavacard/security/Signature;
-			.descriptor	Ljavacard/security/Signature;	1.15;
-
+		staticMethodRef 0.8.13(SB)[B;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 		// 36
 		.classRef Entertainment;
 		// 37
@@ -106,7 +104,9 @@
 		// 39
 		virtualMethodRef 0.3.3()Z;		// selectingApplet()Z
 		// 40
-		staticMethodRef 0.3.0()V;		// javacard/framework/Applet.<init>()V
+		staticMethodRef 1.15.0(BZ)Ljavacard/security/Signature;;		// javacard/security/Signature.getInstance(BZ)Ljavacard/security/Signature;
+			.descriptor	Ljavacard/security/Signature;	1.15;
+
 		// 41
 		virtualMethodRef 0.10.1()[B;		// getBuffer()[B
 		// 42
@@ -162,81 +162,81 @@
 			.descriptor	Ljavacard/framework/APDU;	0.10;
 
 		// 55
-		virtualMethodRef 0.10.6()S;		// setIncomingAndReceive()S
+		staticMethodRef 0.7.1(S)V;		// javacard/framework/ISOException.throwIt(S)V
 		// 56
-		staticMethodRef 0.16.1([BS[BSS)S;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+		virtualMethodRef 0.10.6()S;		// setIncomingAndReceive()S
 		// 57
-		virtualMethodRef 1.14.1([BSS)V;		// generateData([BSS)V
+		staticMethodRef 0.16.1([BS[BSS)S;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 		// 58
-		virtualMethodRef 1.11.4()V;		// reset()V
+		virtualMethodRef 1.14.1([BSS)V;		// generateData([BSS)V
 		// 59
-		virtualMethodRef 1.11.1([BSS[BS)S;		// doFinal([BSS[BS)S
+		virtualMethodRef 1.11.4()V;		// reset()V
 		// 60
-		virtualMethodRef PBKDF2/doFinal([BSS[BSSS[BS)S;
+		virtualMethodRef 1.11.1([BSS[BS)S;		// doFinal([BSS[BS)S
 		// 61
-		staticMethodRef Entertainment/wrapKey([BS[B[B)V;
+		virtualMethodRef PBKDF2/doFinal([BSS[BSSS[BS)S;
 		// 62
-		staticMethodRef 0.16.3([BSSB)S;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+		staticMethodRef Entertainment/deriveKeySimple([BS[B[B)V;
 		// 63
-		virtualMethodRef 1.16.1()V;		// genKeyPair()V
+		staticMethodRef Entertainment/wrapKey([BS[B[B)V;
 		// 64
-		staticMethodRef Entertainment/initializeUserData()V;
+		staticMethodRef 0.16.3([BSSB)S;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 		// 65
-		virtualMethodRef 0.10.8(SS)V;		// setOutgoingAndSend(SS)V
+		virtualMethodRef 1.16.1()V;		// genKeyPair()V
 		// 66
-		staticMethodRef Entertainment/unwrapKey([B[B[B)Z;
+		staticMethodRef Entertainment/initializeUserData()V;
 		// 67
-		staticMethodRef Entertainment/handleWrongPin()V;
+		virtualMethodRef 0.10.8(SS)V;		// setOutgoingAndSend(SS)V
 		// 68
-		staticMethodRef 0.16.4([BS)S;		// javacard/framework/Util.getShort([BS)S
+		staticMethodRef Entertainment/unwrapKey([B[B[B)Z;
 		// 69
-		staticMethodRef Entertainment/decryptUserData([B)V;
+		staticMethodRef Entertainment/handleWrongPin()V;
 		// 70
-		staticMethodRef Entertainment/checkGameAccess([BBS)Z;
+		staticMethodRef 0.16.4([BS)S;		// javacard/framework/Util.getShort([BS)S
 		// 71
-		staticMethodRef Entertainment/getInt([BS)I;
+		staticMethodRef Entertainment/decryptUserData([B)V;
 		// 72
-		staticMethodRef Entertainment/findTag([BB)S;
+		staticMethodRef Entertainment/checkGameAccess([BBS)Z;
 		// 73
-		staticMethodRef Entertainment/setInt([BSI)V;
+		staticMethodRef Entertainment/findTag([BB)S;
 		// 74
-		staticMethodRef Entertainment/encryptUserData([B)V;
+		staticMethodRef 0.16.6([BSS)S;		// javacard/framework/Util.setShort([BSS)S
 		// 75
+		staticMethodRef Entertainment/encryptUserData([B)V;
+		// 76
 		virtualMethodRef 1.15.3(Ljavacard/security/Key;B)V;		// init(Ljavacard/security/Key;B)V
 			.descriptor	Ljavacard/security/Key;	1.0;
 
-		// 76
-		virtualMethodRef 1.15.5([BSS[BS)S;		// sign([BSS[BS)S
 		// 77
+		virtualMethodRef 1.15.5([BSS[BS)S;		// sign([BSS[BS)S
+		// 78
 		staticMethodRef 1.13.0(BSZ)Ljavacard/security/Key;;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
 			.descriptor	Ljavacard/security/Key;	1.0;
 
-		// 78
-		.classRef 1.20;		// javacard/security/AESKey
 		// 79
+		.classRef 1.20;		// javacard/security/AESKey
+		// 80
 		virtualMethodRef 2.1.4(Ljavacard/security/Key;B[BSS)V;		// init(Ljavacard/security/Key;B[BSS)V
 			.descriptor	Ljavacard/security/Key;	1.0;
 
-		// 80
-		virtualMethodRef 2.1.1([BSS[BS)S;		// doFinal([BSS[BS)S
 		// 81
-		.classRef 3.2;		// java/lang/Exception
+		virtualMethodRef 2.1.1([BSS[BS)S;		// doFinal([BSS[BS)S
 		// 82
 		staticMethodRef 3.0.0()V;		// java/lang/Object.<init>()V
 		// 83
+		.classRef 1.12;		// javacard/security/CryptoException
+		// 84
 		staticMethodRef 1.14.0(B)Ljavacard/security/RandomData;;		// javacard/security/RandomData.getInstance(B)Ljavacard/security/RandomData;
 			.descriptor	Ljavacard/security/RandomData;	1.14;
 
-		// 84
+		// 85
+		staticMethodRef 0.3.0()V;		// javacard/framework/Applet.<init>()V
+		// 86
+		staticMethodRef PBKDF2/getInstance(B)LEntertainment/PBKDF2;;
+		// 87
 		staticMethodRef 2.1.0(BZ)Ljavacardx/crypto/Cipher;;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
 			.descriptor	Ljavacardx/crypto/Cipher;	2.1;
 
-		// 85
-		staticMethodRef PBKDF2/getInstance(B)LEntertainment/PBKDF2;;
-		// 86
-		staticMethodRef 0.8.13(SB)[B;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
-		// 87
-		staticMethodRef 0.7.1(S)V;		// javacard/framework/ISOException.throwIt(S)V
 		// 88
 		staticFieldRef PBKDF2 PBKDF2/m_instance;
 		// 89
@@ -299,9 +299,9 @@
 			private static final byte PIN_TRY_LIMIT = 3;		// B
 			private static final byte MAX_PIN_SIZE = 16;		// B
 			private static final byte SALT_SIZE = 16;		// B
-			private static final short AES_KEY_SIZE = 32;		// S
-			private static final short HASH_SIZE = 32;		// S
-			private static final short RSA_KEY_SIZE = 2048;		// S
+			private static final short AES_KEY_SIZE = 16;		// S
+			private static final short HASH_SIZE = 20;		// S
+			private static final short RSA_KEY_SIZE = 1024;		// S
 			private static final byte MAX_NAME_LENGTH = 64;		// B
 			private static final byte MAX_GAMES = 50;		// B
 			private static final short MAX_IMAGE_SIZE = 8192;		// S
@@ -332,7 +332,7 @@
 			.locals 1;
 
 				L0:	aload_0;
-					invokespecial 40;		// javacard/framework/Applet.<init>()V
+					invokespecial 85;		// javacard/framework/Applet.<init>()V
 					aload_0;
 					bspush 16;
 					newarray 11;
@@ -342,11 +342,11 @@
 					newarray 11;
 					putfield_a 1;		// reference Entertainment/Entertainment.salt
 					aload_0;
-					bspush 40;
+					bspush 24;
 					newarray 11;
 					putfield_a 2;		// reference Entertainment/Entertainment.wrappedMasterKey
 					aload_0;
-					bspush 32;
+					bspush 20;
 					newarray 11;
 					putfield_a 3;		// reference Entertainment/Entertainment.masterKeyHash
 					aload_0;
@@ -373,47 +373,62 @@
 					sconst_0;
 					putfield_b 10;		// byte Entertainment/Entertainment.imageType
 					aload_0;
-					bspush 32;
+					bspush 16;
 					sconst_2;
-					invokestatic 86;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 35;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 11;		// reference Entertainment/Entertainment.masterKey
 					aload_0;
 					sspush 256;
 					sconst_2;
-					invokestatic 86;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 35;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 12;		// reference Entertainment/Entertainment.tempBuffer
 				L1:	aload_0;
 					bspush 13;
 					sconst_0;
-					invokestatic 84;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+					invokestatic 87;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
 					putfield_a 13;		// reference Entertainment/Entertainment.aesCipher
-					aload_0;
-					sconst_4;
-					sconst_0;
-					invokestatic 29;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
-					putfield_a 14;		// reference Entertainment/Entertainment.sha256
-					aload_0;
-					bspush 40;
-					sconst_0;
-					invokestatic 35;		// javacard/security/Signature.getInstance(BZ)Ljavacard/security/Signature;
-					putfield_a 15;		// reference Entertainment/Entertainment.rsaSignature
-					aload_0;
-					sconst_2;
-					invokestatic 83;		// javacard/security/RandomData.getInstance(B)Ljavacard/security/RandomData;
-					putfield_a 16;		// reference Entertainment/Entertainment.randomGen
-					aload_0;
-					sconst_4;
-					invokestatic 85;		// Entertainment/PBKDF2.getInstance(B)LEntertainment/PBKDF2;
-					putfield_a 17;		// reference Entertainment/Entertainment.pbkdf2
 				L2:	goto L5;
 				L3:	astore_1;
-				L4:	sspush 27265;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+				L4:	aload_0;
+					bspush 14;
+					sconst_0;
+					invokestatic 87;		// javacardx/crypto/Cipher.getInstance(BZ)Ljavacardx/crypto/Cipher;
+					putfield_a 13;		// reference Entertainment/Entertainment.aesCipher
 				L5:	aload_0;
+					sconst_1;
+					sconst_0;
+					invokestatic 32;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
+					putfield_a 14;		// reference Entertainment/Entertainment.sha256
+				L6:	aload_0;
+					bspush 10;
+					sconst_0;
+					invokestatic 40;		// javacard/security/Signature.getInstance(BZ)Ljavacard/security/Signature;
+					putfield_a 15;		// reference Entertainment/Entertainment.rsaSignature
+				L7:	goto L10;
+				L8:	astore_1;
+				L9:	aload_0;
+					aconst_null;
+					putfield_a 15;		// reference Entertainment/Entertainment.rsaSignature
+				L10:	aload_0;
+					sconst_2;
+					invokestatic 84;		// javacard/security/RandomData.getInstance(B)Ljavacard/security/RandomData;
+					putfield_a 16;		// reference Entertainment/Entertainment.randomGen
+				L11:	aload_0;
+					sconst_4;
+					invokestatic 86;		// Entertainment/PBKDF2.getInstance(B)LEntertainment/PBKDF2;
+					putfield_a 17;		// reference Entertainment/Entertainment.pbkdf2
+				L12:	goto L15;
+				L13:	astore_1;
+				L14:	aload_0;
+					aconst_null;
+					putfield_a 17;		// reference Entertainment/Entertainment.pbkdf2
+				L15:	goto L17;
+				L16:	astore_1;
+				L17:	aload_0;
 					new 27;		// javacard/security/KeyPair
 					dup;
 					sconst_1;
-					sspush 2048;
+					sspush 1024;
 					invokespecial 28;		// javacard/security/KeyPair.<init>(BS)V
 					putfield_a 18;		// reference Entertainment/Entertainment.rsaKeyPair
 					aload_0;
@@ -426,10 +441,25 @@
 					invokevirtual 33;		// getPublic()Ljavacard/security/PublicKey;
 					checkcast 0 34;		// T_CLASSORINTERFACE javacard/security/RSAPublicKey
 					putfield_a 20;		// reference Entertainment/Entertainment.rsaPublicKey
-					return;
+				L18:	goto L21;
+				L19:	astore_1;
+				L20:	aload_0;
+					aconst_null;
+					putfield_a 18;		// reference Entertainment/Entertainment.rsaKeyPair
+					aload_0;
+					aconst_null;
+					putfield_a 19;		// reference Entertainment/Entertainment.rsaPrivateKey
+					aload_0;
+					aconst_null;
+					putfield_a 20;		// reference Entertainment/Entertainment.rsaPublicKey
+				L21:	return;
 			.exceptionTable {
 				// start_block end_block handler_block catch_type_index
-				L1 L2 L3 32;
+				L1 L2 L3 83;
+				L6 L7 L8 83;
+				L11 L12 L13 29;
+				L1 L15 L16 83;
+				L17 L18 L19 83;
 			}
 		}
 
@@ -526,7 +556,7 @@
 					invokespecial 54;		// Entertainment/Entertainment.processResetCard(Ljavacard/framework/APDU;)V
 					goto L19;
 				L18:	sspush 27904;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L19:	return;
 		}
 
@@ -539,7 +569,7 @@
 				L0:	getfield_b_this 8;		// boolean Entertainment/Entertainment.initialized
 					ifeq L2;
 				L1:	sspush 27014;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
@@ -550,13 +580,13 @@
 					sand;
 					sstore_3;
 				L4:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					sstore 4;
 				L5:	sload_3;
 					bspush 17;
 					if_scmpge L7;
 				L6:	sspush 27264;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L7:	sconst_5;
 					sstore 5;
 				L8:	aload_2;
@@ -571,7 +601,7 @@
 					sconst_4;
 					if_scmpge L12;
 				L11:	sspush 27264;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L12:	sload 6;
 					newarray 11;
 					astore 7;
@@ -580,7 +610,7 @@
 					aload 7;
 					sconst_0;
 					sload 6;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					sload 5;
 					sload 6;
@@ -591,32 +621,36 @@
 					getfield_a_this 0;		// reference Entertainment/Entertainment.userID
 					sconst_0;
 					bspush 16;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					getfield_a_this 16;		// reference Entertainment/Entertainment.randomGen
 					getfield_a_this 1;		// reference Entertainment/Entertainment.salt
 					sconst_0;
 					bspush 16;
-					invokevirtual 57;		// generateData([BSS)V
+					invokevirtual 58;		// generateData([BSS)V
 					getfield_a_this 16;		// reference Entertainment/Entertainment.randomGen
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
 					sconst_0;
-					bspush 32;
-					invokevirtual 57;		// generateData([BSS)V
+					bspush 16;
+					invokevirtual 58;		// generateData([BSS)V
 					getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
-					invokevirtual 58;		// reset()V
+					ifnull L15;
+				L14:	getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
+					invokevirtual 59;		// reset()V
 					getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
 					sconst_0;
-					bspush 32;
+					bspush 16;
 					getfield_a_this 3;		// reference Entertainment/Entertainment.masterKeyHash
 					sconst_0;
-					invokevirtual 59;		// doFinal([BSS[BS)S
+					invokevirtual 60;		// doFinal([BSS[BS)S
 					pop;
-					bspush 32;
+				L15:	bspush 16;
 					newarray 11;
 					astore 8;
-				L14:	getfield_a_this 17;		// reference Entertainment/Entertainment.pbkdf2
+				L16:	getfield_a_this 17;		// reference Entertainment/Entertainment.pbkdf2
+					ifnull L18;
+				L17:	getfield_a_this 17;		// reference Entertainment/Entertainment.pbkdf2
 					aload 7;
 					sconst_0;
 					sload 6;
@@ -626,30 +660,39 @@
 					sspush 10000;
 					aload 8;
 					sconst_0;
-					invokevirtual 60;		// doFinal([BSS[BSSS[BS)S
+					invokevirtual 61;		// doFinal([BSS[BSSS[BS)S
 					pop;
-					aload_0;
+					goto L19;
+				L18:	aload_0;
+					aload 7;
+					sload 6;
+					getfield_a_this 1;		// reference Entertainment/Entertainment.salt
+					aload 8;
+					invokespecial 62;		// Entertainment/Entertainment.deriveKeySimple([BS[B[B)V
+				L19:	aload_0;
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
-					bspush 32;
+					bspush 16;
 					aload 8;
 					getfield_a_this 2;		// reference Entertainment/Entertainment.wrappedMasterKey
-					invokespecial 61;		// Entertainment/Entertainment.wrapKey([BS[B[B)V
+					invokespecial 63;		// Entertainment/Entertainment.wrapKey([BS[B[B)V
 					aload 8;
 					sconst_0;
-					bspush 32;
+					bspush 16;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					aload 7;
 					sconst_0;
 					sload 6;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 18;		// reference Entertainment/Entertainment.rsaKeyPair
-					invokevirtual 63;		// genKeyPair()V
-					aload_0;
-					invokespecial 64;		// Entertainment/Entertainment.initializeUserData()V
+					ifnull L21;
+				L20:	getfield_a_this 18;		// reference Entertainment/Entertainment.rsaKeyPair
+					invokevirtual 65;		// genKeyPair()V
+				L21:	aload_0;
+					invokespecial 66;		// Entertainment/Entertainment.initializeUserData()V
 					aload_0;
 					sconst_1;
 					putfield_b 8;		// boolean Entertainment/Entertainment.initialized
@@ -660,24 +703,26 @@
 					sconst_0;
 					putfield_b 7;		// boolean Entertainment/Entertainment.lockedFlag
 					getfield_a_this 20;		// reference Entertainment/Entertainment.rsaPublicKey
+					ifnull L26;
+				L22:	getfield_a_this 20;		// reference Entertainment/Entertainment.rsaPublicKey
 					aload_2;
 					sconst_0;
 					invokeinterface 3 34 5;		// javacard/security/RSAPublicKey
 					sstore 9;
-				L15:	getfield_a_this 20;		// reference Entertainment/Entertainment.rsaPublicKey
+				L23:	getfield_a_this 20;		// reference Entertainment/Entertainment.rsaPublicKey
 					aload_2;
 					sload 9;
 					invokeinterface 3 34 4;		// javacard/security/RSAPublicKey
 					sstore 10;
-				L16:	sload 9;
+				L24:	sload 9;
 					sload 10;
 					sadd;
 					sstore 11;
-				L17:	aload_1;
+				L25:	aload_1;
 					sconst_0;
 					sload 11;
-					invokevirtual 65;		// setOutgoingAndSend(SS)V
-					return;
+					invokevirtual 67;		// setOutgoingAndSend(SS)V
+				L26:	return;
 		}
 
 		.method private processVerifyPin(Ljavacard/framework/APDU;)V {
@@ -689,11 +734,11 @@
 				L0:	getfield_b_this 8;		// boolean Entertainment/Entertainment.initialized
 					ifne L2;
 				L1:	sspush 27014;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	getfield_b_this 7;		// boolean Entertainment/Entertainment.lockedFlag
 					ifeq L4;
 				L3:	sspush 27011;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L4:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
@@ -704,7 +749,7 @@
 					sand;
 					sstore_3;
 				L6:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					sload_3;
 					sconst_4;
@@ -713,7 +758,7 @@
 					bspush 16;
 					if_scmple L9;
 				L8:	sspush 27264;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L9:	sload_3;
 					newarray 11;
 					astore 4;
@@ -722,12 +767,14 @@
 					aload 4;
 					sconst_0;
 					sload_3;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
-					bspush 32;
+					bspush 16;
 					newarray 11;
 					astore 5;
 				L11:	getfield_a_this 17;		// reference Entertainment/Entertainment.pbkdf2
+					ifnull L13;
+				L12:	getfield_a_this 17;		// reference Entertainment/Entertainment.pbkdf2
 					aload 4;
 					sconst_0;
 					sload_3;
@@ -737,81 +784,90 @@
 					sspush 10000;
 					aload 5;
 					sconst_0;
-					invokevirtual 60;		// doFinal([BSS[BSSS[BS)S
+					invokevirtual 61;		// doFinal([BSS[BSSS[BS)S
 					pop;
+					goto L14;
+				L13:	aload_0;
 					aload 4;
+					sload_3;
+					getfield_a_this 1;		// reference Entertainment/Entertainment.salt
+					aload 5;
+					invokespecial 62;		// Entertainment/Entertainment.deriveKeySimple([BS[B[B)V
+				L14:	aload 4;
 					sconst_0;
 					sload_3;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					aload_0;
 					getfield_a_this 2;		// reference Entertainment/Entertainment.wrappedMasterKey
 					aload 5;
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
-					invokespecial 66;		// Entertainment/Entertainment.unwrapKey([B[B[B)Z
+					invokespecial 68;		// Entertainment/Entertainment.unwrapKey([B[B[B)Z
 					sstore 6;
-				L12:	aload 5;
+				L15:	aload 5;
 					sconst_0;
-					bspush 32;
+					bspush 16;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					sload 6;
-					ifne L14;
-				L13:	aload_0;
-					invokespecial 67;		// Entertainment/Entertainment.handleWrongPin()V
+					ifne L17;
+				L16:	aload_0;
+					invokespecial 69;		// Entertainment/Entertainment.handleWrongPin()V
 					return;
-				L14:	bspush 32;
+				L17:	bspush 20;
 					newarray 11;
 					astore 7;
-				L15:	getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
-					invokevirtual 58;		// reset()V
+				L18:	getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
+					ifnull L20;
+				L19:	getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
+					invokevirtual 59;		// reset()V
 					getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
 					sconst_0;
-					bspush 32;
+					bspush 16;
 					aload 7;
 					sconst_0;
-					invokevirtual 59;		// doFinal([BSS[BS)S
+					invokevirtual 60;		// doFinal([BSS[BS)S
 					pop;
-					sconst_1;
+				L20:	sconst_1;
 					sstore 8;
-				L16:	sconst_0;
+				L21:	sconst_0;
 					sstore 9;
-				L17:	sload 9;
-					bspush 32;
-					if_scmpge L21;
-				L18:	aload 7;
+				L22:	sload 9;
+					bspush 20;
+					if_scmpge L26;
+				L23:	aload 7;
 					sload 9;
 					baload;
 					getfield_a_this 3;		// reference Entertainment/Entertainment.masterKeyHash
 					sload 9;
 					baload;
-					if_scmpeq L20;
-				L19:	sconst_0;
+					if_scmpeq L25;
+				L24:	sconst_0;
 					sstore 8;
-					goto L21;
-				L20:	sinc 9 1;
-					goto L17;
-				L21:	sload 8;
-					ifeq L23;
-				L22:	aload_0;
+					goto L26;
+				L25:	sinc 9 1;
+					goto L22;
+				L26:	sload 8;
+					ifeq L28;
+				L27:	aload_0;
 					sconst_1;
 					putfield_b 21;		// boolean Entertainment/Entertainment.sessionAuth
 					aload_0;
 					sconst_3;
 					putfield_b 6;		// byte Entertainment/Entertainment.pinTryCounter
-					goto L24;
-				L23:	getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
+					goto L29;
+				L28:	getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
 					sconst_0;
-					bspush 32;
+					bspush 16;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					aload_0;
-					invokespecial 67;		// Entertainment/Entertainment.handleWrongPin()V
-				L24:	return;
+					invokespecial 69;		// Entertainment/Entertainment.handleWrongPin()V
+				L29:	return;
 		}
 
 		.method private handleWrongPin()V {
@@ -831,12 +887,12 @@
 					sconst_1;
 					putfield_b 7;		// boolean Entertainment/Entertainment.lockedFlag
 					sspush 27011;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 					goto L3;
 				L2:	sspush 25536;
 					getfield_b_this 6;		// byte Entertainment/Entertainment.pinTryCounter
 					sor;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L3:	return;
 		}
 
@@ -849,7 +905,7 @@
 				L0:	getfield_b_this 8;		// boolean Entertainment/Entertainment.initialized
 					ifne L2;
 				L1:	sspush 27014;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
@@ -860,7 +916,7 @@
 					sand;
 					sstore_3;
 				L4:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					aload_0;
 					sconst_3;
@@ -870,10 +926,10 @@
 					putfield_b 7;		// boolean Entertainment/Entertainment.lockedFlag
 					sload_3;
 					sconst_4;
-					if_scmplt L9;
+					if_scmplt L12;
 				L5:	sload_3;
 					bspush 16;
-					if_scmpgt L9;
+					if_scmpgt L12;
 				L6:	sload_3;
 					newarray 11;
 					astore 4;
@@ -882,12 +938,14 @@
 					aload 4;
 					sconst_0;
 					sload_3;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
-					bspush 32;
+					bspush 16;
 					newarray 11;
 					astore 5;
 				L8:	getfield_a_this 17;		// reference Entertainment/Entertainment.pbkdf2
+					ifnull L10;
+				L9:	getfield_a_this 17;		// reference Entertainment/Entertainment.pbkdf2
 					aload 4;
 					sconst_0;
 					sload_3;
@@ -897,27 +955,34 @@
 					sspush 10000;
 					aload 5;
 					sconst_0;
-					invokevirtual 60;		// doFinal([BSS[BSSS[BS)S
+					invokevirtual 61;		// doFinal([BSS[BSSS[BS)S
 					pop;
-					aload_0;
+					goto L11;
+				L10:	aload_0;
+					aload 4;
+					sload_3;
+					getfield_a_this 1;		// reference Entertainment/Entertainment.salt
+					aload 5;
+					invokespecial 62;		// Entertainment/Entertainment.deriveKeySimple([BS[B[B)V
+				L11:	aload_0;
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
-					bspush 32;
+					bspush 16;
 					aload 5;
 					getfield_a_this 2;		// reference Entertainment/Entertainment.wrappedMasterKey
-					invokespecial 61;		// Entertainment/Entertainment.wrapKey([BS[B[B)V
+					invokespecial 63;		// Entertainment/Entertainment.wrapKey([BS[B[B)V
 					aload 5;
 					sconst_0;
-					bspush 32;
+					bspush 16;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					aload 4;
 					sconst_0;
 					sload_3;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
-				L9:	return;
+				L12:	return;
 		}
 
 		.method private processCheckAccessForGame(Ljavacard/framework/APDU;)V {
@@ -929,12 +994,12 @@
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
 				L3:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					aload_2;
 					sconst_5;
@@ -942,16 +1007,16 @@
 					sstore_3;
 				L4:	aload_2;
 					bspush 6;
-					invokestatic 68;		// javacard/framework/Util.getShort([BS)S
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
 					sstore 4;
 				L5:	aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 69;		// Entertainment/Entertainment.decryptUserData([B)V
+					invokespecial 71;		// Entertainment/Entertainment.decryptUserData([B)V
 					aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload_3;
 					sload 4;
-					invokespecial 70;		// Entertainment/Entertainment.checkGameAccess([BBS)Z
+					invokespecial 72;		// Entertainment/Entertainment.checkGameAccess([BBS)Z
 					sstore 5;
 				L6:	aload_2;
 					sconst_0;
@@ -964,79 +1029,80 @@
 					aload_1;
 					sconst_0;
 					sconst_1;
-					invokevirtual 65;		// setOutgoingAndSend(SS)V
+					invokevirtual 67;		// setOutgoingAndSend(SS)V
 					return;
 		}
 
 		.method private processTopupCoins(Ljavacard/framework/APDU;)V {
-			.stack 4;
-			.locals 8;
+			.stack 3;
+			.locals 5;
 
 			.descriptor	Ljavacard/framework/APDU;	0.10;
 
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
 				L3:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					aload_2;
 					sconst_5;
-					invokestatic 71;		// Entertainment/Entertainment.getInt([BS)I
-					istore_3;
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
+					sstore_3;
 				L4:	aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 69;		// Entertainment/Entertainment.decryptUserData([B)V
+					invokespecial 71;		// Entertainment/Entertainment.decryptUserData([B)V
 					aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sconst_3;
-					invokespecial 72;		// Entertainment/Entertainment.findTag([BB)S
-					sstore 5;
-				L5:	sload 5;
+					invokespecial 73;		// Entertainment/Entertainment.findTag([BB)S
+					sstore 4;
+				L5:	sload 4;
 					ifge L7;
 				L6:	sspush 27264;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L7:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					sload 5;
+					sload 4;
 					sconst_2;
 					sadd;
-					invokestatic 71;		// Entertainment/Entertainment.getInt([BS)I
-					istore 6;
-				L8:	iload 6;
-					iload_3;
-					iadd;
-					istore 8;
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
+					sstore 5;
+				L8:	sload 5;
+					sload_3;
+					sadd;
+					sstore 6;
 				L9:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					sload 5;
+					sload 4;
 					sconst_2;
 					sadd;
-					iload 8;
-					invokestatic 73;		// Entertainment/Entertainment.setInt([BSI)V
+					sload 6;
+					invokestatic 74;		// javacard/framework/Util.setShort([BSS)S
+					pop;
 					aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 74;		// Entertainment/Entertainment.encryptUserData([B)V
+					invokespecial 75;		// Entertainment/Entertainment.encryptUserData([B)V
 					return;
 		}
 
 		.method private processPurchaseCombo(Ljavacard/framework/APDU;)V {
 			.stack 5;
-			.locals 12;
+			.locals 11;
 
 			.descriptor	Ljavacard/framework/APDU;	0.10;
 
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
 				L3:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					sconst_5;
 					sstore_3;
@@ -1051,7 +1117,7 @@
 					bspush 50;
 					if_scmple L8;
 				L7:	sspush 27264;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L8:	sload 4;
 					newarray 11;
 					astore 5;
@@ -1060,7 +1126,7 @@
 					aload 5;
 					sconst_0;
 					sload 4;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					sload_3;
 					sload 4;
@@ -1068,93 +1134,93 @@
 					sstore_3;
 					aload_2;
 					sload_3;
-					invokestatic 71;		// Entertainment/Entertainment.getInt([BS)I
-					istore 6;
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
+					sstore 6;
 				L10:	aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 69;		// Entertainment/Entertainment.decryptUserData([B)V
+					invokespecial 71;		// Entertainment/Entertainment.decryptUserData([B)V
 					aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sconst_4;
-					invokespecial 72;		// Entertainment/Entertainment.findTag([BB)S
-					sstore 8;
-				L11:	sload 8;
+					invokespecial 73;		// Entertainment/Entertainment.findTag([BB)S
+					sstore 7;
+				L11:	sload 7;
 					ifge L13;
 				L12:	sspush 27264;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L13:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					sload 8;
+					sload 7;
 					sconst_1;
 					sadd;
 					baload;
-					sstore 9;
-				L14:	sload 8;
+					sstore 8;
+				L14:	sload 7;
 					sconst_2;
 					sadd;
-					sstore 10;
+					sstore 9;
 				L15:	sconst_0;
-					sstore 11;
-				L16:	sload 11;
+					sstore 10;
+				L16:	sload 10;
 					sload 4;
 					if_scmpge L27;
 				L17:	sconst_0;
-					sstore 12;
+					sstore 11;
 				L18:	sconst_0;
-					sstore 13;
-				L19:	sload 13;
-					sload 9;
+					sstore 12;
+				L19:	sload 12;
+					sload 8;
 					if_scmpge L23;
 				L20:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					sload 10;
-					sload 13;
+					sload 9;
+					sload 12;
 					sadd;
 					baload;
 					aload 5;
-					sload 11;
+					sload 10;
 					baload;
 					if_scmpne L22;
 				L21:	sconst_1;
-					sstore 12;
+					sstore 11;
 					goto L23;
-				L22:	sload 13;
+				L22:	sload 12;
 					sconst_1;
 					sadd;
 					s2b;
-					sstore 13;
+					sstore 12;
 					goto L19;
-				L23:	sload 12;
+				L23:	sload 11;
 					ifne L26;
-				L24:	sload 9;
+				L24:	sload 8;
 					bspush 50;
 					if_scmpge L26;
 				L25:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					sload 10;
 					sload 9;
+					sload 8;
 					sadd;
 					aload 5;
-					sload 11;
+					sload 10;
 					baload;
 					bastore;
-					sload 9;
-					sconst_1;
-					sadd;
-					s2b;
-					sstore 9;
-				L26:	sload 11;
-					sconst_1;
-					sadd;
-					s2b;
-					sstore 11;
-					goto L16;
-				L27:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload 8;
 					sconst_1;
 					sadd;
-					sload 9;
+					s2b;
+					sstore 8;
+				L26:	sload 10;
+					sconst_1;
+					sadd;
+					s2b;
+					sstore 10;
+					goto L16;
+				L27:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
+					sload 7;
+					sconst_1;
+					sadd;
+					sload 8;
 					bastore;
 					aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 74;		// Entertainment/Entertainment.encryptUserData([B)V
+					invokespecial 75;		// Entertainment/Entertainment.encryptUserData([B)V
 					return;
 		}
 
@@ -1164,34 +1230,40 @@
 
 			.descriptor	Ljavacard/framework/APDU;	0.10;
 
-				L0:	aload_1;
+				L0:	getfield_a_this 15;		// reference Entertainment/Entertainment.rsaSignature
+					ifnull L2;
+				L1:	getfield_a_this 19;		// reference Entertainment/Entertainment.rsaPrivateKey
+					ifnonnull L3;
+				L2:	sspush 27265;
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
+				L3:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
-				L1:	aload_2;
+				L4:	aload_2;
 					sconst_4;
 					baload;
 					sspush 255;
 					sand;
 					sstore_3;
-				L2:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+				L5:	aload_1;
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					getfield_a_this 15;		// reference Entertainment/Entertainment.rsaSignature
 					getfield_a_this 19;		// reference Entertainment/Entertainment.rsaPrivateKey
 					sconst_1;
-					invokevirtual 75;		// init(Ljavacard/security/Key;B)V
+					invokevirtual 76;		// init(Ljavacard/security/Key;B)V
 					getfield_a_this 15;		// reference Entertainment/Entertainment.rsaSignature
 					aload_2;
 					sconst_5;
 					sload_3;
 					aload_2;
 					sconst_0;
-					invokevirtual 76;		// sign([BSS[BS)S
+					invokevirtual 77;		// sign([BSS[BS)S
 					sstore 4;
-				L3:	aload_1;
+				L6:	aload_1;
 					sconst_0;
 					sload 4;
-					invokevirtual 65;		// setOutgoingAndSend(SS)V
+					invokevirtual 67;		// setOutgoingAndSend(SS)V
 					return;
 		}
 
@@ -1204,12 +1276,12 @@
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
 				L3:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					aload_2;
 					sconst_5;
@@ -1217,18 +1289,18 @@
 					sstore_3;
 				L4:	aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 69;		// Entertainment/Entertainment.decryptUserData([B)V
+					invokespecial 71;		// Entertainment/Entertainment.decryptUserData([B)V
 					sconst_0;
 					sstore 4;
 				L5:	aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload_3;
-					invokespecial 72;		// Entertainment/Entertainment.findTag([BB)S
+					invokespecial 73;		// Entertainment/Entertainment.findTag([BB)S
 					sstore 5;
 				L6:	sload 5;
 					ifge L8;
 				L7:	sspush 27264;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L8:	getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload 5;
 					sconst_1;
@@ -1242,12 +1314,12 @@
 					aload_2;
 					sconst_0;
 					sload 6;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					aload_1;
 					sconst_0;
 					sload 6;
-					invokevirtual 65;		// setOutgoingAndSend(SS)V
+					invokevirtual 67;		// setOutgoingAndSend(SS)V
 					return;
 		}
 
@@ -1260,7 +1332,7 @@
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
@@ -1271,11 +1343,11 @@
 					sand;
 					sstore_3;
 				L4:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 69;		// Entertainment/Entertainment.decryptUserData([B)V
+					invokespecial 71;		// Entertainment/Entertainment.decryptUserData([B)V
 					sconst_5;
 					sstore 4;
 				L5:	sload 4;
@@ -1296,7 +1368,7 @@
 				L8:	aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload 5;
-					invokespecial 72;		// Entertainment/Entertainment.findTag([BB)S
+					invokespecial 73;		// Entertainment/Entertainment.findTag([BB)S
 					sstore 7;
 				L9:	sload 7;
 					iflt L11;
@@ -1313,7 +1385,7 @@
 					sconst_2;
 					sadd;
 					sload 6;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 				L11:	sload 4;
 					sload 6;
@@ -1322,7 +1394,7 @@
 				L12:	goto L5;
 				L13:	aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 74;		// Entertainment/Entertainment.encryptUserData([B)V
+					invokespecial 75;		// Entertainment/Entertainment.encryptUserData([B)V
 					return;
 		}
 
@@ -1335,25 +1407,25 @@
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
 				L3:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					sconst_5;
 					sstore_3;
 				L4:	aload_2;
 					sload_3;
-					invokestatic 68;		// javacard/framework/Util.getShort([BS)S
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
 					sstore 4;
 				L5:	sinc 3 2;
 					sload 4;
 					sspush 8192;
 					if_scmple L7;
 				L6:	sspush 27268;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L7:	aload_0;
 					aload_2;
 					sload_3;
@@ -1374,7 +1446,7 @@
 					getfield_a_this 5;		// reference Entertainment/Entertainment.imageBuffer
 					sconst_0;
 					sload 5;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					return;
 		}
@@ -1388,18 +1460,18 @@
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
 				L3:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					sconst_5;
 					sstore_3;
 				L4:	aload_2;
 					sload_3;
-					invokestatic 68;		// javacard/framework/Util.getShort([BS)S
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
 					sstore 4;
 				L5:	sinc 3 2;
 					aload_2;
@@ -1414,13 +1486,13 @@
 					sspush 8192;
 					if_scmple L8;
 				L7:	sspush 27268;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L8:	aload_2;
 					sload_3;
 					getfield_a_this 5;		// reference Entertainment/Entertainment.imageBuffer
 					sload 4;
 					sload 5;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					return;
 		}
@@ -1434,23 +1506,23 @@
 				L0:	getfield_b_this 21;		// boolean Entertainment/Entertainment.sessionAuth
 					ifne L2;
 				L1:	sspush 27010;
-					invokestatic 87;		// javacard/framework/ISOException.throwIt(S)V
+					invokestatic 55;		// javacard/framework/ISOException.throwIt(S)V
 				L2:	aload_1;
 					invokevirtual 41;		// getBuffer()[B
 					astore_2;
 				L3:	aload_1;
-					invokevirtual 55;		// setIncomingAndReceive()S
+					invokevirtual 56;		// setIncomingAndReceive()S
 					pop;
 					sconst_5;
 					sstore_3;
 				L4:	aload_2;
 					sload_3;
-					invokestatic 68;		// javacard/framework/Util.getShort([BS)S
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
 					sstore 4;
 				L5:	sinc 3 2;
 					aload_2;
 					sload_3;
-					invokestatic 68;		// javacard/framework/Util.getShort([BS)S
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
 					sstore 5;
 				L6:	sload 4;
 					sload 5;
@@ -1466,12 +1538,12 @@
 					aload_2;
 					sconst_0;
 					sload 5;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					aload_1;
 					sconst_0;
 					sload 5;
-					invokevirtual 65;		// setOutgoingAndSend(SS)V
+					invokevirtual 67;		// setOutgoingAndSend(SS)V
 					return;
 		}
 
@@ -1485,50 +1557,54 @@
 					sconst_0;
 					bspush 16;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 1;		// reference Entertainment/Entertainment.salt
 					sconst_0;
 					bspush 16;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 2;		// reference Entertainment/Entertainment.wrappedMasterKey
 					sconst_0;
 					getfield_a_this 2;		// reference Entertainment/Entertainment.wrappedMasterKey
 					arraylength;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 3;		// reference Entertainment/Entertainment.masterKeyHash
 					sconst_0;
-					bspush 32;
+					bspush 20;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 4;		// reference Entertainment/Entertainment.encryptedUserData
 					sconst_0;
 					sspush 256;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 5;		// reference Entertainment/Entertainment.imageBuffer
 					sconst_0;
 					sspush 8192;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
 					sconst_0;
-					bspush 32;
+					bspush 16;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					getfield_a_this 19;		// reference Entertainment/Entertainment.rsaPrivateKey
+					ifnull L2;
+				L1:	getfield_a_this 19;		// reference Entertainment/Entertainment.rsaPrivateKey
 					invokeinterface 1 31 0;		// javacard/security/RSAPrivateKey
-					getfield_a_this 20;		// reference Entertainment/Entertainment.rsaPublicKey
+				L2:	getfield_a_this 20;		// reference Entertainment/Entertainment.rsaPublicKey
+					ifnull L4;
+				L3:	getfield_a_this 20;		// reference Entertainment/Entertainment.rsaPublicKey
 					invokeinterface 1 34 0;		// javacard/security/RSAPublicKey
-					aload_0;
+				L4:	aload_0;
 					sconst_0;
 					putfield_b 8;		// boolean Entertainment/Entertainment.initialized
 					aload_0;
@@ -1589,13 +1665,14 @@
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload_1;
 					sinc 1 1;
-					sconst_4;
+					sconst_2;
 					bastore;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload_1;
-					iconst_0;
-					invokestatic 73;		// Entertainment/Entertainment.setInt([BSI)V
-					sinc 1 4;
+					sconst_0;
+					invokestatic 74;		// javacard/framework/Util.setShort([BSS)S
+					pop;
+					sinc 1 2;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
 					sload_1;
 					sinc 1 1;
@@ -1608,7 +1685,7 @@
 					bastore;
 					aload_0;
 					getfield_a_this 12;		// reference Entertainment/Entertainment.tempBuffer
-					invokespecial 74;		// Entertainment/Entertainment.encryptUserData([B)V
+					invokespecial 75;		// Entertainment/Entertainment.encryptUserData([B)V
 					return;
 		}
 
@@ -1622,13 +1699,13 @@
 					bspush 8;
 					smul;
 					sconst_0;
-					invokestatic 77;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
-					checkcast 0 78;		// T_CLASSORINTERFACE javacard/security/AESKey
+					invokestatic 78;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 79;		// T_CLASSORINTERFACE javacard/security/AESKey
 					astore 5;
 				L1:	aload 5;
 					aload_3;
 					sconst_0;
-					invokeinterface 3 78 4;		// javacard/security/AESKey
+					invokeinterface 3 79 4;		// javacard/security/AESKey
 					bspush 16;
 					newarray 11;
 					astore 6;
@@ -1636,13 +1713,13 @@
 					aload 6;
 					sconst_0;
 					bspush 16;
-					invokevirtual 57;		// generateData([BSS)V
+					invokevirtual 58;		// generateData([BSS)V
 					aload 6;
 					sconst_0;
 					aload 4;
 					sconst_0;
 					bspush 16;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					aload 5;
@@ -1650,17 +1727,17 @@
 					aload 6;
 					sconst_0;
 					bspush 16;
-					invokevirtual 79;		// init(Ljavacard/security/Key;B[BSS)V
+					invokevirtual 80;		// init(Ljavacard/security/Key;B[BSS)V
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					aload_1;
 					sconst_0;
 					sload_2;
 					aload 4;
 					bspush 16;
-					invokevirtual 80;		// doFinal([BSS[BS)S
+					invokevirtual 81;		// doFinal([BSS[BS)S
 					pop;
 					aload 5;
-					invokeinterface 1 78 0;		// javacard/security/AESKey
+					invokeinterface 1 79 0;		// javacard/security/AESKey
 					return;
 		}
 
@@ -1674,13 +1751,13 @@
 					bspush 8;
 					smul;
 					sconst_0;
-					invokestatic 77;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
-					checkcast 0 78;		// T_CLASSORINTERFACE javacard/security/AESKey
+					invokestatic 78;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 79;		// T_CLASSORINTERFACE javacard/security/AESKey
 					astore 4;
 				L1:	aload 4;
 					aload_2;
 					sconst_0;
-					invokeinterface 3 78 4;		// javacard/security/AESKey
+					invokeinterface 3 79 4;		// javacard/security/AESKey
 					bspush 16;
 					newarray 11;
 					astore 5;
@@ -1689,7 +1766,7 @@
 					aload 5;
 					sconst_0;
 					bspush 16;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					aload 4;
@@ -1697,17 +1774,17 @@
 					aload 5;
 					sconst_0;
 					bspush 16;
-					invokevirtual 79;		// init(Ljavacard/security/Key;B[BSS)V
+					invokevirtual 80;		// init(Ljavacard/security/Key;B[BSS)V
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					aload_1;
 					bspush 16;
-					bspush 32;
+					bspush 16;
 					aload_3;
 					sconst_0;
-					invokevirtual 80;		// doFinal([BSS[BS)S
+					invokevirtual 81;		// doFinal([BSS[BS)S
 					pop;
 					aload 4;
-					invokeinterface 1 78 0;		// javacard/security/AESKey
+					invokeinterface 1 79 0;		// javacard/security/AESKey
 					sconst_1;
 				L3:	sreturn;
 				L4:	astore 4;
@@ -1715,7 +1792,7 @@
 					sreturn;
 			.exceptionTable {
 				// start_block end_block handler_block catch_type_index
-				L0 L3 L4 81;
+				L0 L3 L4 29;
 			}
 		}
 
@@ -1724,15 +1801,15 @@
 			.locals 3;
 
 				L0:	bspush 15;
-					sspush 256;
+					sspush 128;
 					sconst_0;
-					invokestatic 77;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
-					checkcast 0 78;		// T_CLASSORINTERFACE javacard/security/AESKey
+					invokestatic 78;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 79;		// T_CLASSORINTERFACE javacard/security/AESKey
 					astore_2;
 				L1:	aload_2;
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
 					sconst_0;
-					invokeinterface 3 78 4;		// javacard/security/AESKey
+					invokeinterface 3 79 4;		// javacard/security/AESKey
 					bspush 16;
 					newarray 11;
 					astore_3;
@@ -1740,13 +1817,13 @@
 					aload_3;
 					sconst_0;
 					bspush 16;
-					invokevirtual 57;		// generateData([BSS)V
+					invokevirtual 58;		// generateData([BSS)V
 					aload_3;
 					sconst_0;
 					getfield_a_this 4;		// reference Entertainment/Entertainment.encryptedUserData
 					sconst_0;
 					bspush 16;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					sspush 160;
 					sstore 4;
@@ -1756,17 +1833,17 @@
 					aload_3;
 					sconst_0;
 					bspush 16;
-					invokevirtual 79;		// init(Ljavacard/security/Key;B[BSS)V
+					invokevirtual 80;		// init(Ljavacard/security/Key;B[BSS)V
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					aload_1;
 					sconst_0;
 					sload 4;
 					getfield_a_this 4;		// reference Entertainment/Entertainment.encryptedUserData
 					bspush 16;
-					invokevirtual 80;		// doFinal([BSS[BS)S
+					invokevirtual 81;		// doFinal([BSS[BS)S
 					pop;
 					aload_2;
-					invokeinterface 1 78 0;		// javacard/security/AESKey
+					invokeinterface 1 79 0;		// javacard/security/AESKey
 					return;
 		}
 
@@ -1775,15 +1852,15 @@
 			.locals 2;
 
 				L0:	bspush 15;
-					sspush 256;
+					sspush 128;
 					sconst_0;
-					invokestatic 77;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
-					checkcast 0 78;		// T_CLASSORINTERFACE javacard/security/AESKey
+					invokestatic 78;		// javacard/security/KeyBuilder.buildKey(BSZ)Ljavacard/security/Key;
+					checkcast 0 79;		// T_CLASSORINTERFACE javacard/security/AESKey
 					astore_2;
 				L1:	aload_2;
 					getfield_a_this 11;		// reference Entertainment/Entertainment.masterKey
 					sconst_0;
-					invokeinterface 3 78 4;		// javacard/security/AESKey
+					invokeinterface 3 79 4;		// javacard/security/AESKey
 					bspush 16;
 					newarray 11;
 					astore_3;
@@ -1792,7 +1869,7 @@
 					aload_3;
 					sconst_0;
 					bspush 16;
-					invokestatic 56;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
 					pop;
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					aload_2;
@@ -1800,17 +1877,17 @@
 					aload_3;
 					sconst_0;
 					bspush 16;
-					invokevirtual 79;		// init(Ljavacard/security/Key;B[BSS)V
+					invokevirtual 80;		// init(Ljavacard/security/Key;B[BSS)V
 					getfield_a_this 13;		// reference Entertainment/Entertainment.aesCipher
 					getfield_a_this 4;		// reference Entertainment/Entertainment.encryptedUserData
 					bspush 16;
 					sspush 160;
 					aload_1;
 					sconst_0;
-					invokevirtual 80;		// doFinal([BSS[BS)S
+					invokevirtual 81;		// doFinal([BSS[BS)S
 					pop;
 					aload_2;
-					invokeinterface 1 78 0;		// javacard/security/AESKey
+					invokeinterface 1 79 0;		// javacard/security/AESKey
 					return;
 		}
 
@@ -1846,13 +1923,13 @@
 		}
 
 		.method private checkGameAccess([BBS)Z {
-			.stack 4;
-			.locals 4;
+			.stack 3;
+			.locals 3;
 
 				L0:	aload_0;
 					aload_1;
 					sconst_4;
-					invokespecial 72;		// Entertainment/Entertainment.findTag([BB)S
+					invokespecial 73;		// Entertainment/Entertainment.findTag([BB)S
 					sstore 4;
 				L1:	sload 4;
 					iflt L8;
@@ -1887,7 +1964,7 @@
 				L8:	aload_0;
 					aload_1;
 					sconst_3;
-					invokespecial 72;		// Entertainment/Entertainment.findTag([BB)S
+					invokespecial 73;		// Entertainment/Entertainment.findTag([BB)S
 					sstore 5;
 				L9:	sload 5;
 					iflt L15;
@@ -1895,13 +1972,11 @@
 					sload 5;
 					sconst_2;
 					sadd;
-					invokestatic 71;		// Entertainment/Entertainment.getInt([BS)I
-					istore 6;
-				L11:	iload 6;
+					invokestatic 70;		// javacard/framework/Util.getShort([BS)S
+					sstore 6;
+				L11:	sload 6;
 					sload_3;
-					s2i;
-					icmp;
-					iflt L13;
+					if_scmplt L13;
 				L12:	sconst_1;
 					goto L14;
 				L13:	sconst_0;
@@ -1910,96 +1985,69 @@
 					sreturn;
 		}
 
-		.method private static getInt([BS)I {
-			.stack 6;
-			.locals 0;
+		.method private deriveKeySimple([BS[B[B)V {
+			.stack 8;
+			.locals 1;
 
-				L0:	aload_0;
-					sload_1;
-					baload;
-					s2i;
-					sipush 255;
-					iand;
-					bipush 24;
-					ishl;
-					aload_0;
-					sload_1;
-					sconst_1;
+				L0:	sload_2;
+					bspush 16;
 					sadd;
-					baload;
+					newarray 11;
+					astore 5;
+				L1:	aload_1;
+					sconst_0;
+					aload 5;
+					sconst_0;
+					sload_2;
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					pop;
+					aload_3;
+					sconst_0;
+					aload 5;
+					sload_2;
+					bspush 16;
+					invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					pop;
+					getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
+					ifnull L3;
+				L2:	getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
+					invokevirtual 59;		// reset()V
+					getfield_a_this 14;		// reference Entertainment/Entertainment.sha256
+					aload 5;
+					sconst_0;
+					sload_2;
+					bspush 16;
+					sadd;
+					aload 4;
+					sconst_0;
+					invokevirtual 60;		// doFinal([BSS[BS)S
+					pop;
+					goto L7;
+				L3:	aload 5;
+					sconst_0;
+					aload 4;
+					sconst_0;
+					sload_2;
 					s2i;
-					sipush 255;
-					iand;
 					bipush 16;
-					ishl;
-					ior;
-					aload_0;
-					sload_1;
-					sconst_2;
-					sadd;
-					baload;
-					s2i;
-					sipush 255;
-					iand;
-					bipush 8;
-					ishl;
-					ior;
-					aload_0;
-					sload_1;
-					sconst_3;
-					sadd;
-					baload;
-					s2i;
-					sipush 255;
-					iand;
-					ior;
-					ireturn;
-		}
-
-		.method private static setInt([BSI)V {
-			.stack 6;
-			.locals 0;
-
-				L0:	aload_0;
-					sload_1;
-					iload_2;
-					bipush 24;
-					ishr;
-					sipush 255;
-					iand;
-					i2b;
-					bastore;
-					aload_0;
-					sload_1;
-					sconst_1;
-					sadd;
-					iload_2;
+					iadd;
 					bipush 16;
-					ishr;
-					sipush 255;
-					iand;
-					i2b;
-					bastore;
-					aload_0;
-					sload_1;
-					sconst_2;
+					icmp;
+					ifge L5;
+				L4:	sload_2;
+					bspush 16;
 					sadd;
-					iload_2;
-					bipush 8;
-					ishr;
-					sipush 255;
-					iand;
-					i2b;
-					bastore;
-					aload_0;
-					sload_1;
-					sconst_3;
-					sadd;
-					iload_2;
-					sipush 255;
-					iand;
-					i2b;
-					bastore;
+					goto L6;
+				L5:	bspush 16;
+				L6:	invokestatic 57;		// javacard/framework/Util.arrayCopy([BS[BSS)S
+					pop;
+				L7:	aload 5;
+					sconst_0;
+					aload 5;
+					arraylength;
+					sconst_0;
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					pop;
 					return;
 		}
 
@@ -2073,7 +2121,7 @@
 				L2:	getstatic_a 88;		// reference Entertainment/PBKDF2.m_instance
 					sconst_1;
 					sconst_0;
-					invokestatic 29;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
+					invokestatic 32;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
 					putfield_a 26;		// reference Entertainment/PBKDF2.m_hash
 					bspush 20;
 					putstatic_s 91;		// short Entertainment/PBKDF2.mdlen
@@ -2081,12 +2129,12 @@
 				L3:	getstatic_a 88;		// reference Entertainment/PBKDF2.m_instance
 					sconst_4;
 					sconst_0;
-					invokestatic 29;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
+					invokestatic 32;		// javacard/security/MessageDigest.getInstance(BZ)Ljavacard/security/MessageDigest;
 					putfield_a 26;		// reference Entertainment/PBKDF2.m_hash
 					bspush 32;
 					putstatic_s 91;		// short Entertainment/PBKDF2.mdlen
 					goto L5;
-				L4:	new 32;		// javacard/security/CryptoException
+				L4:	new 83;		// javacard/security/CryptoException
 					dup;
 					sconst_3;
 					invokespecial 92;		// javacard/security/CryptoException.<init>(S)V
@@ -2094,26 +2142,26 @@
 				L5:	getstatic_a 88;		// reference Entertainment/PBKDF2.m_instance
 					getstatic_s 91;		// short Entertainment/PBKDF2.mdlen
 					sconst_2;
-					invokestatic 86;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 35;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 22;		// reference Entertainment/PBKDF2.U_i
 					getstatic_a 88;		// reference Entertainment/PBKDF2.m_instance
 					bspush 64;
 					sconst_2;
-					invokestatic 86;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 35;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 23;		// reference Entertainment/PBKDF2.keyprime
 					getstatic_a 88;		// reference Entertainment/PBKDF2.m_instance
 					bspush 64;
 					getstatic_s 91;		// short Entertainment/PBKDF2.mdlen
 					sadd;
 					sconst_2;
-					invokestatic 86;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 35;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 24;		// reference Entertainment/PBKDF2.innerblock
 					getstatic_a 88;		// reference Entertainment/PBKDF2.m_instance
 					bspush 64;
 					getstatic_s 91;		// short Entertainment/PBKDF2.mdlen
 					sadd;
 					sconst_2;
-					invokestatic 86;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
+					invokestatic 35;		// javacard/framework/JCSystem.makeTransientByteArray(SB)[B
 					putfield_a 25;		// reference Entertainment/PBKDF2.outerblock
 				L6:	getstatic_a 88;		// reference Entertainment/PBKDF2.m_instance
 					areturn;
@@ -2132,7 +2180,7 @@
 					sload_3;
 					ssub;
 					sconst_0;
-					invokestatic 62;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
+					invokestatic 64;		// javacard/framework/Util.arrayFillNonAtomic([BSSB)S
 					pop;
 					aload_1;
 					sload_2;
@@ -2151,7 +2199,7 @@
 					sload_3;
 					getfield_a_this 23;		// reference Entertainment/PBKDF2.keyprime
 					sconst_0;
-					invokevirtual 59;		// doFinal([BSS[BS)S
+					invokevirtual 60;		// doFinal([BSS[BS)S
 					pop;
 					goto L5;
 				L4:	aload_1;
@@ -2199,7 +2247,7 @@
 					sadd;
 					getfield_a_this 24;		// reference Entertainment/PBKDF2.innerblock
 					sconst_0;
-					invokevirtual 59;		// doFinal([BSS[BS)S
+					invokevirtual 60;		// doFinal([BSS[BS)S
 					pop;
 					getfield_a_this 24;		// reference Entertainment/PBKDF2.innerblock
 					sconst_0;
@@ -2216,7 +2264,7 @@
 					sadd;
 					getfield_a_this 22;		// reference Entertainment/PBKDF2.U_i
 					sconst_0;
-					invokevirtual 59;		// doFinal([BSS[BS)S
+					invokevirtual 60;		// doFinal([BSS[BS)S
 					sreturn;
 		}
 
@@ -2227,7 +2275,7 @@
 				L0:	bspush 16;
 					sload 6;
 					if_scmpge L2;
-				L1:	new 32;		// javacard/security/CryptoException
+				L1:	new 83;		// javacard/security/CryptoException
 					dup;
 					sconst_5;
 					invokespecial 92;		// javacard/security/CryptoException.<init>(S)V

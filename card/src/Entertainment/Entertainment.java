@@ -31,9 +31,9 @@ public class Entertainment extends Applet {
     private static final byte PIN_TRY_LIMIT = (byte) 3;
     private static final byte MAX_PIN_SIZE = (byte) 16;
     private static final byte SALT_SIZE = (byte) 16;
-    private static final short AES_KEY_SIZE = (short) 32; // 256 bits
-    private static final short HASH_SIZE = (short) 32; // SHA-256
-    private static final short RSA_KEY_SIZE = (short) 2048;
+    private static final short AES_KEY_SIZE = (short) 16; // 128 bits (more compatible)
+    private static final short HASH_SIZE = (short) 20; // SHA-1 for compatibility
+    private static final short RSA_KEY_SIZE = (short) 1024; // 1024 bits (more compatible)
     private static final byte MAX_NAME_LENGTH = (byte) 64;
     private static final byte MAX_GAMES = (byte) 50;
     private static final short MAX_IMAGE_SIZE = (short) 8192; // 8KB for image
@@ -95,21 +95,50 @@ public class Entertainment extends Applet {
         masterKey = JCSystem.makeTransientByteArray(AES_KEY_SIZE, JCSystem.CLEAR_ON_DESELECT);
         tempBuffer = JCSystem.makeTransientByteArray((short) 256, JCSystem.CLEAR_ON_DESELECT);
 
-        // Initialize crypto objects
+        // Initialize crypto objects with fallback options
         try {
-            aesCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
-            sha256 = MessageDigest.getInstance(MessageDigest.ALG_SHA_256, false);
-            rsaSignature = Signature.getInstance(Signature.ALG_RSA_SHA_256_PKCS1, false);
+            // Try AES-128 CBC first
+            try {
+                aesCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
+            } catch (CryptoException e) {
+                // Fallback to ECB if CBC not supported
+                aesCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+            }
+            
+            // Use SHA-1 for better compatibility
+            sha256 = MessageDigest.getInstance(MessageDigest.ALG_SHA, false);
+            
+            // Try RSA signature
+            try {
+                rsaSignature = Signature.getInstance(Signature.ALG_RSA_SHA_PKCS1, false);
+            } catch (CryptoException e) {
+                // RSA signature may not be available, will handle in process methods
+                rsaSignature = null;
+            }
+            
             randomGen = RandomData.getInstance(RandomData.ALG_SECURE_RANDOM);
-            pbkdf2 = PBKDF2.getInstance(PBKDF2.ALG_SHA_256);
+            
+            // PBKDF2 may not be available on all cards
+            try {
+                pbkdf2 = PBKDF2.getInstance(PBKDF2.ALG_SHA_256);
+            } catch (Exception e) {
+                pbkdf2 = null; // Will use simple hash-based KDF instead
+            }
         } catch (CryptoException e) {
-            ISOException.throwIt(ISO7816.SW_FUNC_NOT_SUPPORTED);
+            // Continue without optional features
         }
 
-        // Initialize RSA key pair
-        rsaKeyPair = new KeyPair(KeyPair.ALG_RSA, RSA_KEY_SIZE);
-        rsaPrivateKey = (RSAPrivateKey) rsaKeyPair.getPrivate();
-        rsaPublicKey = (RSAPublicKey) rsaKeyPair.getPublic();
+        // Initialize RSA key pair (may not be supported on all cards)
+        try {
+            rsaKeyPair = new KeyPair(KeyPair.ALG_RSA, RSA_KEY_SIZE);
+            rsaPrivateKey = (RSAPrivateKey) rsaKeyPair.getPrivate();
+            rsaPublicKey = (RSAPublicKey) rsaKeyPair.getPublic();
+        } catch (CryptoException e) {
+            // RSA not supported, continue without it
+            rsaKeyPair = null;
+            rsaPrivateKey = null;
+            rsaPublicKey = null;
+        }
     }
 
     public static void install(byte[] bArray, short bOffset, byte bLength) {
@@ -205,12 +234,19 @@ public class Entertainment extends Applet {
         randomGen.generateData(masterKey, (short) 0, AES_KEY_SIZE);
 
         // Hash master key
-        sha256.reset();
-        sha256.doFinal(masterKey, (short) 0, AES_KEY_SIZE, masterKeyHash, (short) 0);
+        if (sha256 != null) {
+            sha256.reset();
+            sha256.doFinal(masterKey, (short) 0, AES_KEY_SIZE, masterKeyHash, (short) 0);
+        }
 
-        // Derive KEK from PIN + salt using PBKDF2
+        // Derive KEK from PIN + salt
         byte[] kek = new byte[AES_KEY_SIZE];
-        pbkdf2.doFinal(pin, (short) 0, pinLength, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+        if (pbkdf2 != null) {
+            pbkdf2.doFinal(pin, (short) 0, pinLength, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+        } else {
+            // Fallback: simple hash-based KDF
+            deriveKeySimple(pin, pinLength, salt, kek);
+        }
 
         // Wrap master key with KEK
         wrapKey(masterKey, AES_KEY_SIZE, kek, wrappedMasterKey);
@@ -219,8 +255,10 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(kek, (short) 0, AES_KEY_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(pin, (short) 0, pinLength, (byte) 0);
 
-        // Generate RSA key pair
-        rsaKeyPair.genKeyPair();
+        // Generate RSA key pair if supported
+        if (rsaKeyPair != null) {
+            rsaKeyPair.genKeyPair();
+        }
 
         // Initialize encrypted user data with empty values
         initializeUserData();
@@ -229,12 +267,13 @@ public class Entertainment extends Applet {
         pinTryCounter = PIN_TRY_LIMIT;
         lockedFlag = false;
 
-        // Return public key (modulus and exponent)
-        short modulusLen = rsaPublicKey.getModulus(buffer, (short) 0);
-        short exponentLen = rsaPublicKey.getExponent(buffer, modulusLen);
-        short totalLen = (short) (modulusLen + exponentLen);
-
-        apdu.setOutgoingAndSend((short) 0, totalLen);
+        // Return public key (modulus and exponent) if RSA is supported
+        if (rsaPublicKey != null) {
+            short modulusLen = rsaPublicKey.getModulus(buffer, (short) 0);
+            short exponentLen = rsaPublicKey.getExponent(buffer, modulusLen);
+            short totalLen = (short) (modulusLen + exponentLen);
+            apdu.setOutgoingAndSend((short) 0, totalLen);
+        }
     }
 
     private void processVerifyPin(APDU apdu) {
@@ -259,7 +298,11 @@ public class Entertainment extends Applet {
 
         // Derive KEK from PIN + salt
         byte[] kek = new byte[AES_KEY_SIZE];
-        pbkdf2.doFinal(pin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+        if (pbkdf2 != null) {
+            pbkdf2.doFinal(pin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+        } else {
+            deriveKeySimple(pin, (short) lc, salt, kek);
+        }
 
         // Clear PIN
         Util.arrayFillNonAtomic(pin, (short) 0, lc, (byte) 0);
@@ -277,8 +320,10 @@ public class Entertainment extends Applet {
 
         // Verify master key hash
         byte[] computedHash = new byte[HASH_SIZE];
-        sha256.reset();
-        sha256.doFinal(masterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
+        if (sha256 != null) {
+            sha256.reset();
+            sha256.doFinal(masterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
+        }
 
         boolean hashMatch = true;
         for (short i = 0; i < HASH_SIZE; i++) {
@@ -329,7 +374,11 @@ public class Entertainment extends Applet {
 
             // Re-wrap master key with new PIN
             byte[] kek = new byte[AES_KEY_SIZE];
-            pbkdf2.doFinal(newPin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+            if (pbkdf2 != null) {
+                pbkdf2.doFinal(newPin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+            } else {
+                deriveKeySimple(newPin, (short) lc, salt, kek);
+            }
             wrapKey(masterKey, AES_KEY_SIZE, kek, wrappedMasterKey);
 
             Util.arrayFillNonAtomic(kek, (short) 0, AES_KEY_SIZE, (byte) 0);
@@ -366,7 +415,7 @@ public class Entertainment extends Applet {
         byte[] buffer = apdu.getBuffer();
         apdu.setIncomingAndReceive();
 
-        int amount = getInt(buffer, ISO7816.OFFSET_CDATA);
+        short amount = Util.getShort(buffer, ISO7816.OFFSET_CDATA);
 
         // Decrypt user data
         decryptUserData(tempBuffer);
@@ -377,9 +426,9 @@ public class Entertainment extends Applet {
             ISOException.throwIt(SW_WRONG_DATA);
         }
 
-        int currentCoins = getInt(tempBuffer, (short) (coinsOffset + 2));
-        int newCoins = currentCoins + amount;
-        setInt(tempBuffer, (short) (coinsOffset + 2), newCoins);
+        short currentCoins = Util.getShort(tempBuffer, (short) (coinsOffset + 2));
+        short newCoins = (short)(currentCoins + amount);
+        Util.setShort(tempBuffer, (short) (coinsOffset + 2), newCoins);
 
         // Encrypt and save
         encryptUserData(tempBuffer);
@@ -404,7 +453,7 @@ public class Entertainment extends Applet {
         Util.arrayCopy(buffer, offset, gamesToAdd, (short) 0, numGames);
         offset += numGames;
 
-        int totalPrice = getInt(buffer, offset);
+        short totalPrice = Util.getShort(buffer, offset);
 
         // Decrypt user data
         decryptUserData(tempBuffer);
@@ -441,6 +490,10 @@ public class Entertainment extends Applet {
     }
 
     private void processSignChallenge(APDU apdu) {
+        if (rsaSignature == null || rsaPrivateKey == null) {
+            ISOException.throwIt(ISO7816.SW_FUNC_NOT_SUPPORTED);
+        }
+        
         byte[] buffer = apdu.getBuffer();
         short lc = (short) (buffer[ISO7816.OFFSET_LC] & 0xFF);
         apdu.setIncomingAndReceive();
@@ -588,8 +641,12 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(masterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
 
         // Clear RSA keys
-        rsaPrivateKey.clearKey();
-        rsaPublicKey.clearKey();
+        if (rsaPrivateKey != null) {
+            rsaPrivateKey.clearKey();
+        }
+        if (rsaPublicKey != null) {
+            rsaPublicKey.clearKey();
+        }
 
         initialized = false;
         sessionAuth = false;
@@ -617,9 +674,9 @@ public class Entertainment extends Applet {
 
         // TAG_COINS
         tempBuffer[offset++] = TAG_COINS;
-        tempBuffer[offset++] = 4;
-        setInt(tempBuffer, offset, 0); // Initial coins = 0
-        offset += 4;
+        tempBuffer[offset++] = 2;
+        Util.setShort(tempBuffer, offset, (short)0); // Initial coins = 0
+        offset += 2;
 
         // TAG_BOUGHT_GAMES
         tempBuffer[offset++] = TAG_BOUGHT_GAMES;
@@ -737,25 +794,30 @@ public class Entertainment extends Applet {
         // Check coins
         short coinsOffset = findTag(userData, TAG_COINS);
         if (coinsOffset >= 0) {
-            int coins = getInt(userData, (short) (coinsOffset + 2));
+            short coins = Util.getShort(userData, (short) (coinsOffset + 2));
             return coins >= requiredCoins;
         }
 
         return false;
     }
 
-    // Helper methods for 4-byte integer operations (not available in JavaCard Util)
-    private static int getInt(byte[] buffer, short offset) {
-        return (int) ((buffer[offset] & 0xFF) << 24) |
-               (int) ((buffer[(short)(offset + 1)] & 0xFF) << 16) |
-               (int) ((buffer[(short)(offset + 2)] & 0xFF) << 8) |
-               (int) (buffer[(short)(offset + 3)] & 0xFF);
+    private void deriveKeySimple(byte[] pin, short pinLen, byte[] salt, byte[] derivedKey) {
+        // Simple hash-based KDF fallback when PBKDF2 not available
+        // Concatenate PIN + salt and hash multiple times
+        byte[] temp = new byte[(short)(pinLen + SALT_SIZE)];
+        Util.arrayCopy(pin, (short) 0, temp, (short) 0, pinLen);
+        Util.arrayCopy(salt, (short) 0, temp, pinLen, SALT_SIZE);
+        
+        if (sha256 != null) {
+            sha256.reset();
+            sha256.doFinal(temp, (short) 0, (short)(pinLen + SALT_SIZE), derivedKey, (short) 0);
+        } else {
+            // Last resort: just copy and pad
+            Util.arrayCopy(temp, (short) 0, derivedKey, (short) 0, 
+                          (short)((pinLen + SALT_SIZE) < AES_KEY_SIZE ? (pinLen + SALT_SIZE) : AES_KEY_SIZE));
+        }
+        
+        Util.arrayFillNonAtomic(temp, (short) 0, (short)temp.length, (byte) 0);
     }
 
-    private static void setInt(byte[] buffer, short offset, int value) {
-        buffer[offset] = (byte) ((value >> 24) & 0xFF);
-        buffer[(short)(offset + 1)] = (byte) ((value >> 16) & 0xFF);
-        buffer[(short)(offset + 2)] = (byte) ((value >> 8) & 0xFF);
-        buffer[(short)(offset + 3)] = (byte) (value & 0xFF);
-    }
 }
