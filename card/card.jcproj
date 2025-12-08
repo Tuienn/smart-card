@@ -1,7 +1,7 @@
 <JavaCardProject name="card">
 <USER>
 <PKG name="Entertainment" aid="11 22 33 44 55" major="1" minor="0">
-<APPLET aid="11 22 33 44 55 00" instanceaid="" parameter="" authority="" privileges="" index="-20216" name="Entertainment"/>
+<APPLET aid="11 22 33 44 55 01" instanceaid="" parameter="" authority="" privileges="" index="-20216" name="Entertainment"/>
 <CLASS name="PBKDF2"/>
 </PKG>
 <Libs/>
