@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" 
+            xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.example.desktopapp.controller.MainMenuController"
+            styleClass="root">
+    
+    <center>
+        <VBox alignment="CENTER" spacing="60">
+            
+            <!-- Header -->
+            <VBox alignment="CENTER" spacing="16">
+                <HBox alignment="CENTER" spacing="16">
+                    <FontIcon iconLiteral="fas-gamepad" iconSize="56" styleClass="icon-primary"/>
+                    <Label text="Khu vui chơi giải trí" styleClass="title-large"/>
+                </HBox>
+                <Label text="Chọn chức năng bạn muốn thực hiện" styleClass="subtitle"/>
+            </VBox>
+            
+            <!-- Menu Cards -->
+            <HBox alignment="CENTER" spacing="40">
+                
+                <!-- Card Registration -->
+                <VBox styleClass="menu-card" alignment="CENTER" spacing="20" 
+                      onMouseClicked="#onRegisterCard">
+                    <StackPane styleClass="menu-icon-container">
+                        <FontIcon iconLiteral="fas-id-card" iconSize="64" styleClass="icon-primary"/>
+                    </StackPane>
+                    <VBox alignment="CENTER" spacing="8">
+                        <Label text="Đăng ký thẻ" styleClass="title-small"/>
+                        <Label text="Tạo thẻ mới cho khách hàng" styleClass="text-secondary" 
+                               style="-fx-font-size: 14px;"/>
+                    </VBox>
+                    <HBox alignment="CENTER" spacing="8">
+                        <Label text="BẮT ĐẦU" styleClass="menu-action-text"/>
+                        <FontIcon iconLiteral="fas-arrow-right" iconSize="16" styleClass="icon-primary"/>
+                    </HBox>
+                </VBox>
+                
+                <!-- View Card Info -->
+                <VBox styleClass="menu-card" alignment="CENTER" spacing="20"
+                      onMouseClicked="#onViewCardInfo">
+                    <StackPane styleClass="menu-icon-container">
+                        <FontIcon iconLiteral="fas-search" iconSize="64" styleClass="icon-primary"/>
+                    </StackPane>
+                    <VBox alignment="CENTER" spacing="8">
+                        <Label text="Xem thông tin thẻ" styleClass="title-small"/>
+                        <Label text="Tra cứu thông tin và số dư" styleClass="text-secondary"
+                               style="-fx-font-size: 14px;"/>
+                    </VBox>
+                    <HBox alignment="CENTER" spacing="8">
+                        <Label text="TRA CỨU" styleClass="menu-action-text"/>
+                        <FontIcon iconLiteral="fas-arrow-right" iconSize="16" styleClass="icon-primary"/>
+                    </HBox>
+                </VBox>
+                
+            </HBox>
+            
+        </VBox>
+    </center>
+    
+</BorderPane>

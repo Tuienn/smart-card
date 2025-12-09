@@ -247,7 +247,7 @@ public class CardService {
     }
     
     /**
-     * Write user data (name, gender) using TLV format (INS_WRITE_USER_DATA_BASIC)
+     * Write user data (name, gender, age) using TLV format (INS_WRITE_USER_DATA_BASIC)
      */
     public void writeUserData(UserRegistration user) throws CardException {
         if (!isConnected()) {
@@ -255,9 +255,10 @@ public class CardService {
         }
         
         byte[] nameBytes = user.getNameBytes();
+        byte age = user.getAgeAsByte();
         
-        // Build TLV data: [TAG_NAME][LEN][VALUE] [TAG_GENDER][LEN][VALUE]
-        int dataLen = 2 + nameBytes.length + 3; // Name TLV + Gender TLV
+        // Build TLV data: [TAG_NAME][LEN][VALUE] [TAG_GENDER][LEN][VALUE] [TAG_AGE][LEN][VALUE]
+        int dataLen = 2 + nameBytes.length + 3 + 3; // Name TLV + Gender TLV + Age TLV
         byte[] data = new byte[dataLen];
         int offset = 0;
         
@@ -271,6 +272,11 @@ public class CardService {
         data[offset++] = APDUConstants.TAG_GENDER;
         data[offset++] = (byte) 1;
         data[offset++] = user.getGender();
+        
+        // Age TLV
+        data[offset++] = APDUConstants.TAG_AGE;
+        data[offset++] = (byte) 1;
+        data[offset++] = age;
         
         CommandAPDU cmd = new CommandAPDU(
             APDUConstants.CLA,

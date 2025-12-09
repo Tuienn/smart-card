@@ -486,3 +486,38 @@
   -fx-icon-color: #94a3b8;
   -fx-fill: #94a3b8;
 }
+
+/* ============ Main Menu Styles ============ */
+.menu-card {
+  -fx-background-color: rgba(30, 41, 59, 0.9);
+  -fx-background-radius: 24;
+  -fx-padding: 40 50;
+  -fx-min-width: 280;
+  -fx-min-height: 320;
+  -fx-cursor: hand;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 20, 0, 0, 10);
+  -fx-border-color: transparent;
+  -fx-border-radius: 24;
+  -fx-border-width: 2;
+}
+
+.menu-card:hover {
+  -fx-background-color: rgba(51, 65, 85, 0.95);
+  -fx-border-color: #6366f1;
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.5), 30, 0, 0, 10);
+}
+
+.menu-icon-container {
+  -fx-background-color: rgba(99, 102, 241, 0.15);
+  -fx-background-radius: 50;
+  -fx-min-width: 120;
+  -fx-min-height: 120;
+  -fx-max-width: 120;
+  -fx-max-height: 120;
+}
+
+.menu-action-text {
+  -fx-font-size: 14px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #6366f1;
+}

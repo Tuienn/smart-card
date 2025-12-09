@@ -1,5 +1,6 @@
 package com.example.desktopapp.controller;
 
+import com.example.desktopapp.MainApp;
 import com.example.desktopapp.model.UserRegistration;
 import com.example.desktopapp.service.APDUConstants;
 import com.example.desktopapp.service.CardService;
@@ -573,8 +574,8 @@ public class CardRegistrationController implements Initializable {
             case 5:
                 stepTitle.setText("Hoàn thành");
                 nextBtn.setVisible(true);
-                nextBtn.setText(" VỀ TRANG CHỦ");
-                nextBtn.setGraphic(createIcon(FontAwesomeSolid.HOME, "white", 16));
+                nextBtn.setText(" VỀ BƯỚC ĐẦU");
+                nextBtn.setGraphic(createIcon(FontAwesomeSolid.REDO, "white", 16));
                 backBtn.setVisible(false);
                 // Show summary
                 summaryName.setText(user.getName());
@@ -640,6 +641,14 @@ public class CardRegistrationController implements Initializable {
         selectedAmountLabel.setText("");
         customAmountBox.setVisible(false);
         customAmountBox.setManaged(false);
+    }
+
+    /**
+     * Navigate back to main menu
+     */
+    @FXML
+    private void onGoHome() {
+        MainApp.setRoot("main-menu.fxml");
     }
 
     private void showAlert(String title, String message) {

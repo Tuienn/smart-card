@@ -45,6 +45,7 @@ public class Entertainment extends Applet {
     private static final byte TAG_GENDER = (byte) 0x02;
     private static final byte TAG_COINS = (byte) 0x03;
     private static final byte TAG_BOUGHT_GAMES = (byte) 0x04;
+    private static final byte TAG_AGE = (byte) 0x05;
 
     // Persistent data
     private byte[] userID;
@@ -682,6 +683,11 @@ public class Entertainment extends Applet {
         // TAG_BOUGHT_GAMES
         tempBuffer[offset++] = TAG_BOUGHT_GAMES;
         tempBuffer[offset++] = 0; // No games initially
+
+        // TAG_AGE
+        tempBuffer[offset++] = TAG_AGE;
+        tempBuffer[offset++] = 1;
+        tempBuffer[offset++] = 0; // Default age = 0
 
         // Encrypt and save
         encryptUserData(tempBuffer);

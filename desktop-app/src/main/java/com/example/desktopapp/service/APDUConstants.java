@@ -29,6 +29,7 @@ public class APDUConstants {
     public static final byte TAG_GENDER = (byte) 0x02;
     public static final byte TAG_COINS = (byte) 0x03;
     public static final byte TAG_BOUGHT_GAMES = (byte) 0x04;
+    public static final byte TAG_AGE = (byte) 0x05;
     
     // Status Words
     public static final int SW_SUCCESS = 0x9000;

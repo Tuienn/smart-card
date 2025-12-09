@@ -118,3 +118,5 @@ Trong `pom.xml`, cần có:
     <version>12.3.1</version>
 </dependency>
 ```
+
+## 6. Không được build trong chat command

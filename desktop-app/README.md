@@ -39,4 +39,4 @@ desktop nhận dữ liệu từ server và ghi dữ liệu vào thẻ (số coin
 
 4️⃣ Sử dụng thẻ tại khu vui chơi
 
-Trừ coin trong thẻ (không gọi API trừ tiền)
+Nhập mã pin để xác minh -> Trừ coin trong thẻ (không gọi API trừ tiền)

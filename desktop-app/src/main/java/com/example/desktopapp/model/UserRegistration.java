@@ -114,6 +114,23 @@ public class UserRegistration {
         return nameBytes;
     }
 
+    /**
+     * Get age as byte value for smart card storage
+     * @return age as byte (0-255)
+     */
+    public byte getAgeAsByte() {
+        if (age == null || age.isEmpty()) return 0;
+        try {
+            int ageInt = Integer.parseInt(age);
+            // Clamp to valid byte range (0-255)
+            if (ageInt < 0) return 0;
+            if (ageInt > 255) return (byte) 255;
+            return (byte) ageInt;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     @Override
     public String toString() {
         return "UserRegistration{" +
