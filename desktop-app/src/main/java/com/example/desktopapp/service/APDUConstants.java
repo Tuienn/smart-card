@@ -50,7 +50,7 @@ public class APDUConstants {
     public static final int MAX_PIN_LENGTH = 16;
     public static final int USER_ID_LENGTH = 16;
     public static final int MAX_NAME_LENGTH = 64;
-    public static final int MAX_IMAGE_SIZE = 8192; // 8KB
+    public static final int MAX_IMAGE_SIZE = 32767; // 32KB
     public static final int IMAGE_CHUNK_SIZE = 200; // Bytes per chunk
     
     // Image types

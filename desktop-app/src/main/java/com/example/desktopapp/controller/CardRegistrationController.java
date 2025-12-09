@@ -1,6 +1,7 @@
 package com.example.desktopapp.controller;
 
 import com.example.desktopapp.model.UserRegistration;
+import com.example.desktopapp.service.APDUConstants;
 import com.example.desktopapp.service.CardService;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -13,12 +14,22 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.text.NumberFormat;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -172,11 +183,28 @@ public class CardRegistrationController implements Initializable {
             try {
                 avatarBytes = Files.readAllBytes(file.toPath());
                 
-                // Resize if too large (max 8KB for smart card)
-                if (avatarBytes.length > 8192) {
-                    showAlert("Cảnh báo", "Ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 8KB.");
-                    avatarBytes = null;
-                    return;
+                // Resize if too large (max 32KB for smart card)
+                if (avatarBytes.length > APDUConstants.MAX_IMAGE_SIZE) {
+                    Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+                    confirmAlert.setTitle("Cảnh báo");
+                    confirmAlert.setHeaderText("Ảnh quá lớn (" + formatFileSize(avatarBytes.length) + ")");
+                    confirmAlert.setContentText("Ảnh sẽ được tự động thu nhỏ để phù hợp với thẻ (tối đa " + 
+                                                formatFileSize(APDUConstants.MAX_IMAGE_SIZE) + ").\n" +
+                                                "Ảnh có thể bị mờ sau khi thu nhỏ.\n\n" +
+                                                "Bạn có muốn tiếp tục?");
+                    
+                    ButtonType result = confirmAlert.showAndWait().orElse(ButtonType.CANCEL);
+                    if (result != ButtonType.OK) {
+                        avatarBytes = null;
+                        return;
+                    }
+                    
+                    // Resize the image
+                    avatarBytes = resizeImage(avatarBytes, APDUConstants.MAX_IMAGE_SIZE);
+                    if (avatarBytes == null) {
+                        showAlert("Lỗi", "Không thể thu nhỏ ảnh. Vui lòng chọn ảnh khác.");
+                        return;
+                    }
                 }
 
                 Image image = new Image(new ByteArrayInputStream(avatarBytes));
@@ -185,6 +213,84 @@ public class CardRegistrationController implements Initializable {
             } catch (IOException e) {
                 showAlert("Lỗi", "Không thể đọc file ảnh: " + e.getMessage());
             }
+        }
+    }
+    
+    private byte[] resizeImage(byte[] originalBytes, int maxSize) {
+        try {
+            // Load original image using javax.imageio
+            BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(originalBytes));
+            if (originalImage == null) {
+                return null;
+            }
+            
+            int originalWidth = originalImage.getWidth();
+            int originalHeight = originalImage.getHeight();
+            
+            // Try progressively smaller sizes until we fit under maxSize
+            double scale = 1.0;
+            for (int attempt = 0; attempt < 10; attempt++) {
+                // Reduce dimensions by 20% each iteration
+                scale *= 0.8;
+                int targetWidth = (int) (originalWidth * scale);
+                int targetHeight = (int) (originalHeight * scale);
+                
+                // Ensure minimum size
+                if (targetWidth < 50 || targetHeight < 50) {
+                    break;
+                }
+                
+                // Resize image with high-quality scaling
+                BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g2d = resizedImage.createGraphics();
+                g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
+                g2d.dispose();
+                
+                // Convert to JPEG bytes with compression
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+                if (!writers.hasNext()) {
+                    return null;
+                }
+                
+                ImageWriter writer = writers.next();
+                ImageWriteParam param = writer.getDefaultWriteParam();
+                if (param.canWriteCompressed()) {
+                    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                    param.setCompressionQuality(0.7f); // 70% quality
+                }
+                
+                ImageOutputStream ios = ImageIO.createImageOutputStream(baos);
+                writer.setOutput(ios);
+                writer.write(null, new IIOImage(resizedImage, null, null), param);
+                writer.dispose();
+                ios.close();
+                
+                byte[] resizedBytes = baos.toByteArray();
+                
+                // Check if size is acceptable
+                if (resizedBytes.length <= maxSize) {
+                    return resizedBytes;
+                }
+            }
+            
+            return null; // Could not resize to fit
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    private String formatFileSize(int bytes) {
+        if (bytes < 1024) {
+            return bytes + " bytes";
+        } else if (bytes < 1024 * 1024) {
+            return String.format("%.1f KB", bytes / 1024.0);
+        } else {
+            return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
         }
     }
 
@@ -265,9 +371,6 @@ public class CardRegistrationController implements Initializable {
                 updateMessage("Đang khởi tạo thẻ...");
                 user.generateUserId();
                 cardService.installCard(user);
-
-                updateMessage("Đang xác thực...");
-                cardService.verifyPin(user.getPin());
 
                 updateMessage("Đang ghi thông tin người dùng...");
                 cardService.writeUserData(user);

@@ -264,7 +264,7 @@ Data: [TOTAL_SIZE(2)] [IMAGE_TYPE(1)] [FIRST_CHUNK_DATA]
 - Success: `SW=0x9000`
 - Error:
   - `0x6982`: Chưa xác thực PIN
-  - `0x6A84`: Không đủ bộ nhớ (>8KB)
+  - `0x6A84`: Không đủ bộ nhớ (>32KB)
 
 **Ví dụ:**
 ```
@@ -427,7 +427,7 @@ P2: 0x00
 - **PIN Length:** 4-16 bytes
 - **User ID:** 16 bytes (fixed)
 - **Max Games:** 50 games
-- **Max Image Size:** 8KB
+- **Max Image Size:** 32KB
 - **Max Name Length:** 64 bytes
 - **Encrypted Data Size:** 256 bytes
 - **Salt Size:** 16 bytes

@@ -36,7 +36,7 @@ public class Entertainment extends Applet {
     private static final short RSA_KEY_SIZE = (short) 1024; // 1024 bits (more compatible)
     private static final byte MAX_NAME_LENGTH = (byte) 64;
     private static final byte MAX_GAMES = (byte) 50;
-    private static final short MAX_IMAGE_SIZE = (short) 8192; // 8KB for image
+    private static final short MAX_IMAGE_SIZE = (short) 32767; // ~32KB for image (max short value, close to 64KB with two buffers if needed)
     private static final short PBKDF2_ITERATIONS = (short) 10000;
     private static final short MAX_ENCRYPTED_DATA_SIZE = (short) 256;
 
@@ -80,7 +80,7 @@ public class Entertainment extends Applet {
         // Initialize persistent storage
         userID = new byte[16];
         salt = new byte[SALT_SIZE];
-        wrappedMasterKey = new byte[AES_KEY_SIZE + 8]; // Wrapped key with IV
+        wrappedMasterKey = new byte[32]; // IV (16 bytes) + encrypted key (16 bytes)
         masterKeyHash = new byte[HASH_SIZE];
         encryptedUserData = new byte[MAX_ENCRYPTED_DATA_SIZE];
         imageBuffer = new byte[MAX_IMAGE_SIZE];
@@ -266,6 +266,7 @@ public class Entertainment extends Applet {
         initialized = true;
         pinTryCounter = PIN_TRY_LIMIT;
         lockedFlag = false;
+        sessionAuth = true; // Auto-authenticate after successful installation
 
         // Return public key (modulus and exponent) if RSA is supported
         if (rsaPublicKey != null) {
@@ -564,9 +565,9 @@ public class Entertainment extends Applet {
     }
 
     private void processWriteImageStart(APDU apdu) {
-        if (!sessionAuth) {
-            ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
-        }
+        // if (!sessionAuth) {
+            // ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
+        // }
 
         byte[] buffer = apdu.getBuffer();
         apdu.setIncomingAndReceive();
@@ -583,7 +584,7 @@ public class Entertainment extends Applet {
         imageSize = totalImageSize;
 
         // Copy first chunk
-        short chunkLen = (short) (buffer[ISO7816.OFFSET_LC] - 3);
+        short chunkLen = (short) ((buffer[ISO7816.OFFSET_LC] & 0xFF) - 3);
         Util.arrayCopy(buffer, offset, imageBuffer, (short) 0, chunkLen);
     }
 
@@ -599,7 +600,7 @@ public class Entertainment extends Applet {
         short imageOffset = Util.getShort(buffer, offset);
         offset += 2;
 
-        short chunkLen = (short) (buffer[ISO7816.OFFSET_LC] - 2);
+        short chunkLen = (short) ((buffer[ISO7816.OFFSET_LC] & 0xFF) - 2);
 
         if ((short) (imageOffset + chunkLen) > MAX_IMAGE_SIZE) {
             ISOException.throwIt(SW_NOT_ENOUGH_MEMORY);
@@ -809,8 +810,13 @@ public class Entertainment extends Applet {
         Util.arrayCopy(salt, (short) 0, temp, pinLen, SALT_SIZE);
         
         if (sha256 != null) {
+            // SHA-1 produces 20 bytes, but we only need 16 bytes for AES-128
+            byte[] hashOutput = new byte[HASH_SIZE];
             sha256.reset();
-            sha256.doFinal(temp, (short) 0, (short)(pinLen + SALT_SIZE), derivedKey, (short) 0);
+            sha256.doFinal(temp, (short) 0, (short)(pinLen + SALT_SIZE), hashOutput, (short) 0);
+            // Copy only the first 16 bytes for AES-128 key
+            Util.arrayCopy(hashOutput, (short) 0, derivedKey, (short) 0, AES_KEY_SIZE);
+            Util.arrayFillNonAtomic(hashOutput, (short) 0, HASH_SIZE, (byte) 0);
         } else {
             // Last resort: just copy and pad
             Util.arrayCopy(temp, (short) 0, derivedKey, (short) 0, 

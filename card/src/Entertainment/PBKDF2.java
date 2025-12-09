@@ -142,6 +142,17 @@ public class PBKDF2 {
         if (SALT_LEN < saltLength)
             throw new CryptoException(CryptoException.ILLEGAL_USE);
         
+        // Calculate actual output length (minimum of mdlen and available space in out array)
+        short outputLength = mdlen;
+        short availableSpace = (short)(out.length - outOffset);
+        if (availableSpace < mdlen) {
+            outputLength = availableSpace;
+        }
+        
+        // Validate output array has at least some space
+        if (outputLength <= 0)
+            throw new CryptoException(CryptoException.ILLEGAL_VALUE);
+        
         //concatenate with int32BE(1) (salt is max 16, U_i is at least 20, so 4 more bytes can always fit there)
         Util.arrayCopyNonAtomic(salt, saltOffset, U_i, SZERO, saltLength);
         U_i[         saltLength     ] = BZERO;
@@ -156,19 +167,19 @@ public class PBKDF2 {
         //m_hmac.sign(U_i, SZERO, (short) (saltLength + 4), U_i, SZERO);
         //software HMAC
         hmac(password, passwordOffset, passwordLength, (short) (saltLength + 4));
-        //insert U_1 into result array
-        Util.arrayCopyNonAtomic(U_i, SZERO, out, outOffset, mdlen);
+        //insert U_1 into result array (only copy the bytes that fit)
+        Util.arrayCopyNonAtomic(U_i, SZERO, out, outOffset, outputLength);
         //do the rest of iterations. We already did first iteration above, that's why we start at 1
         for (short k = 1; k < iterations; k++) {
             //Same with HMAC here
             //m_hmac.sign(U_i, SZERO, mdlen, U_i, SZERO);  // Hardware hmac
             hmac(password, passwordOffset, passwordLength, mdlen);          // Software hmac
-            //xor U_(i-1) with U_i
-            for (short j = 0; j < mdlen; j++) {
+            //xor U_(i-1) with U_i (only for the bytes that fit in output)
+            for (short j = 0; j < outputLength; j++) {
                 out[(short) (outOffset + j)] ^= U_i[j];
             }
         }
         
-        return mdlen;
+        return outputLength;
     }
 }
