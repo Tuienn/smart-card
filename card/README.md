@@ -11,7 +11,7 @@ CLA | INS | P1 | P2 | Lc | Data | Le
 ## Danh sách INS Commands
 
 ### 1. INS_INSTALL (0x10) - Khởi tạo thẻ
-**Mục đích:** Khởi tạo thẻ lần đầu với PIN và User ID
+**Mục đích:** Khởi tạo thẻ lần đầu với PIN và User ID, không yêu cầu xác thực lại khi khởi tạo thành công
 
 **Request:**
 ```
