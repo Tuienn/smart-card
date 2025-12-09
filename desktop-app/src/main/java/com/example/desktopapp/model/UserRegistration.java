@@ -5,7 +5,7 @@ package com.example.desktopapp.model;
  */
 public class UserRegistration {
     private String name;
-    private String phone;
+    private String age;
     private byte gender; // 0 = Not specified, 1 = Male, 2 = Female
     private String pin;
     private byte[] avatar;
@@ -29,12 +29,12 @@ public class UserRegistration {
         this.name = name;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getAge() {
+        return age;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setAge(String age) {
+        this.age = age;
     }
 
     public byte getGender() {
@@ -118,7 +118,7 @@ public class UserRegistration {
     public String toString() {
         return "UserRegistration{" +
                 "name='" + name + '\'' +
-                ", phone='" + phone + '\'' +
+                ", age='" + age + '\'' +
                 ", gender=" + gender +
                 ", coins=" + coins +
                 ", amountVND=" + amountVND +

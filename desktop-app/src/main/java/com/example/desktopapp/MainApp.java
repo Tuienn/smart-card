@@ -3,7 +3,6 @@ package com.example.desktopapp;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -26,7 +25,7 @@ public class MainApp extends Application {
         scene.getStylesheets().add(css);
         
         // Configure stage
-        stage.setTitle("🎮 Khu Vui Chơi - Đăng Ký Thẻ");
+        stage.setTitle("Khu Vui Chơi - Đăng Ký Thẻ");
         stage.setScene(scene);
         stage.setMinWidth(900);
         stage.setMinHeight(700);

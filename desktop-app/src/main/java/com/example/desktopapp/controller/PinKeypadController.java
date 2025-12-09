@@ -8,6 +8,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
+import com.example.desktopapp.util.UIUtils;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -91,7 +94,9 @@ public class PinKeypadController implements Initializable {
             instructionLabel.setText("Còn " + (MAX_PIN_LENGTH - length) + " số nữa");
             instructionLabel.getStyleClass().remove("pin-instruction-complete");
         } else {
-            instructionLabel.setText("✓ Hoàn tất");
+            instructionLabel.setText("Hoàn tất");
+            FontIcon checkIcon = UIUtils.createIcon(FontAwesomeSolid.CHECK, "#22c55e", 14);
+            instructionLabel.setGraphic(checkIcon);
             if (!instructionLabel.getStyleClass().contains("pin-instruction-complete")) {
                 instructionLabel.getStyleClass().add("pin-instruction-complete");
             }

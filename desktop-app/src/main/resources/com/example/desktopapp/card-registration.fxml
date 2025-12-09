@@ -6,6 +6,7 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.shape.*?>
 <?import javafx.geometry.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" 
             xmlns:fx="http://javafx.com/fxml/1" 
@@ -18,25 +19,25 @@
             <HBox alignment="CENTER" spacing="10" fx:id="stepIndicator">
                 <!-- Step 1: Đăng ký thông tin -->
                 <Label text="1" styleClass="step-indicator, step-active" fx:id="step1Label"/>
-                <Label text="→" fx:id="arrow1" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
                 
                 <!-- Step 2: Nhập PIN -->
                 <Label text="2" styleClass="step-indicator, step-inactive" fx:id="step2Label"/>
-                <Label text="→" fx:id="arrow2" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
                 
                 <!-- Step 3: Nạp tiền -->
                 <Label text="3" styleClass="step-indicator, step-inactive" fx:id="step3Label"/>
-                <Label text="→" fx:id="arrow3" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
                 
                 <!-- Step 4: Ghi thẻ -->
                 <Label text="4" styleClass="step-indicator, step-inactive" fx:id="step4Label"/>
-                <Label text="→" fx:id="arrow4" styleClass="step-arrow" style="-fx-font-size: 32px; -fx-font-weight: bold;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
                 
                 <!-- Step 5: Hoàn thành -->
                 <Label text="5" styleClass="step-indicator, step-inactive" fx:id="step5Label"/>
             </HBox>
             
-            <Label fx:id="stepTitle" text="Đăng Ký Thông Tin" styleClass="title-medium"/>
+            <Label fx:id="stepTitle" text="Đăng ký thông tin" styleClass="title-medium"/>
         </VBox>
     </top>
     
@@ -59,16 +60,16 @@
                                         <Circle radius="55" centerX="55" centerY="55"/>
                                     </clip>
                                 </ImageView>
-                                <Label fx:id="avatarPlaceholderText" text="📷" style="-fx-font-size: 36px;" 
-                                       visible="true"/>
+                                <FontIcon fx:id="avatarPlaceholderText" iconLiteral="fas-camera" iconSize="36" 
+                                       visible="true" styleClass="icon-secondary"/>
                             </StackPane>
                         </HBox>
                         <Label text="Nhấn để chọn ảnh đại diện" styleClass="text-secondary" 
-                               style="-fx-font-size: 14px;"/>
+                               style="-fx-font-size: 14px;" textAlignment="CENTER" alignment="CENTER" maxWidth="Infinity"/>
                         
                         <!-- Name Field -->
                         <VBox spacing="8">
-                            <Label text="Họ và Tên" styleClass="form-label"/>
+                            <Label text="Họ và tên" styleClass="form-label"/>
                             <TextField fx:id="nameField" promptText="Nhập họ tên của bạn" 
                                        styleClass="text-field"/>
                         </VBox>
@@ -82,12 +83,16 @@
                         
                         <!-- Gender Selection -->
                         <VBox spacing="8">
-                            <Label text="Giới Tính" styleClass="form-label"/>
+                            <Label text="Giới tính" styleClass="form-label"/>
                             <HBox styleClass="gender-toggle" spacing="0" alignment="CENTER">
-                                <ToggleButton fx:id="maleBtn" text="👨 Nam" 
-                                              onAction="#onGenderSelect" userData="1"/>
-                                <ToggleButton fx:id="femaleBtn" text="👩 Nữ" 
-                                              onAction="#onGenderSelect" userData="2"/>
+                                <ToggleButton fx:id="maleBtn" onAction="#onGenderSelect" userData="1">
+                                    <graphic><FontIcon iconLiteral="fas-mars" iconSize="16" styleClass="icon-white"/></graphic>
+                                    <text> Nam</text>
+                                </ToggleButton>
+                                <ToggleButton fx:id="femaleBtn" onAction="#onGenderSelect" userData="2">
+                                    <graphic><FontIcon iconLiteral="fas-venus" iconSize="16" styleClass="icon-white"/></graphic>
+                                    <text> Nữ</text>
+                                </ToggleButton>
                             </HBox>
                         </VBox>
                         
@@ -98,7 +103,10 @@
                 <VBox fx:id="step2Content" alignment="CENTER" spacing="30" visible="false">
                     <VBox styleClass="card-container" spacing="25" maxWidth="500" alignment="CENTER">
                         
-                        <Label text="🔐 Tạo Mã PIN" styleClass="title-small"/>
+                        <HBox alignment="CENTER" spacing="10">
+                            <FontIcon iconLiteral="fas-lock" iconSize="24" styleClass="icon-primary"/>
+                            <Label text="Tạo mã PIN" styleClass="title-small"/>
+                        </HBox>
                         <Label text="Nhập mã PIN 6 số để bảo vệ thẻ của bạn" styleClass="text-secondary"/>
                         
                         <!-- PIN Display (6 dots) -->
@@ -138,14 +146,16 @@
                                     GridPane.columnIndex="2" GridPane.rowIndex="2"/>
                             
                             <!-- Row 4: Clear All, 0, Backspace -->
-                            <Button text="🗑️" styleClass="keypad-btn, keypad-btn-action" 
-                                    onAction="#onPinClearAll"
-                                    GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                            <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onPinClearAll"
+                                    GridPane.columnIndex="0" GridPane.rowIndex="3">
+                                <graphic><FontIcon iconLiteral="fas-trash-alt" iconSize="18"/></graphic>
+                            </Button>
                             <Button text="0" styleClass="keypad-btn" onAction="#onKeypadPress" userData="0"
                                     GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-                            <Button text="⌫" styleClass="keypad-btn, keypad-btn-action" 
-                                    onAction="#onPinBackspace"
-                                    GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+                            <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onPinBackspace"
+                                    GridPane.columnIndex="2" GridPane.rowIndex="3">
+                                <graphic><FontIcon iconLiteral="fas-backspace" iconSize="18"/></graphic>
+                            </Button>
                         </GridPane>
                         
                         <!-- PIN Instruction -->
@@ -157,7 +167,10 @@
                 <VBox fx:id="step3Content" alignment="CENTER" spacing="30" visible="false">
                     <VBox styleClass="card-container" spacing="30" maxWidth="700">
                         
-                        <Label text="💰 Chọn Số Tiền Nạp" styleClass="title-small"/>
+                        <HBox alignment="CENTER" spacing="10">
+                            <FontIcon iconLiteral="fas-coins" iconSize="24" styleClass="icon-warning"/>
+                            <Label text="Chọn số tiền nạp" styleClass="title-small"/>
+                        </HBox>
                         
                         <!-- Amount Buttons Grid -->
                         <GridPane hgap="20" vgap="20" alignment="CENTER">
@@ -193,7 +206,10 @@
                             <Label text="Bạn sẽ nhận được" styleClass="text-secondary"/>
                             <HBox alignment="CENTER" spacing="15">
                                 <Label fx:id="coinDisplay" text="0" styleClass="coin-amount"/>
-                                <Label text="🪙 COINS" style="-fx-font-size: 24px; -fx-text-fill: #fbbf24;"/>
+                                <HBox alignment="CENTER" spacing="5">
+                                    <FontIcon iconLiteral="fas-coins" iconSize="24" styleClass="icon-warning"/>
+                                    <Label text="COINS" style="-fx-font-size: 24px; -fx-text-fill: #fbbf24;"/>
+                                </HBox>
                             </HBox>
                             <Label text="(10,000đ = 1 Coin)" styleClass="text-secondary" style="-fx-font-size: 14px;"/>
                         </VBox>
@@ -208,13 +224,16 @@
                 <VBox fx:id="step4Content" alignment="CENTER" spacing="30" visible="false">
                     <VBox styleClass="card-container" spacing="30" maxWidth="600" alignment="CENTER">
                         
-                        <Label text="💳 Ghi Dữ Liệu Vào Thẻ" styleClass="title-small"/>
+                        <HBox alignment="CENTER" spacing="10">
+                            <FontIcon iconLiteral="fas-credit-card" iconSize="24" styleClass="icon-primary"/>
+                            <Label text="Ghi dữ liệu vào thẻ" styleClass="title-small"/>
+                        </HBox>
                         
                         <!-- Card Animation Area -->
                         <StackPane style="-fx-min-height: 200;">
                             <!-- Waiting state -->
                             <VBox fx:id="cardWaitingState" alignment="CENTER" spacing="20">
-                                <Label text="📲" style="-fx-font-size: 80px;"/>
+                                <FontIcon iconLiteral="fas-mobile-alt" iconSize="80" styleClass="icon-primary"/>
                                 <Label text="Đặt thẻ lên đầu đọc" styleClass="subtitle"/>
                                 <Label text="Đảm bảo thẻ được đặt đúng vị trí" styleClass="text-secondary"/>
                             </VBox>
@@ -228,21 +247,23 @@
                             
                             <!-- Success state -->
                             <VBox fx:id="cardSuccessState" alignment="CENTER" spacing="20" visible="false">
-                                <Label text="✅" style="-fx-font-size: 80px;"/>
+                                <FontIcon iconLiteral="fas-check-circle" iconSize="80" styleClass="icon-success"/>
                                 <Label text="Ghi thẻ thành công!" styleClass="subtitle" style="-fx-text-fill: #22c55e;"/>
                             </VBox>
                             
                             <!-- Error state -->
                             <VBox fx:id="cardErrorState" alignment="CENTER" spacing="20" visible="false">
-                                <Label text="❌" style="-fx-font-size: 80px;"/>
+                                <FontIcon iconLiteral="fas-times-circle" iconSize="80" styleClass="icon-danger"/>
                                 <Label fx:id="errorMessageLabel" text="Có lỗi xảy ra" styleClass="subtitle" 
                                        style="-fx-text-fill: #ef4444;"/>
                             </VBox>
                         </StackPane>
                         
                         <!-- Write Card Button -->
-                        <Button fx:id="writeCardBtn" text="🔐 BẮT ĐẦU GHI THẺ" 
-                                styleClass="btn, btn-primary, btn-large" onAction="#onWriteCard"/>
+                        <Button fx:id="writeCardBtn" styleClass="btn, btn-primary, btn-large" onAction="#onWriteCard">
+                            <graphic><FontIcon iconLiteral="fas-lock" iconSize="16" styleClass="icon-white"/></graphic>
+                            <text> BẮT ĐẦU GHI THẺ</text>
+                        </Button>
                     </VBox>
                 </VBox>
                 
@@ -250,21 +271,24 @@
                 <VBox fx:id="step5Content" alignment="CENTER" spacing="30" visible="false">
                     <VBox styleClass="success-card" spacing="30" maxWidth="600" alignment="CENTER">
                         
-                        <Label text="🎉" style="-fx-font-size: 80px;"/>
+                        <FontIcon iconLiteral="fas-gift" iconSize="80" styleClass="icon-success"/>
                         <Label text="ĐĂNG KÝ THÀNH CÔNG!" styleClass="title-medium" style="-fx-text-fill: #22c55e;"/>
                         
                         <!-- User Summary -->
                         <VBox styleClass="glass-panel" spacing="15" alignment="CENTER_LEFT">
-                            <HBox spacing="10">
-                                <Label text="👤 Tên:" styleClass="text-secondary"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-user" iconSize="16" styleClass="icon-secondary"/>
+                                <Label text="Tên:" styleClass="text-secondary"/>
                                 <Label fx:id="summaryName" text="" styleClass="text-primary"/>
                             </HBox>
-                            <HBox spacing="10">
-                                <Label text="📱 SĐT:" styleClass="text-secondary"/>
-                                <Label fx:id="summaryPhone" text="" styleClass="text-primary"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-birthday-cake" iconSize="16" styleClass="icon-secondary"/>
+                                <Label text="Tuổi:" styleClass="text-secondary"/>
+                                <Label fx:id="summaryAge" text="" styleClass="text-primary"/>
                             </HBox>
-                            <HBox spacing="10">
-                                <Label text="🪙 Coins:" styleClass="text-secondary"/>
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <FontIcon iconLiteral="fas-coins" iconSize="16" styleClass="icon-warning"/>
+                                <Label text="Coins:" styleClass="text-secondary"/>
                                 <Label fx:id="summaryCoins" text="" styleClass="text-accent"/>
                             </HBox>
                         </VBox>
@@ -280,8 +304,14 @@
     
     <bottom>
         <HBox alignment="CENTER_RIGHT" spacing="15" style="-fx-padding: 15 40;">
-            <Button fx:id="backBtn" text="⬅ Quay lại" styleClass="btn, btn-secondary" onAction="#onBack" visible="false"/>
-            <Button fx:id="nextBtn" text="Tiếp tục ➡" styleClass="btn, btn-primary" onAction="#onNext"/>
+            <Button fx:id="backBtn" styleClass="btn, btn-secondary" onAction="#onBack" visible="false">
+                <graphic><FontIcon iconLiteral="fas-arrow-left" iconSize="14" styleClass="icon-white"/></graphic>
+                <text> Quay lại</text>
+            </Button>
+            <Button fx:id="nextBtn" styleClass="btn, btn-primary" onAction="#onNext">
+                <text>Tiếp tục </text>
+                <graphic><FontIcon iconLiteral="fas-arrow-right" iconSize="14" styleClass="icon-white"/></graphic>
+            </Button>
         </HBox>
     </bottom>
     

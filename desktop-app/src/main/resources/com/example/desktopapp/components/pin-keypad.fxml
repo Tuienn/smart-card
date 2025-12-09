@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <!-- Reusable PIN Keypad Component -->
 <VBox xmlns="http://javafx.com/javafx/17" 
@@ -47,14 +48,16 @@
                 GridPane.columnIndex="2" GridPane.rowIndex="2"/>
         
         <!-- Row 4: Clear All, 0, Backspace -->
-        <Button fx:id="clearBtn" text="Xóa" styleClass="keypad-btn, keypad-btn-action" 
-                onAction="#onClearAll"
-                GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+        <Button fx:id="clearBtn" styleClass="keypad-btn, keypad-btn-action" onAction="#onClearAll"
+                GridPane.columnIndex="0" GridPane.rowIndex="3">
+            <graphic><FontIcon iconLiteral="fas-trash-alt" iconSize="18"/></graphic>
+        </Button>
         <Button text="0" styleClass="keypad-btn" onAction="#onKeyPress" userData="0"
                 GridPane.columnIndex="1" GridPane.rowIndex="3"/>
-        <Button fx:id="backspaceBtn" text="⌫" styleClass="keypad-btn, keypad-btn-action" 
-                onAction="#onBackspace"
-                GridPane.columnIndex="2" GridPane.rowIndex="3"/>
+        <Button fx:id="backspaceBtn" styleClass="keypad-btn, keypad-btn-action" onAction="#onBackspace"
+                GridPane.columnIndex="2" GridPane.rowIndex="3">
+            <graphic><FontIcon iconLiteral="fas-backspace" iconSize="18"/></graphic>
+        </Button>
     </GridPane>
     
     <!-- Instructions -->

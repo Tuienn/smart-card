@@ -13,19 +13,19 @@ Backend lưu lại dữ liệu người dùng + lịch sử giao dịch.
 Tương thích với hệ thống trò chơi trừ tiền theo lượt.
 
 2. Luồng người chơi
-1️⃣ Nhập thông tin người dùng
+   1️⃣ Nhập thông tin người dùng
 
 Người chơi nhập:
 
 Họ tên
 
-Số điện thoại
+Tuổi
 
 Giới tính
 
 Tạo mã pin
 
-Ảnh đại diện 
+Ảnh đại diện
 
 Nhập số tiền thanh toán (quy đôi 100k = 10 coin)
 

@@ -3,6 +3,7 @@ package com.example.desktopapp.controller;
 import com.example.desktopapp.model.UserRegistration;
 import com.example.desktopapp.service.APDUConstants;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.util.UIUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -13,6 +14,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
+import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -50,7 +53,7 @@ public class CardRegistrationController implements Initializable {
     // Step 1: User Info
     @FXML private StackPane avatarContainer;
     @FXML private ImageView avatarImage;
-    @FXML private Label avatarPlaceholderText;
+    @FXML private FontIcon avatarPlaceholderText;
     @FXML private TextField nameField, ageField;
     @FXML private ToggleButton maleBtn, femaleBtn;
 
@@ -72,7 +75,7 @@ public class CardRegistrationController implements Initializable {
     @FXML private Button writeCardBtn;
 
     // Step 5: Success
-    @FXML private Label summaryName, summaryPhone, summaryCoins;
+    @FXML private Label summaryName, summaryAge, summaryCoins;
 
     // Navigation
     @FXML private Button backBtn, nextBtn;
@@ -163,7 +166,8 @@ public class CardRegistrationController implements Initializable {
             pinInstructionLabel.setText("Còn " + (MAX_PIN_LENGTH - length) + " số nữa");
             pinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
         } else {
-            pinInstructionLabel.setText("✓ Hoàn tất");
+            pinInstructionLabel.setText("Hoàn tất");
+            pinInstructionLabel.setGraphic(createIcon(FontAwesomeSolid.CHECK, "#22c55e", 14));
             if (!pinInstructionLabel.getStyleClass().contains("pin-instruction-complete")) {
                 pinInstructionLabel.getStyleClass().add("pin-instruction-complete");
             }
@@ -414,7 +418,8 @@ public class CardRegistrationController implements Initializable {
                     cardErrorState.setVisible(true);
                     errorMessageLabel.setText(getException().getMessage());
                     writeCardBtn.setDisable(false);
-                    writeCardBtn.setText("🔄 THỬ LẠI");
+                    writeCardBtn.setText(" THỬ LẠI");
+                    writeCardBtn.setGraphic(createIcon(FontAwesomeSolid.REDO, "white", 16));
                 });
             }
         };
@@ -475,6 +480,7 @@ public class CardRegistrationController implements Initializable {
 
                 // Save user data
                 user.setName(name);
+                user.setAge(age);
                 user.setAvatar(avatarBytes);
                 return true;
 
@@ -534,22 +540,25 @@ public class CardRegistrationController implements Initializable {
         
         switch (currentStep) {
             case 1:
-                stepTitle.setText("Đăng Ký Thông Tin");
+                stepTitle.setText("Đăng ký thông tin");
                 nextBtn.setVisible(true);
-                nextBtn.setText("TIẾP TỤC ➡");
+                nextBtn.setText(" TIẾP TỤC");
+                nextBtn.setGraphic(createIcon(FontAwesomeSolid.ARROW_RIGHT, "white", 14));
                 break;
             case 2:
-                stepTitle.setText("Tạo Mã PIN");
+                stepTitle.setText("Tạo mã PIN");
                 nextBtn.setVisible(true);
-                nextBtn.setText("TIẾP TỤC ➡");
+                nextBtn.setText(" TIẾP TỤC");
+                nextBtn.setGraphic(createIcon(FontAwesomeSolid.ARROW_RIGHT, "white", 14));
                 break;
             case 3:
-                stepTitle.setText("Chọn Gói Nạp Tiền");
+                stepTitle.setText("Chọn gói nạp tiền");
                 nextBtn.setVisible(true);
-                nextBtn.setText("TIẾP TỤC ➡");
+                nextBtn.setText(" TIẾP TỤC");
+                nextBtn.setGraphic(createIcon(FontAwesomeSolid.ARROW_RIGHT, "white", 14));
                 break;
             case 4:
-                stepTitle.setText("Ghi Thẻ");
+                stepTitle.setText("Ghi thẻ");
                 nextBtn.setVisible(false);
                 // Reset card states
                 cardWaitingState.setVisible(true);
@@ -558,16 +567,18 @@ public class CardRegistrationController implements Initializable {
                 cardErrorState.setVisible(false);
                 writeCardBtn.setVisible(true);
                 writeCardBtn.setDisable(false);
-                writeCardBtn.setText("🔐 BẮT ĐẦU GHI THẺ");
+                writeCardBtn.setText(" BẮT ĐẦU GHI THẺ");
+                writeCardBtn.setGraphic(createIcon(FontAwesomeSolid.LOCK, "white", 16));
                 break;
             case 5:
-                stepTitle.setText("Hoàn Thành");
+                stepTitle.setText("Hoàn thành");
                 nextBtn.setVisible(true);
-                nextBtn.setText("🏠 VỀ TRANG CHỦ");
+                nextBtn.setText(" VỀ TRANG CHỦ");
+                nextBtn.setGraphic(createIcon(FontAwesomeSolid.HOME, "white", 16));
                 backBtn.setVisible(false);
                 // Show summary
                 summaryName.setText(user.getName());
-                summaryPhone.setText(user.getPhone());
+                summaryAge.setText(user.getAge());
                 summaryCoins.setText(user.getCoins() + " coins");
                 break;
         }
@@ -577,7 +588,9 @@ public class CardRegistrationController implements Initializable {
         stepLabel.getStyleClass().removeAll("step-active", "step-completed", "step-inactive");
         if (completed) {
             stepLabel.getStyleClass().add("step-completed");
-            stepLabel.setText("✓");
+            FontIcon checkIcon = createIcon(FontAwesomeSolid.CHECK, "white", 14);
+            stepLabel.setGraphic(checkIcon);
+            stepLabel.setText("");
         } else if (active) {
             stepLabel.getStyleClass().add("step-active");
         } else {
@@ -607,6 +620,17 @@ public class CardRegistrationController implements Initializable {
         
         avatarImage.setImage(null);
         avatarPlaceholderText.setVisible(true);
+        // Reset step indicators graphics
+        step1Label.setGraphic(null);
+        step1Label.setText("1");
+        step2Label.setGraphic(null);
+        step2Label.setText("2");
+        step3Label.setGraphic(null);
+        step3Label.setText("3");
+        step4Label.setGraphic(null);
+        step4Label.setText("4");
+        step5Label.setGraphic(null);
+        step5Label.setText("5");
         
         if (genderGroup.getSelectedToggle() != null) {
             genderGroup.getSelectedToggle().setSelected(false);
@@ -619,10 +643,10 @@ public class CardRegistrationController implements Initializable {
     }
 
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+        UIUtils.showAlert(title, message);
+    }
+
+    private FontIcon createIcon(FontAwesomeSolid iconCode, String color, int size) {
+        return UIUtils.createIcon(iconCode, color, size);
     }
 }
