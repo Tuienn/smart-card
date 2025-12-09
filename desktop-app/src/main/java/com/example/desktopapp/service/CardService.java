@@ -230,7 +230,12 @@ public class CardService {
             throw new CardException("Chưa kết nối với thẻ");
         }
         
-        byte[] data = APDUConstants.intToBytes(coins);
+        // Coins are stored as short (2 bytes) on the card
+        if (coins < 0 || coins > 32767) {
+            throw new CardException("Số coins không hợp lệ (0-32767)");
+        }
+        
+        byte[] data = APDUConstants.shortToBytes((short) coins);
         
         CommandAPDU cmd = new CommandAPDU(
             APDUConstants.CLA,
@@ -383,10 +388,153 @@ public class CardService {
         }
         
         byte[] coinBytes = response.getData();
-        return ((coinBytes[0] & 0xFF) << 24) | 
-               ((coinBytes[1] & 0xFF) << 16) | 
-               ((coinBytes[2] & 0xFF) << 8) | 
-               (coinBytes[3] & 0xFF);
+        if (coinBytes.length >= 2) {
+            return ((coinBytes[0] & 0xFF) << 8) | (coinBytes[1] & 0xFF);
+        }
+        return 0;
+    }
+    
+    /**
+     * Read user name from card (INS_READ_USER_DATA_BASIC with TAG_NAME)
+     */
+    public String readName() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] data = { APDUConstants.TAG_NAME };
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_READ_USER_DATA_BASIC,
+            0x00, 0x00,
+            data,
+            64 // Max name length
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi đọc tên: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+        
+        byte[] nameBytes = response.getData();
+        return new String(nameBytes, java.nio.charset.StandardCharsets.UTF_8).trim();
+    }
+    
+    /**
+     * Read gender from card (INS_READ_USER_DATA_BASIC with TAG_GENDER)
+     * @return 0=Unknown, 1=Male, 2=Female
+     */
+    public byte readGender() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] data = { APDUConstants.TAG_GENDER };
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_READ_USER_DATA_BASIC,
+            0x00, 0x00,
+            data,
+            1
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi đọc giới tính: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+        
+        byte[] genderBytes = response.getData();
+        return genderBytes.length > 0 ? genderBytes[0] : 0;
+    }
+    
+    /**
+     * Read age from card (INS_READ_USER_DATA_BASIC with TAG_AGE)
+     */
+    public byte readAge() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] data = { APDUConstants.TAG_AGE };
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_READ_USER_DATA_BASIC,
+            0x00, 0x00,
+            data,
+            1
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi đọc tuổi: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+        
+        byte[] ageBytes = response.getData();
+        return ageBytes.length > 0 ? ageBytes[0] : 0;
+    }
+    
+    /**
+     * Read avatar image from card (INS_READ_IMAGE)
+     * @return image bytes or null if no image
+     */
+    public byte[] readAvatar() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        // First, read a small chunk to get image info
+        int chunkSize = APDUConstants.IMAGE_CHUNK_SIZE;
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        int offset = 0;
+        
+        while (true) {
+            // Build read command: [offset 2 bytes] [length 2 bytes]
+            byte[] data = new byte[4];
+            data[0] = (byte) ((offset >> 8) & 0xFF);
+            data[1] = (byte) (offset & 0xFF);
+            data[2] = (byte) ((chunkSize >> 8) & 0xFF);
+            data[3] = (byte) (chunkSize & 0xFF);
+            
+            CommandAPDU cmd = new CommandAPDU(
+                APDUConstants.CLA,
+                APDUConstants.INS_READ_IMAGE,
+                0x00, 0x00,
+                data,
+                chunkSize
+            );
+            
+            ResponseAPDU response = transmitCommand(cmd);
+            
+            if (response.getSW() != APDUConstants.SW_SUCCESS) {
+                if (offset == 0) {
+                    // No image stored
+                    return null;
+                }
+                break;
+            }
+            
+            byte[] chunk = response.getData();
+            if (chunk == null || chunk.length == 0) {
+                break;
+            }
+            
+            baos.write(chunk, 0, chunk.length);
+            offset += chunk.length;
+            
+            // If we got less than requested, we're done
+            if (chunk.length < chunkSize) {
+                break;
+            }
+        }
+        
+        byte[] result = baos.toByteArray();
+        return result.length > 0 ? result : null;
     }
     
     /**

@@ -37,7 +37,7 @@ public class Entertainment extends Applet {
     private static final byte MAX_NAME_LENGTH = (byte) 64;
     private static final byte MAX_GAMES = (byte) 50;
     private static final short MAX_IMAGE_SIZE = (short) 32767; // ~32KB for image (max short value, close to 64KB with two buffers if needed)
-    private static final short PBKDF2_ITERATIONS = (short) 10000;
+    private static final short PBKDF2_ITERATIONS = (short) 10;
     private static final short MAX_ENCRYPTED_DATA_SIZE = (short) 256;
 
     // TLV tags for user data
@@ -543,18 +543,29 @@ public class Entertainment extends Applet {
         short lc = (short) (buffer[ISO7816.OFFSET_LC] & 0xFF);
         apdu.setIncomingAndReceive();
 
-        // Decrypt user data
+        // Decrypt current user data
         decryptUserData(tempBuffer);
 
-        // Update TLV fields from input
+        // Parse input data and update fields
+        // We need to rebuild TLV structure because field sizes can change
         short inOffset = ISO7816.OFFSET_CDATA;
         while (inOffset < (short) (ISO7816.OFFSET_CDATA + lc)) {
             byte tag = buffer[inOffset++];
             byte len = buffer[inOffset++];
 
+            // Find and update the field value in tempBuffer
             short fieldOffset = findTag(tempBuffer, tag);
             if (fieldOffset >= 0) {
-                tempBuffer[(short) (fieldOffset + 1)] = len;
+                byte oldLen = tempBuffer[(short) (fieldOffset + 1)];
+                
+                // If length changed, we need to rebuild the TLV structure
+                if (oldLen != len) {
+                    rebuildTLVWithUpdatedField(tempBuffer, tag, buffer, inOffset, len);
+                    inOffset += len;
+                    continue;
+                }
+                
+                // Same length - can update in place
                 Util.arrayCopy(buffer, inOffset, tempBuffer, (short) (fieldOffset + 2), len);
             }
 
@@ -563,6 +574,40 @@ public class Entertainment extends Applet {
 
         // Encrypt and save
         encryptUserData(tempBuffer);
+    }
+    
+    private void rebuildTLVWithUpdatedField(byte[] tlvData, byte targetTag, byte[] newValue, short valueOffset, byte valueLen) {
+        // Create a temporary buffer to rebuild TLV
+        byte[] newTLV = new byte[160];
+        short readOffset = 0;
+        short writeOffset = 0;
+        
+        // Copy all fields, replacing the target field with new value
+        while (readOffset < 160 && tlvData[readOffset] != 0) {
+            byte tag = tlvData[readOffset];
+            byte len = tlvData[(short) (readOffset + 1)];
+            
+            if (tag == targetTag) {
+                // Write updated field
+                newTLV[writeOffset++] = tag;
+                newTLV[writeOffset++] = valueLen;
+                Util.arrayCopy(newValue, valueOffset, newTLV, writeOffset, valueLen);
+                writeOffset += valueLen;
+                
+                // Skip old field
+                readOffset += 2 + len;
+            } else {
+                // Copy existing field as-is
+                newTLV[writeOffset++] = tag;
+                newTLV[writeOffset++] = len;
+                Util.arrayCopy(tlvData, (short) (readOffset + 2), newTLV, writeOffset, len);
+                writeOffset += len;
+                readOffset += 2 + len;
+            }
+        }
+        
+        // Copy rebuilt TLV back to original buffer
+        Util.arrayCopy(newTLV, (short) 0, tlvData, (short) 0, (short) 160);
     }
 
     private void processWriteImageStart(APDU apdu) {
@@ -662,12 +707,12 @@ public class Entertainment extends Applet {
 
     private void initializeUserData() {
         // Initialize TLV structure: TAG | LENGTH | VALUE
+        // TLV must be compact - no reserved space, length must match actual value size
         short offset = 0;
 
-        // TAG_NAME
+        // TAG_NAME - empty initially
         tempBuffer[offset++] = TAG_NAME;
-        tempBuffer[offset++] = 0; // Empty name
-        offset += MAX_NAME_LENGTH; // Reserve space
+        tempBuffer[offset++] = 0; // Empty name, no value bytes
 
         // TAG_GENDER
         tempBuffer[offset++] = TAG_GENDER;
@@ -680,9 +725,9 @@ public class Entertainment extends Applet {
         Util.setShort(tempBuffer, offset, (short)0); // Initial coins = 0
         offset += 2;
 
-        // TAG_BOUGHT_GAMES
+        // TAG_BOUGHT_GAMES - empty initially
         tempBuffer[offset++] = TAG_BOUGHT_GAMES;
-        tempBuffer[offset++] = 0; // No games initially
+        tempBuffer[offset++] = 0; // No games initially, no value bytes
 
         // TAG_AGE
         tempBuffer[offset++] = TAG_AGE;

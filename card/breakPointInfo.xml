@@ -3,13 +3,7 @@
 <name>Entertainment</name>
 <classFile>
 <name>Entertainment.java</name>
-<lines>
-<line>
-<linenumber>570</linenumber>
-<valid>1</valid>
-<invalidTimes>0</invalidTimes>
-</line>
-</lines>
+<lines/>
 </classFile>
 <classFile>
 <name>PBKDF2.java</name>
