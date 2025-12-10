@@ -102,7 +102,7 @@ public class Entertainment extends Applet {
         imageType = 0;
 
         // Initialize transient arrays
-        masterKey = JCSystem.makeTransientByteArray(AES_KEY_SIZE, JCSystem.CLEAR_ON_DESELECT);
+        masterKey = JCSystem.makeTransientByteArray(AES_KEY_SIZE, JCSystem.CLEAR_ON_RESET);
         tempBuffer = JCSystem.makeTransientByteArray((short) 256, JCSystem.CLEAR_ON_DESELECT);
 
         // Initialize crypto objects with fallback options
