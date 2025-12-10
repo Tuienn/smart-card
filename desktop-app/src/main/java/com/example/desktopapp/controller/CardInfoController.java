@@ -16,6 +16,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 
 import javax.smartcardio.CardException;
+import com.example.desktopapp.service.PinVerificationException;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -187,7 +188,6 @@ public class CardInfoController implements Initializable {
             verifyBtn.setDisable(false);
         }
     }
-
     /**
      * Verify PIN and read card data
      */
@@ -238,6 +238,9 @@ public class CardInfoController implements Initializable {
             @Override
             protected void succeeded() {
                 Platform.runLater(() -> {
+                    // Unbind before updating UI
+                    connectingLabel.textProperty().unbind();
+                    
                     // Display card info
                     displayCardInfo(name, age, gender, coins, avatar);
                     showState("info");
@@ -247,15 +250,47 @@ public class CardInfoController implements Initializable {
             @Override
             protected void failed() {
                 Platform.runLater(() -> {
-                    showState("pin");
-                    pinBuilder.setLength(0);
-                    updatePinDisplay();
+                    // Unbind before updating UI - critical for subsequent attempts
+                    connectingLabel.textProperty().unbind();
                     
                     Throwable ex = getException();
-                    String message = ex != null ? ex.getMessage() : "Xác thực thất bại";
-                    pinInstructionLabel.setText(message);
-                    pinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
-                    pinInstructionLabel.setGraphic(UIUtils.createIcon(FontAwesomeSolid.TIMES, "#ef4444", 14));
+                    
+                    // Check if this is a PIN verification error
+                    if (ex instanceof PinVerificationException) {
+                        PinVerificationException pinEx = (PinVerificationException) ex;
+                        
+                        if (pinEx.isCardBlocked()) {
+                            // Card is blocked (0x6983) - show error state
+                            showState("error");
+                            errorLabel.setText("Thẻ đã bị khóa do nhập sai PIN quá 3 lần.\nVui lòng liên hệ quản trị viên để mở khóa.");
+                        } else {
+                            // Wrong PIN but card not blocked - show remaining attempts
+                            showState("pin");
+                            pinBuilder.setLength(0);
+                            updatePinDisplay();
+                            
+                            String message;
+                            if (pinEx.isWrongPin()) {
+                                int remaining = pinEx.getRemainingAttempts();
+                                message = "PIN sai! Còn " + remaining + " lần thử";
+                            } else {
+                                message = pinEx.getMessage();
+                            }
+                            pinInstructionLabel.setText(message);
+                            pinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
+                            pinInstructionLabel.setGraphic(UIUtils.createIcon(FontAwesomeSolid.EXCLAMATION_TRIANGLE, "#f59e0b", 14));
+                        }
+                    } else {
+                        // Other errors
+                        showState("pin");
+                        pinBuilder.setLength(0);
+                        updatePinDisplay();
+                        
+                        String message = ex != null ? ex.getMessage() : "Xác thực thất bại";
+                        pinInstructionLabel.setText(message);
+                        pinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
+                        pinInstructionLabel.setGraphic(UIUtils.createIcon(FontAwesomeSolid.TIMES, "#ef4444", 14));
+                    }
                 });
             }
         };

@@ -200,6 +200,8 @@ public class CardService {
     
     /**
      * Verify PIN to start session (INS_VERIFY_PIN)
+     * @throws PinVerificationException if PIN verification fails (with status word for error handling)
+     * @throws CardException for other card communication errors
      */
     public void verifyPin(String pin) throws CardException {
         if (!isConnected()) {
@@ -218,7 +220,11 @@ public class CardService {
         ResponseAPDU response = transmitCommand(cmd);
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
-            throw new CardException("Xác thực PIN thất bại: " + APDUConstants.getErrorMessage(response.getSW()));
+            // Throw PinVerificationException with status word for proper error handling
+            throw new PinVerificationException(
+                APDUConstants.getErrorMessage(response.getSW()),
+                response.getSW()
+            );
         }
     }
     
