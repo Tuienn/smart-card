@@ -8,6 +8,7 @@ public class Entertainment extends Applet {
     // INS codes
     private static final byte INS_INSTALL = (byte) 0x10;
     private static final byte INS_VERIFY_PIN = (byte) 0x20;
+    private static final byte INS_VERIFY_ADMIN_PIN = (byte) 0x22;
     private static final byte INS_UNLOCK_BY_ADMIN = (byte) 0x21;
     private static final byte INS_CHECK_ACCESS_FOR_GAME = (byte) 0x30;
     private static final byte INS_TOPUP_COINS = (byte) 0x32;
@@ -29,6 +30,7 @@ public class Entertainment extends Applet {
 
     // Constants
     private static final byte PIN_TRY_LIMIT = (byte) 3;
+    private static final byte ADMIN_PIN_TRY_LIMIT = (byte) 3;
     private static final byte MAX_PIN_SIZE = (byte) 16;
     private static final byte SALT_SIZE = (byte) 16;
     private static final short AES_KEY_SIZE = (short) 16; // 128 bits (more compatible)
@@ -51,10 +53,13 @@ public class Entertainment extends Applet {
     private byte[] userID;
     private byte[] salt;
     private byte[] wrappedMasterKey;
+    private byte[] adminWrappedMasterKey;
     private byte[] masterKeyHash;
     private byte[] encryptedUserData;
     private byte pinTryCounter;
+    private byte adminPinTryCounter;
     private boolean lockedFlag;
+    private boolean adminLockedFlag;
     private boolean initialized;
     private byte[] imageBuffer;
     private short imageSize;
@@ -67,6 +72,7 @@ public class Entertainment extends Applet {
 
     // Session variables (transient)
     private boolean sessionAuth;
+    private boolean adminSessionAuth;
     private byte[] masterKey; // Transient
     private byte[] tempBuffer; // Transient
 
@@ -82,12 +88,15 @@ public class Entertainment extends Applet {
         userID = new byte[16];
         salt = new byte[SALT_SIZE];
         wrappedMasterKey = new byte[32]; // IV (16 bytes) + encrypted key (16 bytes)
+        adminWrappedMasterKey = new byte[32]; // IV (16 bytes) + encrypted key (16 bytes)
         masterKeyHash = new byte[HASH_SIZE];
         encryptedUserData = new byte[MAX_ENCRYPTED_DATA_SIZE];
         imageBuffer = new byte[MAX_IMAGE_SIZE];
 
         pinTryCounter = PIN_TRY_LIMIT;
+        adminPinTryCounter = ADMIN_PIN_TRY_LIMIT;
         lockedFlag = false;
+        adminLockedFlag = false;
         initialized = false;
         imageSize = 0;
         imageType = 0;
@@ -149,6 +158,7 @@ public class Entertainment extends Applet {
     public void process(APDU apdu) {
         if (selectingApplet()) {
             sessionAuth = false;
+            adminSessionAuth = false;
             return;
         }
 
@@ -161,6 +171,9 @@ public class Entertainment extends Applet {
                 break;
             case INS_VERIFY_PIN:
                 processVerifyPin(apdu);
+                break;
+            case INS_VERIFY_ADMIN_PIN:
+                processVerifyAdminPin(apdu);
                 break;
             case INS_UNLOCK_BY_ADMIN:
                 processUnlockByAdmin(apdu);
@@ -252,8 +265,28 @@ public class Entertainment extends Applet {
         // Wrap master key with KEK
         wrapKey(masterKey, AES_KEY_SIZE, kek, wrappedMasterKey);
 
+        // Initialize admin PIN (default: "1234567890123456")
+        byte[] adminPin = new byte[16];
+        adminPin[0] = '1'; adminPin[1] = '2'; adminPin[2] = '3'; adminPin[3] = '4';
+        adminPin[4] = '5'; adminPin[5] = '6'; adminPin[6] = '7'; adminPin[7] = '8';
+        adminPin[8] = '9'; adminPin[9] = '0'; adminPin[10] = '1'; adminPin[11] = '2';
+        adminPin[12] = '3'; adminPin[13] = '4'; adminPin[14] = '5'; adminPin[15] = '6';
+        
+        // Derive admin KEK from admin PIN + salt
+        byte[] adminKek = new byte[AES_KEY_SIZE];
+        if (pbkdf2 != null) {
+            pbkdf2.doFinal(adminPin, (short) 0, (short) 16, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, adminKek, (short) 0);
+        } else {
+            deriveKeySimple(adminPin, (short) 16, salt, adminKek);
+        }
+        
+        // Wrap master key with admin KEK
+        wrapKey(masterKey, AES_KEY_SIZE, adminKek, adminWrappedMasterKey);
+
         // Clear KEK and PIN
         Util.arrayFillNonAtomic(kek, (short) 0, AES_KEY_SIZE, (byte) 0);
+        Util.arrayFillNonAtomic(adminKek, (short) 0, AES_KEY_SIZE, (byte) 0);
+        Util.arrayFillNonAtomic(adminPin, (short) 0, (short) 16, (byte) 0);
         Util.arrayFillNonAtomic(pin, (short) 0, pinLength, (byte) 0);
 
         // Generate RSA key pair if supported
@@ -266,8 +299,11 @@ public class Entertainment extends Applet {
 
         initialized = true;
         pinTryCounter = PIN_TRY_LIMIT;
+        adminPinTryCounter = ADMIN_PIN_TRY_LIMIT;
         lockedFlag = false;
+        adminLockedFlag = false;
         sessionAuth = true; // Auto-authenticate after successful installation
+        adminSessionAuth = false;
 
         // Return public key (modulus and exponent) if RSA is supported
         if (rsaPublicKey != null) {
@@ -354,11 +390,94 @@ public class Entertainment extends Applet {
         }
     }
 
-    private void processUnlockByAdmin(APDU apdu) {
-        // Admin authentication would be required here
-        // For simplicity, we'll reset the counter
+    private void processVerifyAdminPin(APDU apdu) {
         if (!initialized) {
             ISOException.throwIt(ISO7816.SW_COMMAND_NOT_ALLOWED);
+        }
+
+        if (adminLockedFlag) {
+            ISOException.throwIt(SW_AUTHENTICATION_BLOCKED);
+        }
+
+        byte[] buffer = apdu.getBuffer();
+        short lc = (short) (buffer[ISO7816.OFFSET_LC] & 0xFF);
+        apdu.setIncomingAndReceive();
+
+        if (lc < 4 || lc > MAX_PIN_SIZE) {
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
+
+        byte[] adminPin = new byte[lc];
+        Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, adminPin, (short) 0, lc);
+
+        // Derive admin KEK from admin PIN + salt
+        byte[] adminKek = new byte[AES_KEY_SIZE];
+        if (pbkdf2 != null) {
+            pbkdf2.doFinal(adminPin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, adminKek, (short) 0);
+        } else {
+            deriveKeySimple(adminPin, (short) lc, salt, adminKek);
+        }
+
+        // Clear admin PIN
+        Util.arrayFillNonAtomic(adminPin, (short) 0, lc, (byte) 0);
+
+        // Unwrap master key with admin KEK
+        byte[] tempMasterKey = new byte[AES_KEY_SIZE];
+        boolean unwrapSuccess = unwrapKey(adminWrappedMasterKey, adminKek, tempMasterKey);
+
+        // Clear admin KEK
+        Util.arrayFillNonAtomic(adminKek, (short) 0, AES_KEY_SIZE, (byte) 0);
+
+        if (!unwrapSuccess) {
+            Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
+            handleWrongAdminPin();
+            return;
+        }
+
+        // Verify master key hash
+        byte[] computedHash = new byte[HASH_SIZE];
+        if (sha256 != null) {
+            sha256.reset();
+            sha256.doFinal(tempMasterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
+        }
+
+        boolean hashMatch = true;
+        for (short i = 0; i < HASH_SIZE; i++) {
+            if (computedHash[i] != masterKeyHash[i]) {
+                hashMatch = false;
+                break;
+            }
+        }
+
+        // Clear temp master key
+        Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
+
+        if (hashMatch) {
+            adminSessionAuth = true;
+            adminPinTryCounter = ADMIN_PIN_TRY_LIMIT;
+        } else {
+            handleWrongAdminPin();
+        }
+    }
+
+    private void handleWrongAdminPin() {
+        adminPinTryCounter--;
+        if (adminPinTryCounter == 0) {
+            adminLockedFlag = true;
+            ISOException.throwIt(SW_AUTHENTICATION_BLOCKED);
+        } else {
+            ISOException.throwIt((short) (0x63C0 | adminPinTryCounter));
+        }
+    }
+
+    private void processUnlockByAdmin(APDU apdu) {
+        if (!initialized) {
+            ISOException.throwIt(ISO7816.SW_COMMAND_NOT_ALLOWED);
+        }
+        
+        // Require admin authentication
+        if (!adminSessionAuth) {
+            ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
         }
 
         byte[] buffer = apdu.getBuffer();
@@ -682,6 +801,7 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(userID, (short) 0, (short) 16, (byte) 0);
         Util.arrayFillNonAtomic(salt, (short) 0, SALT_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(wrappedMasterKey, (short) 0, (short) wrappedMasterKey.length, (byte) 0);
+        Util.arrayFillNonAtomic(adminWrappedMasterKey, (short) 0, (short) adminWrappedMasterKey.length, (byte) 0);
         Util.arrayFillNonAtomic(masterKeyHash, (short) 0, HASH_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(encryptedUserData, (short) 0, MAX_ENCRYPTED_DATA_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(imageBuffer, (short) 0, MAX_IMAGE_SIZE, (byte) 0);
@@ -697,8 +817,11 @@ public class Entertainment extends Applet {
 
         initialized = false;
         sessionAuth = false;
+        adminSessionAuth = false;
         pinTryCounter = PIN_TRY_LIMIT;
+        adminPinTryCounter = ADMIN_PIN_TRY_LIMIT;
         lockedFlag = false;
+        adminLockedFlag = false;
         imageSize = 0;
         imageType = 0;
     }

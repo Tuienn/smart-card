@@ -65,8 +65,40 @@ Response: 90 00
 
 ---
 
-### 3. INS_UNLOCK_BY_ADMIN (0x21) - Mở khóa bởi Admin
-**Mục đích:** Reset PIN counter và tùy chọn đổi PIN mới
+### 3. INS_VERIFY_ADMIN_PIN (0x22) - Xác thực Admin PIN
+**Mục đích:** Xác thực Admin PIN để có quyền unlock user PIN
+
+**Request:**
+```
+CLA: 0x00
+INS: 0x22
+P1: 0x00
+P2: 0x00
+Lc: ADMIN_PIN_LENGTH (4-16)
+Data: [ADMIN_PIN]
+```
+
+**Response:**
+- Success: `SW=0x9000`
+- Error:
+  - `0x63CX`: Admin PIN sai, còn X lần thử
+  - `0x6983`: Admin bị khóa
+  - `0x6985`: Chưa khởi tạo thẻ
+
+**Admin PIN mặc định:** `1234567890123456` (16 ký tự)
+
+**Ví dụ:**
+```
+Request: 00 22 00 00 10 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36
+Response: 90 00
+```
+
+---
+
+### 4. INS_UNLOCK_BY_ADMIN (0x21) - Mở khóa bởi Admin
+**Mục đích:** Reset user PIN counter và tùy chọn đổi user PIN mới
+
+**Yêu cầu tiên quyết:** Phải xác thực Admin PIN (INS 0x22) trước
 
 **Request:**
 ```
@@ -80,10 +112,23 @@ Data: [NEW_PIN] (optional)
 
 **Response:**
 - Success: `SW=0x9000`
+- Error:
+  - `0x6982`: Chưa xác thực Admin PIN
+
+**Ví dụ:**
+```
+// Bước 1: Xác thực Admin PIN
+Request: 00 22 00 00 10 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36
+Response: 90 00
+
+// Bước 2: Unlock và đổi user PIN mới
+Request: 00 21 00 00 04 35 36 37 38  // Đổi PIN thành "5678"
+Response: 90 00
+```
 
 ---
 
-### 4. INS_CHECK_ACCESS_FOR_GAME (0x30) - Kiểm tra quyền truy cập game
+### 5. INS_CHECK_ACCESS_FOR_GAME (0x30) - Kiểm tra quyền truy cập game
 **Mục đích:** Kiểm tra user có quyền chơi game không (đã mua hoặc đủ coins)
 
 **Request:**
@@ -109,7 +154,7 @@ Response: 01 90 00  // Có quyền truy cập
 
 ---
 
-### 5. INS_TOPUP_COINS (0x32) - Nạp coins
+### 6. INS_TOPUP_COINS (0x32) - Nạp coins
 **Mục đích:** Thêm coins vào tài khoản user
 
 **Request:**
@@ -135,7 +180,7 @@ Response: 90 00
 
 ---
 
-### 6. INS_PURCHASE_COMBO (0x33) - Mua combo game
+### 7. INS_PURCHASE_COMBO (0x33) - Mua combo game
 **Mục đích:** Mua nhiều game cùng lúc
 
 **Request:**
@@ -163,7 +208,7 @@ Response: 90 00
 
 ---
 
-### 7. INS_SIGN_CHALLENGE (0x41) - Ký challenge
+### 8. INS_SIGN_CHALLENGE (0x41) - Ký challenge
 **Mục đích:** Ký một challenge bằng RSA private key để xác thực
 
 **Request:**
@@ -187,7 +232,7 @@ Response: [256 bytes signature] 90 00
 
 ---
 
-### 8. INS_READ_USER_DATA_BASIC (0x50) - Đọc dữ liệu user
+### 9. INS_READ_USER_DATA_BASIC (0x50) - Đọc dữ liệu user
 **Mục đích:** Đọc một trường dữ liệu cụ thể của user
 
 **Request:**
@@ -220,7 +265,7 @@ Response: 00 00 03 E8 90 00  // 1000 coins
 
 ---
 
-### 9. INS_WRITE_USER_DATA_BASIC (0x51) - Ghi dữ liệu user
+### 10. INS_WRITE_USER_DATA_BASIC (0x51) - Ghi dữ liệu user
 **Mục đích:** Cập nhật dữ liệu user theo định dạng TLV
 
 **Request:**
@@ -247,7 +292,7 @@ Response: 90 00
 
 ---
 
-### 10. INS_WRITE_IMAGE_START (0x52) - Bắt đầu ghi ảnh
+### 11. INS_WRITE_IMAGE_START (0x52) - Bắt đầu ghi ảnh
 **Mục đích:** Bắt đầu ghi ảnh đại diện (chunk đầu tiên)
 
 **Request:**
@@ -275,7 +320,7 @@ Response: 90 00
 
 ---
 
-### 11. INS_WRITE_IMAGE_CONTINUE (0x53) - Tiếp tục ghi ảnh
+### 12. INS_WRITE_IMAGE_CONTINUE (0x53) - Tiếp tục ghi ảnh
 **Mục đích:** Ghi các chunk tiếp theo của ảnh
 
 **Request:**
@@ -303,7 +348,7 @@ Response: 90 00
 
 ---
 
-### 12. INS_READ_IMAGE (0x54) - Đọc ảnh
+### 13. INS_READ_IMAGE (0x54) - Đọc ảnh
 **Mục đích:** Đọc một phần ảnh
 
 **Request:**
@@ -330,7 +375,7 @@ Response: [256 bytes image data] 90 00
 
 ---
 
-### 13. INS_RESET_CARD (0x99) - Reset thẻ
+### 14. INS_RESET_CARD (0x99) - Reset thẻ
 **Mục đích:** Xóa toàn bộ dữ liệu và reset thẻ về trạng thái ban đầu
 
 **Request:**
@@ -400,6 +445,14 @@ P2: 0x00
 4. Gọi INS_READ_IMAGE để đọc lại ảnh
 ```
 
+### 6. Unlock user PIN bằng Admin
+```
+1. Gọi INS_VERIFY_ADMIN_PIN (0x22) với admin PIN (mặc định: "1234567890123456")
+2. Sau khi xác thực admin thành công, gọi INS_UNLOCK_BY_ADMIN (0x21)
+3. Tùy chọn gửi kèm user PIN mới để đổi PIN
+4. User PIN counter được reset về 3 lần thử
+```
+
 ---
 
 ## Bảo mật
@@ -416,9 +469,13 @@ P2: 0x00
 - Master key chỉ tồn tại trong transient memory
 
 ### PIN Protection
-- Giới hạn 3 lần thử sai
-- Thẻ bị khóa sau 3 lần sai
-- Chỉ Admin có thể unlock
+- **User PIN:** Giới hạn 3 lần thử sai, thẻ bị khóa sau 3 lần sai
+- **Admin PIN:** 
+  - Mặc định: `1234567890123456` (được khởi tạo tự động khi install)
+  - Giới hạn 3 lần thử sai, admin bị khóa sau 3 lần sai
+  - Admin Master Key được wrap riêng với Admin KEK
+  - Chỉ admin đã xác thực mới có thể unlock user PIN
+- **Dual Authentication:** User session và Admin session độc lập
 
 ---
 
@@ -438,7 +495,10 @@ P2: 0x00
 
 1. **Byte Order:** Sử dụng Big Endian cho tất cả số nguyên nhiều byte
 2. **Session:** Luôn gọi VERIFY_PIN trước khi gọi các lệnh cần xác thực
-3. **Error Handling:** Check SW code để xử lý lỗi phù hợp
-4. **Image Upload:** Chia ảnh thành chunks ~200 bytes để tránh overflow
-5. **TLV Format:** Khi ghi user data, sử dụng đúng format Tag-Length-Value
-6. **Public Key:** Lưu public key sau INSTALL để verify signature sau này
+3. **Admin Operations:** Để unlock user PIN, phải gọi VERIFY_ADMIN_PIN (0x22) trước, sau đó mới gọi UNLOCK_BY_ADMIN (0x21)
+4. **Admin PIN Default:** Admin PIN mặc định là `1234567890123456`, nên đổi ngay sau lần đầu sử dụng (qua UNLOCK_BY_ADMIN)
+5. **Error Handling:** Check SW code để xử lý lỗi phù hợp
+6. **Image Upload:** Chia ảnh thành chunks ~200 bytes để tránh overflow
+7. **TLV Format:** Khi ghi user data, sử dụng đúng format Tag-Length-Value
+8. **Public Key:** Lưu public key sau INSTALL để verify signature sau này
+9. **Session Independence:** Admin session và user session độc lập - cần xác thực riêng
