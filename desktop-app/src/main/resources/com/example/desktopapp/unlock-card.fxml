@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" 
+            xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.example.desktopapp.controller.UnlockCardController"
+            styleClass="root">
+    
+    <top>
+        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 30 40 20 40;">
+            <!-- Home Button -->
+            <HBox alignment="CENTER_LEFT">
+                <Button styleClass="btn, btn-secondary" onAction="#onGoHome" style="-fx-min-width: 120; -fx-min-height: 40;">
+                    <graphic><FontIcon iconLiteral="fas-home" iconSize="14" styleClass="icon-primary"/></graphic>
+                    <text> Trang chủ</text>
+                </Button>
+            </HBox>
+            
+            <Label fx:id="titleLabel" text="Mở khóa thẻ" styleClass="title-medium"/>
+        </VBox>
+    </top>
+    
+    <center>
+        <StackPane fx:id="contentStack" style="-fx-padding: 0 60;">
+            
+            <!-- State 1: Connecting -->
+            <VBox fx:id="connectingState" alignment="CENTER" spacing="30" visible="true">
+                <VBox styleClass="card-container" spacing="30" maxWidth="500" alignment="CENTER">
+                    <ProgressIndicator styleClass="loading-spinner" style="-fx-min-width: 80; -fx-min-height: 80;"/>
+                    <Label fx:id="connectingLabel" text="Đang kết nối thẻ..." styleClass="subtitle"/>
+                    <Label text="Đảm bảo thẻ đã được đặt lên đầu đọc" styleClass="text-secondary"/>
+                </VBox>
+            </VBox>
+            
+            <!-- State 2: Admin PIN Input -->
+            <VBox fx:id="pinInputState" alignment="CENTER" spacing="30" visible="false">
+                <VBox styleClass="card-container" spacing="25" maxWidth="600" alignment="CENTER">
+                    
+                    <HBox alignment="CENTER" spacing="10">
+                        <FontIcon iconLiteral="fas-unlock-alt" iconSize="24" styleClass="icon-primary"/>
+                        <Label text="Xác thực Admin PIN" styleClass="title-small"/>
+                    </HBox>
+                    <Label text="Nhập mã Admin PIN 16 số để mở khóa thẻ" styleClass="text-secondary"/>
+                    
+                    <!-- Admin PIN Display - 16 dots in 2 rows -->
+                    <VBox alignment="CENTER" spacing="10">
+                        <!-- Row 1: dots 1-8 -->
+                        <HBox alignment="CENTER" spacing="10" fx:id="pinDotsRow1">
+                            <Label fx:id="pinDot1" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot2" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot3" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot4" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot5" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot6" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot7" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot8" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                        <!-- Row 2: dots 9-16 -->
+                        <HBox alignment="CENTER" spacing="10" fx:id="pinDotsRow2">
+                            <Label fx:id="pinDot9" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot10" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot11" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot12" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot13" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot14" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot15" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="pinDot16" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <!-- Numeric Keypad -->
+                    <GridPane hgap="15" vgap="15" alignment="CENTER">
+                        <Button text="1" styleClass="keypad-btn" onAction="#onKeypadPress" userData="1"
+                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Button text="2" styleClass="keypad-btn" onAction="#onKeypadPress" userData="2"
+                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Button text="3" styleClass="keypad-btn" onAction="#onKeypadPress" userData="3"
+                                GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        
+                        <Button text="4" styleClass="keypad-btn" onAction="#onKeypadPress" userData="4"
+                                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Button text="5" styleClass="keypad-btn" onAction="#onKeypadPress" userData="5"
+                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Button text="6" styleClass="keypad-btn" onAction="#onKeypadPress" userData="6"
+                                GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        
+                        <Button text="7" styleClass="keypad-btn" onAction="#onKeypadPress" userData="7"
+                                GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <Button text="8" styleClass="keypad-btn" onAction="#onKeypadPress" userData="8"
+                                GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        <Button text="9" styleClass="keypad-btn" onAction="#onKeypadPress" userData="9"
+                                GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                        
+                        <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onPinClearAll"
+                                GridPane.columnIndex="0" GridPane.rowIndex="3">
+                            <graphic><FontIcon iconLiteral="fas-trash-alt" iconSize="18"/></graphic>
+                        </Button>
+                        <Button text="0" styleClass="keypad-btn" onAction="#onKeypadPress" userData="0"
+                                GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                        <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onPinBackspace"
+                                GridPane.columnIndex="2" GridPane.rowIndex="3">
+                            <graphic><FontIcon iconLiteral="fas-backspace" iconSize="18"/></graphic>
+                        </Button>
+                    </GridPane>
+                    
+                    <Label fx:id="pinInstructionLabel" text="Nhập mã Admin PIN 16 số" styleClass="pin-instruction"/>
+                    
+                    <!-- Unlock Button -->
+                    <Button fx:id="unlockBtn" styleClass="btn, btn-primary" onAction="#onUnlock" disable="true">
+                        <graphic><FontIcon iconLiteral="fas-check" iconSize="14" styleClass="icon-white"/></graphic>
+                        <text> XÁC NHẬN</text>
+                    </Button>
+                </VBox>
+            </VBox>
+            
+            <!-- State 3: New User PIN Input -->
+            <VBox fx:id="newPinInputState" alignment="CENTER" spacing="30" visible="false">
+                <VBox styleClass="card-container" spacing="25" maxWidth="500" alignment="CENTER">
+                    
+                    <HBox alignment="CENTER" spacing="10">
+                        <FontIcon iconLiteral="fas-key" iconSize="24" styleClass="icon-success"/>
+                        <Label text="Đặt mã PIN mới" styleClass="title-small"/>
+                    </HBox>
+                    <Label text="Admin xác thực thành công! Nhập mã PIN mới 6 số cho người dùng" styleClass="text-secondary"/>
+                    
+                    <!-- Include reusable PIN Keypad component -->
+                    <fx:include source="components/pin-keypad.fxml" fx:id="newPinKeypad"/>
+                    
+                    <!-- Confirm Button -->
+                    <Button fx:id="confirmNewPinBtn" styleClass="btn, btn-primary" onAction="#onConfirmNewPin" disable="true">
+                        <graphic><FontIcon iconLiteral="fas-check" iconSize="14" styleClass="icon-white"/></graphic>
+                        <text> XÁC NHẬN</text>
+                    </Button>
+                </VBox>
+            </VBox>
+            
+            <!-- State 4: Success -->
+            <VBox fx:id="successState" alignment="CENTER" spacing="30" visible="false">
+                <VBox styleClass="card-container" spacing="30" maxWidth="500" alignment="CENTER">
+                    <FontIcon iconLiteral="fas-check-circle" iconSize="64" styleClass="icon-success"/>
+                    <Label text="Mở khóa thành công!" styleClass="title-small" style="-fx-text-fill: #22c55e;"/>
+                    <Label text="Thẻ đã được mở khóa với mã PIN mới. Người dùng có thể sử dụng thẻ bình thường." 
+                           styleClass="text-secondary" wrapText="true" textAlignment="CENTER"/>
+                    <Button styleClass="btn, btn-primary" onAction="#onGoHome">
+                        <graphic><FontIcon iconLiteral="fas-home" iconSize="14" styleClass="icon-white"/></graphic>
+                        <text> VỀ TRANG CHỦ</text>
+                    </Button>
+                </VBox>
+            </VBox>
+            
+            <!-- State 4: Error -->
+            <VBox fx:id="errorState" alignment="CENTER" spacing="30" visible="false">
+                <VBox styleClass="card-container" spacing="30" maxWidth="500" alignment="CENTER">
+                    <FontIcon iconLiteral="fas-times-circle" iconSize="64" styleClass="icon-danger"/>
+                    <Label fx:id="errorLabel" text="Có lỗi xảy ra" styleClass="subtitle" style="-fx-text-fill: #ef4444;"/>
+                    <Button styleClass="btn, btn-secondary" onAction="#onRetry">
+                        <graphic><FontIcon iconLiteral="fas-redo" iconSize="14" styleClass="icon-primary"/></graphic>
+                        <text> THỬ LẠI</text>
+                    </Button>
+                </VBox>
+            </VBox>
+            
+        </StackPane>
+    </center>
+    
+</BorderPane>

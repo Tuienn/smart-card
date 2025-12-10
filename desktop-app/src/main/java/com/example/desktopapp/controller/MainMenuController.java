@@ -23,4 +23,12 @@ public class MainMenuController {
     private void onViewCardInfo() {
         MainApp.setRoot("card-info.fxml");
     }
+
+    /**
+     * Navigate to Unlock Card screen
+     */
+    @FXML
+    private void onUnlockCard() {
+        MainApp.setRoot("unlock-card.fxml");
+    }
 }

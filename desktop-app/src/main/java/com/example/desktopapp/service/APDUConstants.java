@@ -13,6 +13,7 @@ public class APDUConstants {
     public static final byte INS_INSTALL = (byte) 0x10;
     public static final byte INS_VERIFY_PIN = (byte) 0x20;
     public static final byte INS_UNLOCK_BY_ADMIN = (byte) 0x21;
+    public static final byte INS_VERIFY_ADMIN_PIN = (byte) 0x22;
     public static final byte INS_CHECK_ACCESS_FOR_GAME = (byte) 0x30;
     public static final byte INS_TOPUP_COINS = (byte) 0x32;
     public static final byte INS_PURCHASE_COMBO = (byte) 0x33;
@@ -49,6 +50,7 @@ public class APDUConstants {
     // Limits
     public static final int MIN_PIN_LENGTH = 4;
     public static final int MAX_PIN_LENGTH = 16;
+    public static final int ADMIN_PIN_LENGTH = 16;
     public static final int USER_ID_LENGTH = 16;
     public static final int MAX_NAME_LENGTH = 64;
     public static final int MAX_IMAGE_SIZE = 32767; // 32KB

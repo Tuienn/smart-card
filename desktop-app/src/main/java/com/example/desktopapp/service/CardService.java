@@ -229,6 +229,70 @@ public class CardService {
     }
     
     /**
+     * Verify Admin PIN (INS_VERIFY_ADMIN_PIN)
+     * Required before calling unlockByAdmin()
+     * @param adminPin Admin PIN (16 characters: 1234567890123456)
+     * @throws PinVerificationException if Admin PIN verification fails
+     * @throws CardException for other card communication errors
+     */
+    public void verifyAdminPin(String adminPin) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] adminPinBytes = adminPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_VERIFY_ADMIN_PIN,
+            0x00, 0x00,
+            adminPinBytes
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new PinVerificationException(
+                "Admin PIN sai: " + APDUConstants.getErrorMessage(response.getSW()),
+                response.getSW()
+            );
+        }
+    }
+    
+    /**
+     * Unlock card by Admin (INS_UNLOCK_BY_ADMIN)
+     * Requires Admin PIN verification first (call verifyAdminPin())
+     * Optionally set a new user PIN
+     * @param newPin New user PIN (optional, null to keep current PIN)
+     * @throws CardException for card communication errors
+     */
+    public void unlockByAdmin(String newPin) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] data;
+        if (newPin != null && !newPin.isEmpty()) {
+            data = newPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        } else {
+            data = new byte[0];
+        }
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_UNLOCK_BY_ADMIN,
+            0x00, 0x00,
+            data
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi mở khóa thẻ: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+    }
+    
+    /**
      * Top up coins (INS_TOPUP_COINS)
      */
     public void topupCoins(int coins) throws CardException {

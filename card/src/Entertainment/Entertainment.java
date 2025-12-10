@@ -449,13 +449,14 @@ public class Entertainment extends Applet {
             }
         }
 
-        // Clear temp master key
-        Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
-
         if (hashMatch) {
             adminSessionAuth = true;
             adminPinTryCounter = ADMIN_PIN_TRY_LIMIT;
+            // Copy master key for use in unlockByAdmin
+            Util.arrayCopy(tempMasterKey, (short) 0, masterKey, (short) 0, AES_KEY_SIZE);
+            Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
         } else {
+            Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
             handleWrongAdminPin();
         }
     }
