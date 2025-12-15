@@ -8,13 +8,6 @@ import javacard.security.HMACKey;
 import javacard.security.KeyBuilder;
 import javacard.security.Signature;
 
-
-/**
- *
- * @author Matej Evin
- * 03 August 2018
- */
-
 // This is the simplified version of PBKDF2 on JavaCard. It does not support any other hash functions than Sha1 and Sha256.
 // This is pretty much optimized for speed, but still it is a very lengthy process, because it requires a lot of iterations
 // on a slow CPU with very limited memory.
