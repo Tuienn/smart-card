@@ -1,0 +1,24 @@
+2.1. Các collection dữ liệu chính
+2.1.1. Collection Game
+ID
+name: string
+price: number
+description: string
+2.1.2. Collection Combo
+ID
+name: string
+price: number
+description: string
+game_ids (string[])
+2.1.3. Collection card
+ID
+user_name: string
+user_age: number
+user_gender: boolean
+public_key: string
+2.1.4. Giao dịch (Phục vụ cho thống kê)
+ID
+card_id: string
+payment: number
+time_stamp: date
+combo_id: string/null

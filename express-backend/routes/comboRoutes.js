@@ -1,0 +1,70 @@
+const express = require('express');
+const router = express.Router();
+const Combo = require('../models/Combo');
+
+// GET all combos
+router.get('/', async (req, res) => {
+  try {
+    const combos = await Combo.find().populate('game_ids');
+    res.json({ success: true, data: combos });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// GET combo by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const combo = await Combo.findById(req.params.id).populate('game_ids');
+    if (!combo) {
+      return res.status(404).json({ success: false, message: 'Combo not found' });
+    }
+    res.json({ success: true, data: combo });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// POST create new combo
+router.post('/', async (req, res) => {
+  try {
+    const combo = new Combo(req.body);
+    await combo.save();
+    await combo.populate('game_ids');
+    res.status(201).json({ success: true, data: combo });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// PUT update combo
+router.put('/:id', async (req, res) => {
+  try {
+    const combo = await Combo.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    ).populate('game_ids');
+    if (!combo) {
+      return res.status(404).json({ success: false, message: 'Combo not found' });
+    }
+    res.json({ success: true, data: combo });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// DELETE combo
+router.delete('/:id', async (req, res) => {
+  try {
+    const combo = await Combo.findByIdAndDelete(req.params.id);
+    if (!combo) {
+      return res.status(404).json({ success: false, message: 'Combo not found' });
+    }
+    res.json({ success: true, message: 'Combo deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+module.exports = router;
