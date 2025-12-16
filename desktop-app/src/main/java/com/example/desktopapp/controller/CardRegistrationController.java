@@ -373,9 +373,27 @@ public class CardRegistrationController implements Initializable {
                 updateMessage("Đang kết nối với thẻ...");
                 cardService.connect();
 
+                // Check if card is already initialized
+                updateMessage("Đang kiểm tra trạng thái thẻ...");
+                if (cardService.isCardInitialized()) {
+                    throw new Exception("Thẻ đã được khởi tạo! Không thể đăng ký lại.\nVui lòng sử dụng thẻ mới hoặc reset thẻ cũ.");
+                }
+
                 updateMessage("Đang khởi tạo thẻ...");
                 user.generateUserId();
-                cardService.installCard(user);
+                byte[] publicKey = cardService.installCard(user);
+
+                updateMessage("Đang đăng ký thẻ vào hệ thống...");
+                // Register card to backend with public key
+                Toggle selectedGender = genderGroup.getSelectedToggle();
+                boolean isMale = (selectedGender == maleBtn);
+                cardService.registerCardToBackend(
+                    user.getUserId(),
+                    publicKey,
+                    user.getName(),
+                    Integer.parseInt(user.getAge()),
+                    isMale
+                );
 
                 updateMessage("Đang ghi thông tin người dùng...");
                 cardService.writeUserData(user);

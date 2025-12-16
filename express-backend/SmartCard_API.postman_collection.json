@@ -1,0 +1,409 @@
+{
+	"info": {
+		"name": "SmartCard API",
+		"description": "Complete CRUD API for SmartCard Application",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Games",
+			"item": [
+				{
+					"name": "Get All Games",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/games",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "games"]
+						}
+					}
+				},
+				{
+					"name": "Get Game By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/games/{{game_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "games", "{{game_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Game",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"PUBG Mobile\",\n  \"price\": 50000,\n  \"description\": \"Game battle royale phổ biến nhất hiện nay\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/games",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "games"]
+						}
+					}
+				},
+				{
+					"name": "Update Game",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"PUBG Mobile Updated\",\n  \"price\": 60000,\n  \"description\": \"Game battle royale với đồ họa tuyệt đẹp\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/games/{{game_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "games", "{{game_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Game",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/games/{{game_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "games", "{{game_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Combos",
+			"item": [
+				{
+					"name": "Get All Combos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/combos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "combos"]
+						}
+					}
+				},
+				{
+					"name": "Get Combo By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/combos/{{combo_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "combos", "{{combo_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Combo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Combo Gaming Pro\",\n  \"price\": 150000,\n  \"description\": \"Gói combo gồm 3 game hot nhất\",\n  \"game_ids\": []\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/combos",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "combos"]
+						}
+					}
+				},
+				{
+					"name": "Update Combo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Combo Gaming VIP\",\n  \"price\": 180000,\n  \"description\": \"Gói combo VIP với 5 game AAA\",\n  \"game_ids\": []\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/combos/{{combo_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "combos", "{{combo_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Combo",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/combos/{{combo_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "combos", "{{combo_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Cards",
+			"item": [
+				{
+					"name": "Get All Cards",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/cards",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "cards"]
+						}
+					}
+				},
+				{
+					"name": "Get Card By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/cards/{{card_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "cards", "{{card_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Card",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_name\": \"Nguyen Van A\",\n  \"user_age\": 25,\n  \"user_gender\": true,\n  \"public_key\": \"PK_NVA_001_2025\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/cards",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "cards"]
+						}
+					}
+				},
+				{
+					"name": "Update Card",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_name\": \"Nguyen Van A Updated\",\n  \"user_age\": 26,\n  \"user_gender\": true,\n  \"public_key\": \"PK_NVA_001_2025_UPDATED\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/cards/{{card_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "cards", "{{card_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Card",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/cards/{{card_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "cards", "{{card_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Get All Transactions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/transactions",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "transactions"]
+						}
+					}
+				},
+				{
+					"name": "Get Transaction By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/transactions/{{transaction_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "transactions", "{{transaction_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Transactions By Card ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/transactions/card/{{card_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "transactions", "card", "{{card_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Create Transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"card_id\": \"{{card_id}}\",\n  \"payment\": 150000,\n  \"combo_id\": null\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/transactions",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "transactions"]
+						}
+					}
+				},
+				{
+					"name": "Update Transaction",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"payment\": 200000,\n  \"combo_id\": \"{{combo_id}}\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/api/transactions/{{transaction_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "transactions", "{{transaction_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Transaction",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:4000/api/transactions/{{transaction_id}}",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "4000",
+							"path": ["api", "transactions", "{{transaction_id}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Root Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:4000/",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "4000",
+					"path": [""]
+				}
+			}
+		}
+	]
+}

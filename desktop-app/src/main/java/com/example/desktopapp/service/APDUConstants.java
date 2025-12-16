@@ -23,6 +23,7 @@ public class APDUConstants {
     public static final byte INS_WRITE_IMAGE_START = (byte) 0x52;
     public static final byte INS_WRITE_IMAGE_CONTINUE = (byte) 0x53;
     public static final byte INS_READ_IMAGE = (byte) 0x54;
+    public static final byte INS_READ_USER_ID = (byte) 0x55;
     public static final byte INS_RESET_CARD = (byte) 0x99;
     
     // TLV Tags for user data

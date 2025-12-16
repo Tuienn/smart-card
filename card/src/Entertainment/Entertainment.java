@@ -19,6 +19,7 @@ public class Entertainment extends Applet {
     private static final byte INS_WRITE_IMAGE_START = (byte) 0x52;
     private static final byte INS_WRITE_IMAGE_CONTINUE = (byte) 0x53;
     private static final byte INS_READ_IMAGE = (byte) 0x54;
+    private static final byte INS_READ_USER_ID = (byte) 0x55;
     private static final byte INS_RESET_CARD = (byte) 0x99;
 
     // Status words
@@ -204,6 +205,9 @@ public class Entertainment extends Applet {
                 break;
             case INS_READ_IMAGE:
                 processReadImage(apdu);
+                break;
+            case INS_READ_USER_ID:
+                processReadUserId(apdu);
                 break;
             case INS_RESET_CARD:
                 processResetCard(apdu);
@@ -794,6 +798,17 @@ public class Entertainment extends Applet {
 
         Util.arrayCopy(imageBuffer, imageOffset, buffer, (short) 0, length);
         apdu.setOutgoingAndSend((short) 0, length);
+    }
+
+    private void processReadUserId(APDU apdu) {
+        if (!initialized) {
+            ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
+        }
+        
+        byte[] buffer = apdu.getBuffer();
+        // Return userID (16 bytes)
+        Util.arrayCopy(userID, (short) 0, buffer, (short) 0, (short) 16);
+        apdu.setOutgoingAndSend((short) 0, (short) 16);
     }
 
     private void processResetCard(APDU apdu) {

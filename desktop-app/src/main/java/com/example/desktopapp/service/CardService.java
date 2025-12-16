@@ -113,6 +113,40 @@ public class CardService {
         if (response.getSW() == APDUConstants.SW_SUCCESS) {
             connected = true;
             System.out.println("=== Applet Selected Successfully ===");
+            
+            // Check if card is initialized
+            try {
+                boolean initialized = isCardInitialized();
+                
+                if (!initialized) {
+                    if (debugMode) {
+                        System.out.println("Card not initialized yet (new card) - authentication skipped");
+                    }
+                    // Keep connection for card registration
+                    return true;
+                }
+                
+                // Card is initialized, perform authentication
+                if (debugMode) {
+                    System.out.println("\n=== Starting Automatic Authentication ===");
+                }
+                
+                boolean authenticated = authenticateCard();
+                
+                if (!authenticated) {
+                    // Disconnect if authentication fails
+                    disconnect();
+                    throw new CardException("Xác thực thẻ thất bại! Thẻ không hợp lệ.");
+                }
+                
+                System.out.println("=== Card Authenticated Successfully ===");
+                
+            } catch (CardException e) {
+                // For errors, disconnect and rethrow
+                disconnect();
+                throw e;
+            }
+            
             return true;
         } else {
             String errorMsg = "Không thể chọn applet. SW=" + String.format("%04X", response.getSW()) + 
@@ -629,6 +663,345 @@ public class CardService {
     }
     
     /**
+     * Check if card is initialized (has User ID)
+     * @return true if card has been initialized, false if not
+     */
+    public boolean isCardInitialized() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        try {
+            CommandAPDU cmd = new CommandAPDU(
+                APDUConstants.CLA,
+                APDUConstants.INS_READ_USER_ID,
+                0x00, 0x00,
+                16
+            );
+            
+            ResponseAPDU response = transmitCommand(cmd);
+            
+            // If SW = 0x9000, card is initialized
+            if (response.getSW() == APDUConstants.SW_SUCCESS) {
+                return true;
+            }
+            
+            // If SW = 0x6985 (SW_CONDITIONS_NOT_SATISFIED), card is not initialized
+            if (response.getSW() == 0x6985) {
+                return false;
+            }
+            
+            // Other errors
+            throw new CardException("Lỗi kiểm tra trạng thái thẻ: " + APDUConstants.getErrorMessage(response.getSW()));
+            
+        } catch (CardException e) {
+            // If it's a connection error, rethrow
+            throw e;
+        }
+    }
+    
+    /**
+     * Read user ID from card (INS_READ_USER_ID)
+     * @return 16-byte user ID
+     */
+    public byte[] readUserId() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_READ_USER_ID,
+            0x00, 0x00,
+            16 // Expected response length
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi đọc User ID: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+        
+        return response.getData();
+    }
+    
+    /**
+     * Sign challenge with card's RSA private key (INS_SIGN_CHALLENGE)
+     * @param challenge Random challenge bytes
+     * @return RSA signature
+     */
+    public byte[] signChallenge(byte[] challenge) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_SIGN_CHALLENGE,
+            0x00, 0x00,
+            challenge,
+            256 // Expected RSA signature length (1024 bits = 128 bytes)
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi ký challenge: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+        
+        return response.getData();
+    }
+    
+    /**
+     * Authenticate card using RSA challenge-response
+     * @param publicKeyBytes RSA public key from backend (DER encoded or raw modulus+exponent)
+     * @return true if authentication successful
+     */
+    public boolean authenticateWithChallenge(byte[] publicKeyBytes) throws CardException {
+        try {
+            // Generate random challenge (32 bytes)
+            java.security.SecureRandom random = new java.security.SecureRandom();
+            byte[] challenge = new byte[32];
+            random.nextBytes(challenge);
+            
+            if (debugMode) {
+                System.out.println("=== RSA Authentication ===");
+                System.out.println("Challenge: " + bytesToHex(challenge));
+            }
+            
+            // Get signature from card
+            byte[] signature = signChallenge(challenge);
+            
+            if (debugMode) {
+                System.out.println("Signature: " + bytesToHex(signature));
+            }
+            
+            // Parse public key and verify signature
+            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance("RSA");
+            java.security.spec.X509EncodedKeySpec keySpec = new java.security.spec.X509EncodedKeySpec(publicKeyBytes);
+            java.security.PublicKey publicKey = keyFactory.generatePublic(keySpec);
+            
+            // Verify signature
+            java.security.Signature verifier = java.security.Signature.getInstance("SHA1withRSA");
+            verifier.initVerify(publicKey);
+            verifier.update(challenge);
+            boolean verified = verifier.verify(signature);
+            
+            if (debugMode) {
+                System.out.println("Verification result: " + verified);
+            }
+            
+            return verified;
+            
+        } catch (Exception e) {
+            if (debugMode) {
+                System.out.println("Authentication error: " + e.getMessage());
+                e.printStackTrace();
+            }
+            throw new CardException("Lỗi xác thực RSA: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Get public key from backend API using user ID
+     * @param userId 16-byte user ID from card
+     * @return RSA public key bytes (DER encoded)
+     */
+    private byte[] getPublicKeyFromBackend(byte[] userId) throws CardException {
+        try {
+            // Convert user ID to hex string
+            String userIdHex = bytesToHex(userId).replace(" ", "");
+            
+            if (debugMode) {
+                System.out.println("=== Fetching Public Key from Backend ===");
+                System.out.println("User ID: " + userIdHex);
+            }
+            
+            // Call backend API
+            String apiUrl = "http://localhost:4000/api/cards/" + userIdHex;
+            java.net.URL url = new java.net.URL(apiUrl);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+            
+            int responseCode = conn.getResponseCode();
+            if (responseCode != 200) {
+                throw new CardException("Không tìm thấy thẻ trong hệ thống (HTTP " + responseCode + ")");
+            }
+            
+            // Read response
+            java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(conn.getInputStream())
+            );
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+            
+            if (debugMode) {
+                System.out.println("Backend response: " + response.toString());
+            }
+            
+            // Parse JSON to extract public_key field
+            // Simple parsing (for production, use Jackson or Gson)
+            String jsonResponse = response.toString();
+            int keyStart = jsonResponse.indexOf("\"public_key\"");
+            if (keyStart == -1) {
+                throw new CardException("Không tìm thấy public key trong response");
+            }
+            
+            int valueStart = jsonResponse.indexOf("\"", keyStart + 13) + 1;
+            int valueEnd = jsonResponse.indexOf("\"", valueStart);
+            String publicKeyBase64 = jsonResponse.substring(valueStart, valueEnd);
+            
+            if (debugMode) {
+                System.out.println("Public Key (Base64): " + publicKeyBase64.substring(0, Math.min(50, publicKeyBase64.length())) + "...");
+            }
+            
+            // Decode Base64 to get public key bytes
+            return java.util.Base64.getDecoder().decode(publicKeyBase64);
+            
+        } catch (Exception e) {
+            if (debugMode) {
+                System.out.println("Error fetching public key: " + e.getMessage());
+                e.printStackTrace();
+            }
+            throw new CardException("Lỗi lấy public key từ backend: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Full authentication flow when connecting to card:
+     * 1. Read user ID from card
+     * 2. Get public key from backend using user ID
+     * 3. Perform RSA challenge-response authentication
+     * @return true if authentication successful
+     */
+    public boolean authenticateCard() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        if (debugMode) {
+            System.out.println("\n========== Card Authentication Flow ==========");
+        }
+        
+        // Step 1: Read user ID from card
+        byte[] userId = readUserId();
+        if (debugMode) {
+            System.out.println("Step 1: Read User ID - " + bytesToHex(userId));
+        }
+        
+        // Step 2: Get public key from backend
+        byte[] publicKey = getPublicKeyFromBackend(userId);
+        if (debugMode) {
+            System.out.println("Step 2: Retrieved Public Key from backend");
+        }
+        
+        // Step 3: Authenticate using RSA challenge-response
+        boolean authenticated = authenticateWithChallenge(publicKey);
+        if (debugMode) {
+            System.out.println("Step 3: Authentication " + (authenticated ? "SUCCESS" : "FAILED"));
+            System.out.println("==============================================\n");
+        }
+        
+        return authenticated;
+    }
+    
+    /**
+     * Register card to backend API
+     * @param userId User ID from card (16 bytes)
+     * @param publicKeyBytes RSA public key bytes (raw modulus + exponent from card)
+     * @param userName User name
+     * @param userAge User age
+     * @param userGender User gender (true=male, false=female)
+     * @return true if registration successful
+     */
+    public boolean registerCardToBackend(byte[] userId, byte[] publicKeyBytes, String userName, int userAge, boolean userGender) throws CardException {
+        try {
+            // Convert user ID to hex string (use as _id in MongoDB)
+            String userIdHex = bytesToHex(userId).replace(" ", "");
+            
+            // Convert raw RSA key (modulus + exponent) to X.509 DER format
+            byte[] x509Key = convertRawRSAKeyToX509(publicKeyBytes);
+            
+            // Convert public key to Base64
+            String publicKeyBase64 = java.util.Base64.getEncoder().encodeToString(x509Key);
+            
+            if (debugMode) {
+                System.out.println("=== Registering Card to Backend ===");
+                System.out.println("User ID: " + userIdHex);
+                System.out.println("User Name: " + userName);
+                System.out.println("User Age: " + userAge);
+                System.out.println("User Gender: " + (userGender ? "Male" : "Female"));
+                System.out.println("Public Key (Base64): " + publicKeyBase64.substring(0, Math.min(50, publicKeyBase64.length())) + "...");
+            }
+            
+            // Build JSON payload
+            String jsonPayload = String.format(
+                "{\"_id\":\"%s\",\"user_name\":\"%s\",\"user_age\":%d,\"user_gender\":%b,\"public_key\":\"%s\"}",
+                userIdHex, userName, userAge, userGender, publicKeyBase64
+            );
+            
+            // Call backend API
+            String apiUrl = "http://localhost:4000/api/cards";
+            java.net.URL url = new java.net.URL(apiUrl);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setDoOutput(true);
+            
+            // Write payload
+            try (java.io.OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes("utf-8");
+                os.write(input, 0, input.length);
+            }
+            
+            int responseCode = conn.getResponseCode();
+            
+            // Read response
+            java.io.BufferedReader reader;
+            if (responseCode >= 200 && responseCode < 300) {
+                reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream())
+                );
+            } else {
+                reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getErrorStream())
+                );
+            }
+            
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+            
+            if (debugMode) {
+                System.out.println("Backend response (HTTP " + responseCode + "): " + response.toString());
+            }
+            
+            if (responseCode < 200 || responseCode >= 300) {
+                throw new CardException("Lỗi đăng ký thẻ vào hệ thống (HTTP " + responseCode + "): " + response.toString());
+            }
+            
+            System.out.println("=== Card Registered Successfully ===");
+            return true;
+            
+        } catch (Exception e) {
+            if (debugMode) {
+                System.out.println("Error registering card: " + e.getMessage());
+                e.printStackTrace();
+            }
+            throw new CardException("Lỗi đăng ký thẻ vào backend: " + e.getMessage());
+        }
+    }
+    
+    /**
      * Full card setup process for new user registration
      */
     public void setupNewCard(UserRegistration user) throws CardException {
@@ -695,6 +1068,52 @@ public class CardService {
             sb.append(String.format("%02X ", b));
         }
         return sb.toString().trim();
+    }
+    
+    /**
+     * Convert raw RSA key (modulus + exponent) to X.509 DER format
+     * JavaCard returns: [modulus bytes][exponent bytes]
+     * For RSA 1024-bit: modulus = 128 bytes, exponent = typically 3 bytes (0x010001)
+     */
+    private byte[] convertRawRSAKeyToX509(byte[] rawKey) throws CardException {
+        try {
+            // For RSA 1024-bit: modulus = 128 bytes
+            // Exponent is typically 3 bytes (65537 = 0x010001)
+            int modulusLen = 128; // 1024 bits / 8
+            int exponentLen = rawKey.length - modulusLen;
+            
+            if (exponentLen <= 0 || exponentLen > 4) {
+                throw new CardException("Invalid RSA key format: exponent length = " + exponentLen);
+            }
+            
+            // Extract modulus and exponent
+            byte[] modulus = new byte[modulusLen];
+            byte[] exponent = new byte[exponentLen];
+            System.arraycopy(rawKey, 0, modulus, 0, modulusLen);
+            System.arraycopy(rawKey, modulusLen, exponent, 0, exponentLen);
+            
+            if (debugMode) {
+                System.out.println("=== Converting Raw RSA Key to X.509 ===");
+                System.out.println("Modulus length: " + modulusLen);
+                System.out.println("Exponent length: " + exponentLen);
+                System.out.println("Exponent: " + bytesToHex(exponent));
+            }
+            
+            // Convert to BigInteger (remove leading zeros if needed)
+            java.math.BigInteger modulusBigInt = new java.math.BigInteger(1, modulus);
+            java.math.BigInteger exponentBigInt = new java.math.BigInteger(1, exponent);
+            
+            // Create RSA public key
+            java.security.spec.RSAPublicKeySpec keySpec = new java.security.spec.RSAPublicKeySpec(modulusBigInt, exponentBigInt);
+            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance("RSA");
+            java.security.PublicKey publicKey = keyFactory.generatePublic(keySpec);
+            
+            // Get X.509 encoded bytes
+            return publicKey.getEncoded();
+            
+        } catch (Exception e) {
+            throw new CardException("Lỗi chuyển đổi RSA key: " + e.getMessage());
+        }
     }
     
     /**
