@@ -365,7 +365,7 @@
 
 /* ============ PIN Keypad Component ============ */
 .pin-keypad-container {
-  -fx-padding: 20;
+  -fx-padding: 5 0;
 }
 
 /* PIN Dots Display */
@@ -566,4 +566,36 @@
 .primary-button:pressed {
   -fx-background-color: linear-gradient(to right, #4f46e5, #7c3aed);
   -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.8), 15, 0, 0, 5);
+}
+
+/* ============ Top Bar & Back Button ============ */
+.top-bar {
+  -fx-background-color: transparent;
+}
+
+.btn-back {
+  -fx-background-color: rgba(255, 255, 255, 0.1);
+  -fx-background-radius: 12;
+  -fx-padding: 10 20;
+  -fx-min-height: 40px;
+  -fx-cursor: hand;
+  -fx-border-color: rgba(255, 255, 255, 0.2);
+  -fx-border-radius: 12;
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 8, 0, 0, 2);
+}
+
+.btn-back:hover {
+  -fx-background-color: rgba(99, 102, 241, 0.3);
+  -fx-border-color: #6366f1;
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.4), 12, 0, 0, 4);
+  -fx-scale-x: 1.05;
+  -fx-scale-y: 1.05;
+}
+
+.btn-back:pressed {
+  -fx-background-color: rgba(99, 102, 241, 0.5);
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.6), 8, 0, 0, 2);
+  -fx-scale-x: 0.98;
+  -fx-scale-y: 0.98;
 }

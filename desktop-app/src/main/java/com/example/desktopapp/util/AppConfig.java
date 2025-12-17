@@ -1,5 +1,8 @@
 package com.example.desktopapp.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Application configuration constants
  * Centralized configuration for API endpoints and other settings
@@ -28,6 +31,19 @@ public class AppConfig {
      * Read timeout in milliseconds
      */
     public static final int READ_TIMEOUT = 5000;
+    
+    /**
+     * Session storage for client app - simple properties for game selection flow
+     */
+    private static final Map<String, String> sessionData = new HashMap<>();
+    
+    public static void setProperty(String key, String value) {
+        sessionData.put(key, value);
+    }
+    
+    public static String getProperty(String key, String defaultValue) {
+        return sessionData.getOrDefault(key, defaultValue);
+    }
     
     // Private constructor to prevent instantiation
     private AppConfig() {

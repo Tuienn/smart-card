@@ -526,13 +526,30 @@ public class Entertainment extends Applet {
         // Decrypt user data
         decryptUserData(tempBuffer);
 
-        // Check if game is already bought (unlimited access)
+        // Check if game is already bought (one-time use after purchase)
         short gamesOffset = findTag(tempBuffer, TAG_BOUGHT_GAMES);
         if (gamesOffset >= 0) {
             byte gameCount = tempBuffer[(short) (gamesOffset + 1)];
             for (byte i = 0; i < gameCount; i++) {
                 if (tempBuffer[(short) (gamesOffset + 2 + i)] == gameID) {
-                    // Game already purchased - allow free play
+                    // Game already purchased - allow one free play and remove from bought list
+                    byte[] newGameList = new byte[MAX_GAMES];
+                    byte newGameCount = 0;
+                    
+                    // Copy all games except the one being played
+                    for (byte j = 0; j < gameCount; j++) {
+                        if (j != i) {
+                            newGameList[newGameCount++] = tempBuffer[(short) (gamesOffset + 2 + j)];
+                        }
+                    }
+                    
+                    // Update bought games list with the game removed
+                    rebuildTLVWithUpdatedField(tempBuffer, TAG_BOUGHT_GAMES, newGameList, (short) 0, newGameCount);
+                    
+                    // Encrypt and save updated data
+                    encryptUserData(tempBuffer);
+                    
+                    // Return success (game used up)
                     buffer[0] = (byte) 0x01;
                     apdu.setOutgoingAndSend((short) 0, (short) 1);
                     return;
@@ -620,10 +637,6 @@ public class Entertainment extends Applet {
         if (coinsOffset < 0) {
             ISOException.throwIt(SW_WRONG_DATA);
         }
-        short currentCoins = Util.getShort(tempBuffer, (short) (coinsOffset + 2));
-        if (currentCoins < totalPrice) {
-            ISOException.throwIt(SW_INSUFFICIENT_FUNDS);
-        }
 
         // Get current bought games
         short gamesOffset = findTag(tempBuffer, TAG_BOUGHT_GAMES);
@@ -633,7 +646,7 @@ public class Entertainment extends Applet {
 
         byte currentGameCount = tempBuffer[(short) (gamesOffset + 1)];
         
-        // Build new game list (avoid duplicates)
+        // Build new game list (allow duplicates for multiple play times)
         byte[] newGameList = new byte[MAX_GAMES];
         byte newGameCount = 0;
         
@@ -643,26 +656,15 @@ public class Entertainment extends Applet {
             newGameList[newGameCount++] = tempBuffer[(short) (gamesDataOffset + i)];
         }
         
-        // Add new games if not already in list
+        // Add new games - allow duplicates for multiple play times
         for (byte i = 0; i < numGames; i++) {
-            boolean exists = false;
-            for (byte j = 0; j < newGameCount; j++) {
-                if (newGameList[j] == gamesToAdd[i]) {
-                    exists = true;
-                    break;
-                }
-            }
-            if (!exists && newGameCount < MAX_GAMES) {
+            if (newGameCount < MAX_GAMES) {
                 newGameList[newGameCount++] = gamesToAdd[i];
             }
         }
 
         // Rebuild TLV with updated games (this prevents overwriting other tags)
         rebuildTLVWithUpdatedField(tempBuffer, TAG_BOUGHT_GAMES, newGameList, (short) 0, newGameCount);
-
-        // Deduct coins
-        short newCoins = (short)(currentCoins - totalPrice);
-        Util.setShort(tempBuffer, (short) (findTag(tempBuffer, TAG_COINS) + 2), newCoins);
 
         // Encrypt and save
         encryptUserData(tempBuffer);

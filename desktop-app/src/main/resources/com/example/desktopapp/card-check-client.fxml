@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.desktopapp.controller.CardCheckClientController"
+            styleClass="root">
+
+    <top>
+        <HBox styleClass="top-bar">
+            <padding>
+                <Insets top="20" right="30" bottom="10" left="30"/>
+            </padding>
+            <Button styleClass="btn-back" onAction="#handleBack">
+                <graphic>
+                    <HBox alignment="CENTER" spacing="8">
+                        <FontIcon iconLiteral="fas-arrow-left" iconSize="16" styleClass="icon-white"/>
+                        <Label text="Quay lại" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: 600;"/>
+                    </HBox>
+                </graphic>
+            </Button>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox alignment="CENTER" spacing="25" styleClass="main-container">
+            <padding>
+                <Insets top="10" right="30" bottom="30" left="30"/>
+            </padding>
+
+            <!-- Game Info -->
+            <HBox alignment="CENTER" spacing="12" styleClass="coin-display" style="-fx-padding: 15 25;">
+                <FontIcon iconLiteral="fas-gamepad" iconSize="22" styleClass="icon-warning"/>
+                <Label fx:id="gameInfoLabel" 
+                       text="Trò chơi: Game Name - Giá: 100 coins" 
+                       styleClass="text-primary"
+                       textAlignment="CENTER"
+                       wrapText="true"
+                       style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <!-- Instruction Card -->
+            <VBox alignment="CENTER" spacing="28" styleClass="glass-panel" style="-fx-min-width: 480px; -fx-max-width: 600px; -fx-padding: 40;">
+                
+                <!-- Icon -->
+                <StackPane style="-fx-background-color: rgba(99, 102, 241, 0.15); -fx-background-radius: 50; -fx-min-width: 80; -fx-min-height: 80; -fx-max-width: 80; -fx-max-height: 80;">
+                    <FontIcon iconLiteral="fas-hand-pointer" iconSize="40" styleClass="icon-primary"/>
+                </StackPane>
+
+                <VBox alignment="CENTER" spacing="12">
+                    <Label fx:id="instructionLabel" 
+                           text="Vui lòng đặt thẻ vào đầu đọc" 
+                           styleClass="title-medium"
+                           style="-fx-font-size: 26px;"
+                           textAlignment="CENTER"/>
+                    <Label text="Sau khi đặt thẻ, nhấn nút 'Kiểm tra thẻ' bên dưới" 
+                           styleClass="subtitle"
+                           style="-fx-font-size: 16px;"
+                           textAlignment="CENTER"
+                           wrapText="true"/>
+                </VBox>
+
+                <!-- Check Card Button -->
+                <Button fx:id="checkCardButton" 
+                        styleClass="btn-primary, btn-large"
+                        onAction="#handleCheckCard"
+                        style="-fx-min-width: 260px; -fx-min-height: 58px;">
+                    <graphic>
+                        <HBox alignment="CENTER" spacing="12">
+                            <FontIcon iconLiteral="fas-id-card" iconSize="24" styleClass="icon-white"/>
+                            <Label text="KIỂM TRA THẺ" style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                </Button>
+                
+                <!-- Status Label -->
+                <Label fx:id="statusLabel" text="" styleClass="text-secondary" style="-fx-font-size: 13px; -fx-font-weight: 600; -fx-min-height: 0; -fx-max-height: 0;" textAlignment="CENTER" wrapText="true" managed="false"/>
+            </VBox>
+
+        </VBox>
+    </center>
+    
+</BorderPane>

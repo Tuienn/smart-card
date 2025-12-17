@@ -5,6 +5,7 @@ module com.example.desktopapp {
     requires java.desktop;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.ikonli.fontawesome5;
+    requires org.json;
 
     opens com.example.desktopapp to javafx.fxml;
     opens com.example.desktopapp.controller to javafx.fxml;

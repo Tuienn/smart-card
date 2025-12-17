@@ -66,6 +66,7 @@ public class CardInfoController implements Initializable {
 
     // Service
     private CardService cardService;
+    private String verifiedPin; // Store PIN after successful verification
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -226,6 +227,7 @@ public class CardInfoController implements Initializable {
                 // Verify PIN
                 updateMessage("Đang xác thực PIN...");
                 cardService.verifyPin(pin);
+                verifiedPin = pin; // Save PIN for later use
 
                 // Read card data
                 updateMessage("Đang đọc dữ liệu thẻ...");
@@ -377,23 +379,34 @@ public class CardInfoController implements Initializable {
         if (gameIds == null || gameIds.length == 0) {
             if (noGamesLabel != null) {
                 noGamesLabel.setVisible(true);
+                noGamesLabel.setManaged(true);
             }
             return;
         }
         
         if (noGamesLabel != null) {
             noGamesLabel.setVisible(false);
+            noGamesLabel.setManaged(false);
         }
         
-        // Load game names from backend and display
+        // Count occurrences of each game ID
+        java.util.Map<Short, Integer> gameCountMap = new java.util.HashMap<>();
+        for (short gameId : gameIds) {
+            gameCountMap.put(gameId, gameCountMap.getOrDefault(gameId, 0) + 1);
+        }
+        
+        // Load game names from backend and display with count
         Task<Void> loadGamesTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                for (short gameId : gameIds) {
+                for (java.util.Map.Entry<Short, Integer> entry : gameCountMap.entrySet()) {
+                    short gameId = entry.getKey();
+                    int count = entry.getValue();
+                    
                     try {
                         String gameName = fetchGameName(gameId);
                         Platform.runLater(() -> {
-                            Label gameLabel = createGameLabel(gameId, gameName);
+                            Label gameLabel = createGameLabel(gameId, gameName, count);
                             purchasedGamesContainer.getChildren().add(gameLabel);
                         });
                     } catch (Exception e) {
@@ -441,8 +454,9 @@ public class CardInfoController implements Initializable {
     /**
      * Create game label UI component
      */
-    private Label createGameLabel(short gameId, String gameName) {
-        Label label = new Label(gameName);
+    private Label createGameLabel(short gameId, String gameName, int count) {
+        String displayText = count > 1 ? gameName + " (x" + count + ")" : gameName;
+        Label label = new Label(displayText);
         label.setStyle("-fx-padding: 5 10; -fx-background-color: rgba(59, 130, 246, 0.1); " +
                       "-fx-text-fill: #3b82f6; -fx-font-size: 12px; -fx-background-radius: 4;");
         label.setGraphic(UIUtils.createIcon(FontAwesomeSolid.GAMEPAD, "#3b82f6", 12));
@@ -454,8 +468,20 @@ public class CardInfoController implements Initializable {
      */
     @FXML
     private void onBuyCoins() {
-        // TODO: Implement top-up flow
-        UIUtils.showAlert("Thông báo", "Tính năng nạp thêm coins đang được phát triển");
+        if (verifiedPin == null) {
+            UIUtils.showAlert("Lỗi", "Vui lòng xác thực lại thẻ");
+            return;
+        }
+        
+        // Disconnect current connection
+        if (cardService != null) {
+            cardService.disconnect();
+        }
+        
+        // Navigate to payment screen
+        MainApp.setRoot("payment-topup.fxml", (PaymentTopupController controller) -> {
+            controller.setPin(verifiedPin);
+        });
     }
     
     /**
@@ -463,8 +489,21 @@ public class CardInfoController implements Initializable {
      */
     @FXML
     private void onBuyCombo() {
-        // TODO: Implement combo purchase flow
-        UIUtils.showAlert("Thông báo", "Tính năng mua combo đang được phát triển");
+        if (verifiedPin == null) {
+            UIUtils.showAlert("Lỗi", "Vui lòng xác thực lại thẻ");
+            return;
+        }
+        
+        // Disconnect current connection
+        if (cardService != null) {
+            cardService.disconnect();
+        }
+        
+        // Navigate to payment screen with combo preselected
+        MainApp.setRoot("payment-topup.fxml", (PaymentTopupController controller) -> {
+            controller.setPin(verifiedPin);
+            controller.preselectComboMode();
+        });
     }
 
     /**

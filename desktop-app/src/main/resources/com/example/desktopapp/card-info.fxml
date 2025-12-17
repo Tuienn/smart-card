@@ -160,9 +160,9 @@
                         <FlowPane fx:id="purchasedGamesContainer" hgap="8" vgap="8" prefWrapLength="400">
                             <!-- Games will be added dynamically in 2 rows -->
                         </FlowPane>
-                        
-                        <Label fx:id="noGamesLabel" text="Chưa mua trò chơi nào" styleClass="text-secondary" 
-                               style="-fx-font-style: italic; -fx-padding: 5 0;" visible="false"/>
+
+                        <Label fx:id="noGamesLabel" text="Chưa mua trò chơi nào" styleClass="text-secondary"
+                               style="-fx-font-style: italic; -fx-padding: 5 0;" visible="false" managed="false"/>
                     </VBox>
                     
                     <!-- Action Buttons -->

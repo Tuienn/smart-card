@@ -244,7 +244,7 @@
                         
                         <!-- Combo Section -->
                         <VBox fx:id="comboSection" alignment="CENTER" spacing="25" visible="false" managed="false">
-                            <Label text="Chọn combo ưu đãi" styleClass="subtitle"/>
+                            <Label text="Chọn combo ưu đãi (có thể chọn nhiều)" styleClass="subtitle"/>
                             
                             <!-- Combo List (ScrollPane for dynamic combos) -->
                             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="400" 

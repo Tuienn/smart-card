@@ -162,8 +162,9 @@ public class CardService {
     
     /**
      * Transmit APDU command with debug logging
+     * Public method to allow sending raw APDU commands when needed
      */
-    private ResponseAPDU transmitCommand(CommandAPDU cmd) throws CardException {
+    public ResponseAPDU transmitCommand(CommandAPDU cmd) throws CardException {
         if (debugMode) {
             System.out.println(">> " + bytesToHex(cmd.getBytes()));
         }
@@ -354,6 +355,43 @@ public class CardService {
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
             throw new CardException("Lỗi nạp coins: " + APDUConstants.getErrorMessage(response.getSW()));
         }
+    }
+    
+    /**
+     * Try to play a game (INS_CHECK_ACCESS_FOR_GAME / INS_TRY_PLAY_GAME)
+     * Checks access and processes payment for a game
+     * @param gameId ID of the game to play
+     * @param gamePrice Price of the game in coins
+     * @return true if access granted and payment successful, false otherwise
+     * @throws CardException if communication fails or insufficient funds
+     */
+    public boolean tryPlayGame(byte gameId, int gamePrice) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        // Build APDU: CLA INS P1 P2 Lc [GAME_ID(1)] [PRICE(2 bytes - Big Endian)]
+        byte[] data = new byte[3];
+        data[0] = gameId;
+        data[1] = (byte) ((gamePrice >> 8) & 0xFF);  // High byte
+        data[2] = (byte) (gamePrice & 0xFF);         // Low byte
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_CHECK_ACCESS_FOR_GAME,
+            0x00, 0x00,
+            data
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi thanh toán game: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+        
+        // Check response data - should return 0x01 for success
+        byte[] responseData = response.getData();
+        return responseData.length > 0 && responseData[0] == 0x01;
     }
     
     /**
