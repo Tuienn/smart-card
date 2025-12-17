@@ -74,6 +74,7 @@ public class CardRegistrationController implements Initializable {
     @FXML private VBox comboListContainer;
     @FXML private HBox comboLoadingBox;
     @FXML private Label comboErrorLabel;
+    private Label selectedCombosSummaryLabel; // Label hiển thị tổng quan các combo đã chọn
 
     // Step 4: Card Writing
     @FXML private VBox cardWaitingState, cardWritingState, cardSuccessState, cardErrorState;
@@ -92,7 +93,11 @@ public class CardRegistrationController implements Initializable {
     private UserRegistration user = new UserRegistration();
     private byte[] avatarBytes = null;
     private int selectedAmount = 0;
-    private Integer selectedComboId = null;
+    private java.util.List<Integer> selectedComboIds = new java.util.ArrayList<>(); // Danh sách combo đã chọn
+    private java.util.Map<Integer, short[]> comboGameIdsMap = new java.util.HashMap<>(); // Map combo ID -> game IDs
+    private int totalComboPrice = 0; // Tổng giá các combo đã chọn
+    private short[] selectedComboGameIds = null; // Merged game IDs from all selected combos
+    private boolean loadingComboDetails = false; // Loading state for combo details
     private String paymentType = "coins"; // "coins" or "combo"
     private ToggleGroup genderGroup;
     private CardService cardService;
@@ -320,7 +325,10 @@ public class CardRegistrationController implements Initializable {
     @FXML
     private void onSelectBuyCoins() {
         paymentType = "coins";
-        selectedComboId = null;
+        selectedComboIds.clear();
+        comboGameIdsMap.clear();
+        totalComboPrice = 0;
+        selectedComboGameIds = null;
         
         // Update button styles
         buyCoinsBtn.getStyleClass().remove("btn-secondary");
@@ -339,6 +347,10 @@ public class CardRegistrationController implements Initializable {
     private void onSelectBuyCombo() {
         paymentType = "combo";
         selectedAmount = 0;
+        selectedComboIds.clear();
+        comboGameIdsMap.clear();
+        totalComboPrice = 0;
+        selectedComboGameIds = null;
         
         // Update button styles
         buyComboBtn.getStyleClass().remove("btn-secondary");
@@ -618,17 +630,32 @@ public class CardRegistrationController implements Initializable {
     }
 
     private void onComboSelect(int comboId, int price, VBox selectedCard) {
-        selectedComboId = comboId;
-        user.setAmountVND(price);
-        
-        // Highlight selected combo
-        for (var node : comboListContainer.getChildren()) {
-            if (node instanceof VBox) {
-                node.setStyle(node.getStyle().replace("-fx-border-color: #3b82f6;", ""));
-                node.setStyle(node.getStyle().replace("-fx-border-width: 2;", ""));
-            }
+        // Toggle chọn/bỏ chọn combo
+        if (selectedComboIds.contains(comboId)) {
+            // Bỏ chọn combo
+            selectedComboIds.remove(Integer.valueOf(comboId));
+            comboGameIdsMap.remove(comboId);
+            totalComboPrice -= price;
+            
+            // Xóa highlight
+            selectedCard.setStyle(selectedCard.getStyle().replace("-fx-border-color: #3b82f6;", ""));
+            selectedCard.setStyle(selectedCard.getStyle().replace("-fx-border-width: 2;", ""));
+            selectedCard.setStyle(selectedCard.getStyle().replace("-fx-border-radius: 8;", ""));
+        } else {
+            // Chọn combo
+            selectedComboIds.add(comboId);
+            totalComboPrice += price;
+            
+            // Thêm highlight
+            selectedCard.setStyle(selectedCard.getStyle() + "-fx-border-color: #3b82f6; -fx-border-width: 2; -fx-border-radius: 8;");
+            
+            // Fetch combo details from backend to get game IDs
+            fetchComboDetails(comboId, price);
         }
-        selectedCard.setStyle(selectedCard.getStyle() + "-fx-border-color: #3b82f6; -fx-border-width: 2; -fx-border-radius: 8;");
+        
+        // Cập nhật tổng giá
+        user.setAmountVND(totalComboPrice);
+        updateSelectedCombosSummary();
     }
 
     @FXML
@@ -681,6 +708,157 @@ public class CardRegistrationController implements Initializable {
         
         user.setAmountVND(amount);
     }
+    
+    /**
+     * Fetch combo details from backend to get game IDs
+     */
+    private void fetchComboDetails(int comboId, int price) {
+        loadingComboDetails = true;
+        Task<short[]> fetchTask = new Task<>() {
+            @Override
+            protected short[] call() throws Exception {
+                // Call backend API to get combo details
+                java.net.URL url = new java.net.URL(AppConfig.API_COMBOS + "/" + comboId);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Content-Type", "application/json");
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    
+                    // Parse game IDs from response
+                    String jsonResponse = response.toString();
+                    return parseComboGameIds(jsonResponse);
+                } else {
+                    throw new Exception("API trả về lỗi: " + responseCode);
+                }
+            }
+
+            @Override
+            protected void succeeded() {
+                short[] gameIds = getValue();
+                if (gameIds != null && gameIds.length > 0) {
+                    comboGameIdsMap.put(comboId, gameIds);
+                    mergeComboGameIds();
+                    System.out.println("Loaded " + gameIds.length + " games for combo " + comboId);
+                }
+                loadingComboDetails = false;
+            }
+
+            @Override
+            protected void failed() {
+                loadingComboDetails = false;
+                // Remove combo khỏi danh sách đã chọn nếu không load được
+                selectedComboIds.remove(Integer.valueOf(comboId));
+                totalComboPrice -= price;
+                user.setAmountVND(totalComboPrice);
+                updateSelectedCombosSummary();
+                System.err.println("Failed to fetch combo details: " + getException().getMessage());
+                showAlert("Lỗi", "Không thể tải chi tiết combo. Vui lòng thử lại.");
+            }
+        };
+        
+        new Thread(fetchTask).start();
+    }
+    
+    /**
+     * Merge game IDs from all selected combos
+     */
+    private void mergeComboGameIds() {
+        java.util.List<Short> allGameIds = new java.util.ArrayList<>();
+        for (Integer comboId : selectedComboIds) {
+            short[] gameIds = comboGameIdsMap.get(comboId);
+            if (gameIds != null) {
+                for (short gameId : gameIds) {
+                    allGameIds.add(gameId);
+                }
+            }
+        }
+        
+        // Convert to array
+        selectedComboGameIds = new short[allGameIds.size()];
+        for (int i = 0; i < allGameIds.size(); i++) {
+            selectedComboGameIds[i] = allGameIds.get(i);
+        }
+        
+        System.out.println("Merged " + selectedComboGameIds.length + " total games from " + selectedComboIds.size() + " combos");
+    }
+    
+    /**
+     * Update summary label showing selected combos
+     */
+    private void updateSelectedCombosSummary() {
+        if (selectedCombosSummaryLabel == null) {
+            // Create label if not exists
+            selectedCombosSummaryLabel = new Label();
+            selectedCombosSummaryLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #3b82f6; -fx-padding: 15;");
+            selectedCombosSummaryLabel.setWrapText(true);
+            // Insert at top of combo section
+            if (!comboSection.getChildren().isEmpty()) {
+                comboSection.getChildren().add(0, selectedCombosSummaryLabel);
+            }
+        }
+        
+        if (selectedComboIds.isEmpty()) {
+            selectedCombosSummaryLabel.setText("");
+            selectedCombosSummaryLabel.setVisible(false);
+        } else {
+            selectedCombosSummaryLabel.setText("Đã chọn " + selectedComboIds.size() + " combo - Tổng: " + currencyFormat.format(totalComboPrice) + "đ");
+            selectedCombosSummaryLabel.setVisible(true);
+        }
+    }
+    
+    /**
+     * Parse game IDs from combo JSON response
+     * Expected: {"success":true,"data":{"games":[1,2,3,...]}}
+     */
+    private short[] parseComboGameIds(String jsonResponse) {
+        try {
+            // Find games array in data.games
+            int gamesStart = jsonResponse.indexOf("\"games\":[");
+            if (gamesStart == -1) {
+                // Try alternative format: "gameIds"
+                gamesStart = jsonResponse.indexOf("\"gameIds\":[");
+            }
+            
+            if (gamesStart == -1) {
+                throw new Exception("No games array found in response");
+            }
+            
+            gamesStart += (jsonResponse.charAt(gamesStart + 1) == 'g' && jsonResponse.charAt(gamesStart + 2) == 'a' && jsonResponse.charAt(gamesStart + 3) == 'm' && jsonResponse.charAt(gamesStart + 4) == 'e' && jsonResponse.charAt(gamesStart + 5) == 's') ? 9 : 11; // Skip \"games\":[ or \"gameIds\":[
+            
+            int gamesEnd = jsonResponse.indexOf(']', gamesStart);
+            if (gamesEnd == -1) {
+                throw new Exception("Unclosed games array");
+            }
+            
+            String gamesStr = jsonResponse.substring(gamesStart, gamesEnd).trim();
+            if (gamesStr.isEmpty()) {
+                return new short[0];
+            }
+            
+            // Split by comma and parse
+            String[] gameStrs = gamesStr.split(",");
+            short[] gameIds = new short[gameStrs.length];
+            
+            for (int i = 0; i < gameStrs.length; i++) {
+                gameIds[i] = Short.parseShort(gameStrs[i].trim());
+            }
+            
+            return gameIds;
+        } catch (Exception e) {
+            System.err.println("Error parsing game IDs: " + e.getMessage());
+            return new short[0];
+        }
+    }
 
     @FXML
     private void onWriteCard() {
@@ -723,7 +901,19 @@ public class CardRegistrationController implements Initializable {
                 updateMessage("Đang ghi thông tin người dùng...");
                 cardService.writeUserData(user);
 
-                if (user.getCoins() > 0) {
+                // Handle payment based on type
+                System.out.println("Payment type: " + paymentType);
+                System.out.println("Combo game IDs: " + (selectedComboGameIds != null ? selectedComboGameIds.length : "null"));
+                System.out.println("User coins: " + user.getCoins());
+                
+                if (paymentType.equals("combo") && selectedComboGameIds != null && selectedComboGameIds.length > 0) {
+                    // Purchase combo
+                    updateMessage("Đang mua combo (" + selectedComboGameIds.length + " games)...");
+                    int totalPrice = user.getCoins(); // Price is already converted to coins
+                    System.out.println("Calling purchaseCombo with gameIds: " + java.util.Arrays.toString(selectedComboGameIds) + ", price: " + totalPrice);
+                    cardService.purchaseCombo(selectedComboGameIds, totalPrice);
+                } else if (user.getCoins() > 0) {
+                    // Top up coins
                     updateMessage("Đang nạp " + user.getCoins() + " coins...");
                     cardService.topupCoins(user.getCoins());
                 }
@@ -850,8 +1040,16 @@ public class CardRegistrationController implements Initializable {
                         return false;
                     }
                 } else if (paymentType.equals("combo")) {
-                    if (selectedComboId == null) {
-                        showAlert("Lỗi", "Vui lòng chọn một combo");
+                    if (selectedComboIds.isEmpty()) {
+                        showAlert("Lỗi", "Vui lòng chọn ít nhất một combo");
+                        return false;
+                    }
+                    if (loadingComboDetails) {
+                        showAlert("Vui lòng đợi", "Đang tải thông tin combo...");
+                        return false;
+                    }
+                    if (selectedComboGameIds == null || selectedComboGameIds.length == 0) {
+                        showAlert("Lỗi", "Không thể tải danh sách game trong combo. Vui lòng chọn lại.");
                         return false;
                     }
                 }
@@ -960,6 +1158,9 @@ public class CardRegistrationController implements Initializable {
         user = new UserRegistration();
         avatarBytes = null;
         selectedAmount = 0;
+        selectedComboIds = null;
+        selectedComboGameIds = null;
+        loadingComboDetails = false;
 
         nameField.clear();
         ageField.clear();

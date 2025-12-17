@@ -9,22 +9,23 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 /**
- * Main Application for Entertainment Card Registration
+ * Client Application for Game Payment and Play
+ * Allows users to select games, verify card, enter PIN, and play
  */
-public class MainApp extends Application {
+public class ClientApp extends Application {
 
     private static Scene scene;
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("main-menu.fxml"), 1200, 800);
+        scene = new Scene(loadFXML("game-selection.fxml"), 1200, 800);
         
         // Load CSS
-        String css = MainApp.class.getResource("styles.css").toExternalForm();
+        String css = ClientApp.class.getResource("styles.css").toExternalForm();
         scene.getStylesheets().add(css);
         
         // Configure stage
-        stage.setTitle("Khu vui chơi giải trí");
+        stage.setTitle("Hệ thống thanh toán trò chơi");
         stage.setScene(scene);
         stage.setMinWidth(900);
         stage.setMinHeight(700);
@@ -37,30 +38,11 @@ public class MainApp extends Application {
 
     /**
      * Set the root of the scene to a new FXML
-     * @param fxml the FXML file name (e.g., "main-menu.fxml")
+     * @param fxml the FXML file name (e.g., "game-selection.fxml")
      */
     public static void setRoot(String fxml) {
         try {
             scene.setRoot(loadFXML(fxml));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * Set the root of the scene to a new FXML with controller callback
-     * @param fxml the FXML file name
-     * @param controllerCallback callback to configure controller after loading
-     */
-    public static <T> void setRoot(String fxml, java.util.function.Consumer<T> controllerCallback) {
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource(fxml));
-            Parent root = fxmlLoader.load();
-            T controller = fxmlLoader.getController();
-            if (controllerCallback != null && controller != null) {
-                controllerCallback.accept(controller);
-            }
-            scene.setRoot(root);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -73,7 +55,7 @@ public class MainApp extends Application {
      * @throws IOException if loading fails
      */
     private static Parent loadFXML(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource(fxml));
+        FXMLLoader fxmlLoader = new FXMLLoader(ClientApp.class.getResource(fxml));
         return fxmlLoader.load();
     }
 

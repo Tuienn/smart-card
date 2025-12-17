@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.desktopapp.controller.PaymentSuccessController"
+            styleClass="root">
+
+    <center>
+        <VBox alignment="CENTER" spacing="25" styleClass="main-container">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+
+            <!-- Success Icon -->
+            <StackPane style="-fx-background-color: linear-gradient(to bottom right, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2)); -fx-background-radius: 100; -fx-min-width: 100; -fx-min-height: 100; -fx-max-width: 100; -fx-max-height: 100; -fx-effect: dropshadow(gaussian, rgba(34, 197, 94, 0.4), 30, 0, 0, 10);">
+                <FontIcon iconLiteral="fas-check-circle" iconSize="60" styleClass="icon-success"/>
+            </StackPane>
+
+            <!-- Success Message -->
+            <VBox alignment="CENTER" spacing="20">
+                <Label text="THANH TOÁN THÀNH CÔNG!" 
+                       styleClass="title-large"
+                       style="-fx-text-fill: #22c55e; -fx-font-size: 30px;"/>
+
+                <!-- Game Info Card -->
+                <VBox alignment="CENTER" spacing="15" styleClass="success-card" style="-fx-min-width: 350px; -fx-max-width: 500px; -fx-padding: 30;">
+                    
+                    <Label text="Bạn đã thanh toán thành công cho:" 
+                           styleClass="subtitle"
+                           style="-fx-font-size: 14px;"/>
+                    
+                    <HBox alignment="CENTER" spacing="10">
+                        <FontIcon iconLiteral="fas-gamepad" iconSize="24" styleClass="icon-warning"/>
+                        <Label fx:id="gameNameLabel" 
+                               text="Game Name" 
+                               styleClass="title-medium"
+                               style="-fx-font-size: 22px;"
+                               textAlignment="CENTER"
+                               wrapText="true"/>
+                    </HBox>
+                    
+                    <Label fx:id="messageLabel" 
+                           text="Chúc bạn chơi game vui vẻ!" 
+                           styleClass="text-secondary"
+                           textAlignment="CENTER"
+                           wrapText="true"
+                           style="-fx-font-size: 15px; -fx-font-style: italic;"/>
+                </VBox>
+            </VBox>
+
+            <!-- Action Buttons -->
+            <HBox alignment="CENTER" spacing="15">
+                <Button fx:id="playAgainButton" 
+                        styleClass="btn-primary, btn-large"
+                        style="-fx-min-height: 50px; -fx-min-width: 180px;"
+                        onAction="#handlePlayAgain">
+                    <graphic>
+                        <HBox alignment="CENTER" spacing="10">
+                            <FontIcon iconLiteral="fas-redo" iconSize="18" styleClass="icon-white"/>
+                            <Label text="Chơi game khác" style="-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                </Button>
+                
+                <Button fx:id="exitButton" 
+                        styleClass="btn-secondary, btn-large"
+                        style="-fx-min-height: 50px; -fx-min-width: 140px;"
+                        onAction="#handleExit">
+                    <graphic>
+                        <HBox alignment="CENTER" spacing="10">
+                            <FontIcon iconLiteral="fas-times" iconSize="18" styleClass="icon-secondary"/>
+                            <Label text="Thoát" style="-fx-text-fill: #94a3b8; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </graphic>
+                </Button>
+            </HBox>
+
+            <!-- Additional Info -->
+            <VBox alignment="CENTER" spacing="10" styleClass="glass-panel" style="-fx-padding: 15 25;">
+                <HBox alignment="CENTER" spacing="8">
+                    <FontIcon iconLiteral="fas-coins" iconSize="14" styleClass="icon-warning"/>
+                    <Label text="Coins đã được trừ từ thẻ của bạn" 
+                           styleClass="text-secondary"
+                           style="-fx-font-size: 13px;"/>
+                </HBox>
+                <HBox alignment="CENTER" spacing="8">
+                    <FontIcon iconLiteral="fas-check" iconSize="14" styleClass="icon-success"/>
+                    <Label text="Giao dịch đã được ghi nhận" 
+                           styleClass="text-secondary"
+                           style="-fx-font-size: 13px;"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </center>
+
+</BorderPane>

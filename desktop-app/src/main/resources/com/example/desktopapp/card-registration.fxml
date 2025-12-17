@@ -15,36 +15,36 @@
     
     <!-- Header with Progress Steps -->
     <top>
-        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 30 40 20 40;">
+        <VBox alignment="CENTER" spacing="12" style="-fx-padding: 15 30 10 30;">
             <!-- Home Button -->
             <HBox alignment="CENTER_LEFT">
-                <Button styleClass="btn, btn-secondary" onAction="#onGoHome" style="-fx-min-width: 120; -fx-min-height: 40;">
-                    <graphic><FontIcon iconLiteral="fas-home" iconSize="14" styleClass="icon-primary"/></graphic>
+                <Button styleClass="btn, btn-secondary" onAction="#onGoHome" style="-fx-min-width: 100; -fx-min-height: 35;">
+                    <graphic><FontIcon iconLiteral="fas-home" iconSize="12" styleClass="icon-primary"/></graphic>
                     <text> Trang chủ</text>
                 </Button>
             </HBox>
-            <HBox alignment="CENTER" spacing="10" fx:id="stepIndicator">
+            <HBox alignment="CENTER" spacing="8" fx:id="stepIndicator">
                 <!-- Step 1: Đăng ký thông tin -->
-                <Label text="1" styleClass="step-indicator, step-active" fx:id="step1Label"/>
-                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
+                <Label text="1" styleClass="step-indicator, step-active" fx:id="step1Label" style="-fx-font-size: 14px; -fx-padding: 6 18;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="16" styleClass="step-arrow"/>
                 
                 <!-- Step 2: Nhập PIN -->
-                <Label text="2" styleClass="step-indicator, step-inactive" fx:id="step2Label"/>
-                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
+                <Label text="2" styleClass="step-indicator, step-inactive" fx:id="step2Label" style="-fx-font-size: 14px; -fx-padding: 6 18;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="16" styleClass="step-arrow"/>
                 
                 <!-- Step 3: Nạp tiền -->
-                <Label text="3" styleClass="step-indicator, step-inactive" fx:id="step3Label"/>
-                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
+                <Label text="3" styleClass="step-indicator, step-inactive" fx:id="step3Label" style="-fx-font-size: 14px; -fx-padding: 6 18;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="16" styleClass="step-arrow"/>
                 
                 <!-- Step 4: Ghi thẻ -->
-                <Label text="4" styleClass="step-indicator, step-inactive" fx:id="step4Label"/>
-                <FontIcon iconLiteral="fas-arrow-right" iconSize="24" styleClass="step-arrow"/>
+                <Label text="4" styleClass="step-indicator, step-inactive" fx:id="step4Label" style="-fx-font-size: 14px; -fx-padding: 6 18;"/>
+                <FontIcon iconLiteral="fas-arrow-right" iconSize="16" styleClass="step-arrow"/>
                 
                 <!-- Step 5: Hoàn thành -->
-                <Label text="5" styleClass="step-indicator, step-inactive" fx:id="step5Label"/>
+                <Label text="5" styleClass="step-indicator, step-inactive" fx:id="step5Label" style="-fx-font-size: 14px; -fx-padding: 6 18;"/>
             </HBox>
             
-            <Label fx:id="stepTitle" text="Đăng ký thông tin" styleClass="title-medium"/>
+            <Label fx:id="stepTitle" text="Đăng ký thông tin" styleClass="title-small"/>
         </VBox>
     </top>
     
@@ -52,11 +52,11 @@
     <center>
         <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" 
                     styleClass="scroll-pane" style="-fx-background: transparent; -fx-background-color: transparent;">
-            <StackPane fx:id="contentStack" style="-fx-padding: 0 60 0 60;">
+            <StackPane fx:id="contentStack" style="-fx-padding: 0 40 10 40;">
                 
                 <!-- STEP 1: User Registration Form -->
-                <VBox fx:id="step1Content" alignment="CENTER" spacing="30" visible="true">
-                    <VBox styleClass="card-container" spacing="25" maxWidth="700">
+                <VBox fx:id="step1Content" alignment="CENTER" spacing="15" visible="true">
+                    <VBox styleClass="card-container" spacing="15" maxWidth="600">
                         
                         <!-- Avatar Upload -->
                         <HBox alignment="CENTER">
@@ -107,8 +107,8 @@
                 </VBox>
                 
                 <!-- STEP 2: PIN Input with Keypad -->
-                <VBox fx:id="step2Content" alignment="CENTER" spacing="30" visible="false">
-                    <VBox styleClass="card-container" spacing="25" maxWidth="500" alignment="CENTER">
+                <VBox fx:id="step2Content" alignment="CENTER" spacing="15" visible="false">
+                    <VBox styleClass="card-container" spacing="15" maxWidth="450" alignment="CENTER">
                         
                         <HBox alignment="CENTER" spacing="10">
                             <FontIcon iconLiteral="fas-lock" iconSize="24" styleClass="icon-primary"/>
@@ -193,7 +193,7 @@
                         
                         <!-- Coins Section -->
                         <VBox fx:id="coinsSection" alignment="CENTER" spacing="25">
-                            <Label text="Chọn số tiền nạp" styleClass="subtitle"/>
+                            <Label text="Nạp xu và chơi theo cách bạn muốn" styleClass="subtitle"/>
                             
                             <!-- Amount Buttons Grid -->
                             <GridPane hgap="20" vgap="20" alignment="CENTER">
@@ -244,7 +244,7 @@
                         
                         <!-- Combo Section -->
                         <VBox fx:id="comboSection" alignment="CENTER" spacing="25" visible="false" managed="false">
-                            <Label text="Chọn combo ưu đãi" styleClass="subtitle"/>
+                            <Label text="Chọn combo ưu đãi (có thể chọn nhiều)" styleClass="subtitle"/>
                             
                             <!-- Combo List (ScrollPane for dynamic combos) -->
                             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="400" 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.desktopapp.controller.GameSelectionController"
+            styleClass="root">
+    
+    <center>
+        <VBox alignment="TOP_CENTER" spacing="20" styleClass="main-container">
+            <padding>
+                <Insets top="25" right="25" bottom="25" left="25"/>
+            </padding>
+
+            <!-- Header with Icon -->
+            <VBox alignment="CENTER" spacing="12">
+                <StackPane styleClass="main-icon-container" style="-fx-min-width: 100; -fx-min-height: 100; -fx-max-width: 100; -fx-max-height: 100;">
+                    <FontIcon iconLiteral="fas-gamepad" iconSize="50" styleClass="icon-primary"/>
+                </StackPane>
+                <Label text="HỆ THỐNG THANH TOÁN TRÒ CHƠI" styleClass="title-large" style="-fx-font-size: 32px;"/>
+                <Label text="Chọn trò chơi bạn muốn chơi" styleClass="subtitle" style="-fx-font-size: 15px; -fx-opacity: 0.9;"/>
+            </VBox>
+
+            <!-- Games Grid -->
+            <ScrollPane fitToWidth="true" styleClass="scroll-pane" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox.vgrow>ALWAYS</VBox.vgrow>
+                <FlowPane fx:id="gamesContainer" 
+                         hgap="20" vgap="20" 
+                         alignment="CENTER"
+                         style="-fx-background-color: transparent; -fx-padding: 15 5;">
+                </FlowPane>
+            </ScrollPane>
+
+        </VBox>
+    </center>
+
+</BorderPane>

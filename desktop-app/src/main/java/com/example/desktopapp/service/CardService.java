@@ -162,8 +162,9 @@ public class CardService {
     
     /**
      * Transmit APDU command with debug logging
+     * Public method to allow sending raw APDU commands when needed
      */
-    private ResponseAPDU transmitCommand(CommandAPDU cmd) throws CardException {
+    public ResponseAPDU transmitCommand(CommandAPDU cmd) throws CardException {
         if (debugMode) {
             System.out.println(">> " + bytesToHex(cmd.getBytes()));
         }
@@ -353,6 +354,93 @@ public class CardService {
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
             throw new CardException("Lỗi nạp coins: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+    }
+    
+    /**
+     * Try to play a game (INS_CHECK_ACCESS_FOR_GAME / INS_TRY_PLAY_GAME)
+     * Checks access and processes payment for a game
+     * @param gameId ID of the game to play
+     * @param gamePrice Price of the game in coins
+     * @return true if access granted and payment successful, false otherwise
+     * @throws CardException if communication fails or insufficient funds
+     */
+    public boolean tryPlayGame(byte gameId, int gamePrice) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        // Build APDU: CLA INS P1 P2 Lc [GAME_ID(1)] [PRICE(2 bytes - Big Endian)]
+        byte[] data = new byte[3];
+        data[0] = gameId;
+        data[1] = (byte) ((gamePrice >> 8) & 0xFF);  // High byte
+        data[2] = (byte) (gamePrice & 0xFF);         // Low byte
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_CHECK_ACCESS_FOR_GAME,
+            0x00, 0x00,
+            data
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi thanh toán game: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+        
+        // Check response data - should return 0x01 for success
+        byte[] responseData = response.getData();
+        return responseData.length > 0 && responseData[0] == 0x01;
+    }
+    
+    /**
+     * Purchase combo (INS_PURCHASE_COMBO)
+     * Buys multiple games at once
+     * @param gameIds Array of game IDs to purchase
+     * @param totalPrice Total price of the combo
+     * @throws CardException if purchase fails
+     */
+    public void purchaseCombo(short[] gameIds, int totalPrice) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        if (gameIds == null || gameIds.length == 0) {
+            throw new CardException("Không có game nào để mua");
+        }
+        
+        if (gameIds.length > 50) {
+            throw new CardException("Quá nhiều game trong combo (tối đa 50)");
+        }
+        
+        // Build data: [NUM_GAMES(1)] [GAME_ID_1] [GAME_ID_2] ... [TOTAL_PRICE(4 bytes)]
+        byte[] data = new byte[1 + gameIds.length + 4];
+        data[0] = (byte) gameIds.length;
+        
+        // Add game IDs (each game ID is 1 byte)
+        for (int i = 0; i < gameIds.length; i++) {
+            data[1 + i] = (byte) (gameIds[i] & 0xFF);
+        }
+        
+        // Add total price (4 bytes, big endian)
+        int priceOffset = 1 + gameIds.length;
+        data[priceOffset] = (byte) ((totalPrice >> 24) & 0xFF);
+        data[priceOffset + 1] = (byte) ((totalPrice >> 16) & 0xFF);
+        data[priceOffset + 2] = (byte) ((totalPrice >> 8) & 0xFF);
+        data[priceOffset + 3] = (byte) (totalPrice & 0xFF);
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_PURCHASE_COMBO,
+            0x00, 0x00,
+            data
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi mua combo: " + APDUConstants.getErrorMessage(response.getSW()));
         }
     }
     
@@ -611,14 +699,15 @@ public class CardService {
         }
         
         byte[] gameBytes = response.getData();
-        if (gameBytes.length == 0 || gameBytes.length % 2 != 0) {
+        if (gameBytes.length == 0) {
             return new short[0];
         }
         
-        // Convert bytes to shorts (game IDs)
-        short[] gameIds = new short[gameBytes.length / 2];
+        // Convert bytes to shorts (each game ID is 1 byte, not 2)
+        // Card stores game IDs as byte array: [01, 04, 07, 0A, 05] for games 1, 4, 7, 10, 5
+        short[] gameIds = new short[gameBytes.length];
         for (int i = 0; i < gameIds.length; i++) {
-            gameIds[i] = APDUConstants.bytesToShort(gameBytes, i * 2);
+            gameIds[i] = (short) (gameBytes[i] & 0xFF); // Convert byte to unsigned short
         }
         
         return gameIds;
