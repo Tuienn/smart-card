@@ -10,7 +10,7 @@ public class Entertainment extends Applet {
     private static final byte INS_VERIFY_PIN = (byte) 0x20;
     private static final byte INS_VERIFY_ADMIN_PIN = (byte) 0x22;
     private static final byte INS_UNLOCK_BY_ADMIN = (byte) 0x21;
-    private static final byte INS_CHECK_ACCESS_FOR_GAME = (byte) 0x30;
+    private static final byte INS_TRY_PLAY_GAME = (byte) 0x30;
     private static final byte INS_TOPUP_COINS = (byte) 0x32;
     private static final byte INS_PURCHASE_COMBO = (byte) 0x33;
     private static final byte INS_SIGN_CHALLENGE = (byte) 0x41;
@@ -179,8 +179,8 @@ public class Entertainment extends Applet {
             case INS_UNLOCK_BY_ADMIN:
                 processUnlockByAdmin(apdu);
                 break;
-            case INS_CHECK_ACCESS_FOR_GAME:
-                processCheckAccessForGame(apdu);
+            case INS_TRY_PLAY_GAME:
+                processTryPlayGame(apdu);
                 break;
             case INS_TOPUP_COINS:
                 processTopupCoins(apdu);
@@ -512,7 +512,7 @@ public class Entertainment extends Applet {
         }
     }
 
-    private void processCheckAccessForGame(APDU apdu) {
+    private void processTryPlayGame(APDU apdu) {
         if (!sessionAuth) {
             ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
         }
@@ -526,10 +526,41 @@ public class Entertainment extends Applet {
         // Decrypt user data
         decryptUserData(tempBuffer);
 
-        // Parse user data to check game access
-        boolean hasAccess = checkGameAccess(tempBuffer, gameID, requiredCoins);
+        // Check if game is already bought (unlimited access)
+        short gamesOffset = findTag(tempBuffer, TAG_BOUGHT_GAMES);
+        if (gamesOffset >= 0) {
+            byte gameCount = tempBuffer[(short) (gamesOffset + 1)];
+            for (byte i = 0; i < gameCount; i++) {
+                if (tempBuffer[(short) (gamesOffset + 2 + i)] == gameID) {
+                    // Game already purchased - allow free play
+                    buffer[0] = (byte) 0x01;
+                    apdu.setOutgoingAndSend((short) 0, (short) 1);
+                    return;
+                }
+            }
+        }
 
-        buffer[0] = hasAccess ? (byte) 0x01 : (byte) 0x00;
+        // Game not purchased - pay per play
+        short coinsOffset = findTag(tempBuffer, TAG_COINS);
+        if (coinsOffset < 0) {
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
+
+        short currentCoins = Util.getShort(tempBuffer, (short) (coinsOffset + 2));
+        if (currentCoins < requiredCoins) {
+            // Not enough coins
+            ISOException.throwIt(SW_INSUFFICIENT_FUNDS);
+        }
+
+        // Deduct coins for pay-per-play
+        short newCoins = (short)(currentCoins - requiredCoins);
+        Util.setShort(tempBuffer, (short) (coinsOffset + 2), newCoins);
+
+        // Encrypt and save
+        encryptUserData(tempBuffer);
+
+        // Return success
+        buffer[0] = (byte) 0x01;
         apdu.setOutgoingAndSend((short) 0, (short) 1);
     }
 

@@ -128,8 +128,12 @@ Response: 90 00
 
 ---
 
-### 5. INS_CHECK_ACCESS_FOR_GAME (0x30) - Kiểm tra quyền truy cập game
-**Mục đích:** Kiểm tra user có quyền chơi game không (đã mua hoặc đủ coins)
+### 5. INS_TRY_PLAY_GAME (0x30) - Thử chơi game
+**Mục đích:** Kiểm tra quyền chơi game và tự động trừ coins nếu chưa mua
+
+**Logic:**
+- Nếu game đã được mua (trong danh sách BOUGHT_GAMES): Cho chơi miễn phí
+- Nếu game chưa mua: Trừ coins theo giá (pay-per-play)
 
 **Request:**
 ```
@@ -142,14 +146,24 @@ Data: [GAME_ID(1)] [REQUIRED_COINS(2 bytes - Big Endian)]
 ```
 
 **Response:**
-- Success: `0x01` (có quyền) hoặc `0x00` (không có quyền) + `SW=0x9000`
+- Success: `0x01` + `SW=0x9000` (Được phép chơi, coins đã bị trừ nếu cần)
 - Error:
   - `0x6982`: Chưa xác thực PIN
+  - `0x6985`: Không đủ coins để chơi
 
 **Ví dụ:**
 ```
+// Trường hợp 1: Game chưa mua, có đủ coins
 Request: 00 30 00 00 03 05 00 64  // Game ID=5, cần 100 coins
-Response: 01 90 00  // Có quyền truy cập
+Response: 01 90 00  // Thành công, đã trừ 100 coins
+
+// Trường hợp 2: Game đã mua
+Request: 00 30 00 00 03 05 00 64  // Game ID=5
+Response: 01 90 00  // Thành công, không trừ tiền
+
+// Trường hợp 3: Không đủ coins
+Request: 00 30 00 00 03 05 00 64  // Chỉ còn 50 coins
+Response: 69 85  // Lỗi: Không đủ coins
 ```
 
 ---
@@ -421,13 +435,17 @@ P2: 0x00
 3. Khi deselect applet, session tự động đóng
 ```
 
-### 3. Mua game
+### 3. Chơi game
 ```
 1. Xác thực PIN
-2. Gọi INS_CHECK_ACCESS_FOR_GAME để kiểm tra quyền
-3. Nếu chưa có quyền:
+2. Gọi INS_TRY_PLAY_GAME (0x30) để chơi game
+   - Nếu đã mua game: Chơi miễn phí
+   - Nếu chưa mua: Tự động trừ coins (pay-per-play)
+   - Nếu không đủ coins: Trả về lỗi 0x6985
+3. Hoặc mua game vĩnh viễn:
    - Gọi INS_TOPUP_COINS để nạp tiền (nếu cần)
-   - Gọi INS_PURCHASE_COMBO để mua game
+   - Gọi INS_PURCHASE_COMBO để mua game (chỉ trả 1 lần)
+   - Sau đó INS_TRY_PLAY_GAME sẽ miễn phí
 ```
 
 ### 4. Quản lý dữ liệu user

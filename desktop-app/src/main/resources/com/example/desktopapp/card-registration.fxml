@@ -193,7 +193,7 @@
                         
                         <!-- Coins Section -->
                         <VBox fx:id="coinsSection" alignment="CENTER" spacing="25">
-                            <Label text="Chọn số tiền nạp" styleClass="subtitle"/>
+                            <Label text="Nạp xu và chơi theo cách bạn muốn" styleClass="subtitle"/>
                             
                             <!-- Amount Buttons Grid -->
                             <GridPane hgap="20" vgap="20" alignment="CENTER">

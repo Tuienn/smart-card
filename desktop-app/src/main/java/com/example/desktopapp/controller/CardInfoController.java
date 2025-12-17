@@ -11,6 +11,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -53,7 +54,7 @@ public class CardInfoController implements Initializable {
     @FXML private Label ageLabel;
     @FXML private Label genderLabel;
     @FXML private Label coinsLabel;
-    @FXML private VBox purchasedGamesContainer;
+    @FXML private FlowPane purchasedGamesContainer;
     @FXML private Label noGamesLabel;
     @FXML private HBox actionButtonsBox;
 
@@ -442,9 +443,9 @@ public class CardInfoController implements Initializable {
      */
     private Label createGameLabel(short gameId, String gameName) {
         Label label = new Label(gameName);
-        label.setStyle("-fx-padding: 8 15; -fx-background-color: rgba(59, 130, 246, 0.1); " +
-                      "-fx-text-fill: #3b82f6; -fx-font-size: 13px; -fx-background-radius: 6;");
-        label.setGraphic(UIUtils.createIcon(FontAwesomeSolid.GAMEPAD, "#3b82f6", 14));
+        label.setStyle("-fx-padding: 5 10; -fx-background-color: rgba(59, 130, 246, 0.1); " +
+                      "-fx-text-fill: #3b82f6; -fx-font-size: 12px; -fx-background-radius: 4;");
+        label.setGraphic(UIUtils.createIcon(FontAwesomeSolid.GAMEPAD, "#3b82f6", 12));
         return label;
     }
     
