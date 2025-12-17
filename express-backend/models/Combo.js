@@ -10,10 +10,18 @@ const comboSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  price: {
+  priceVND: {
     type: Number,
     required: true,
-    min: 0
+    min: 0,
+    comment: 'Giá tiền thật (VNĐ)'
+  },
+  discountPercentage: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 100,
+    comment: 'Phần trăm giảm giá so với mua lẻ bằng điểm'
   },
   description: {
     type: String,

@@ -1,6 +1,7 @@
 package com.example.desktopapp.service;
 
 import com.example.desktopapp.model.UserRegistration;
+import com.example.desktopapp.util.AppConfig;
 
 import javax.smartcardio.*;
 import java.util.List;
@@ -584,6 +585,46 @@ public class CardService {
     }
     
     /**
+     * Read purchased game IDs from card (INS_READ_USER_DATA_BASIC with TAG_BOUGHT_GAMES)
+     * @return array of game IDs (shorts), or empty array if no games
+     */
+    public short[] readPurchasedGames() throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] data = { APDUConstants.TAG_BOUGHT_GAMES };
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_READ_USER_DATA_BASIC,
+            0x00, 0x00,
+            data,
+            256 // Max games data
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            // If no games purchased, might return empty or error
+            return new short[0];
+        }
+        
+        byte[] gameBytes = response.getData();
+        if (gameBytes.length == 0 || gameBytes.length % 2 != 0) {
+            return new short[0];
+        }
+        
+        // Convert bytes to shorts (game IDs)
+        short[] gameIds = new short[gameBytes.length / 2];
+        for (int i = 0; i < gameIds.length; i++) {
+            gameIds[i] = APDUConstants.bytesToShort(gameBytes, i * 2);
+        }
+        
+        return gameIds;
+    }
+    
+    /**
      * Read avatar image from card (INS_READ_IMAGE)
      * @return image bytes or null if no image
      */
@@ -818,7 +859,7 @@ public class CardService {
             }
             
             // Call backend API
-            String apiUrl = "http://localhost:4000/api/cards/" + userIdHex;
+            String apiUrl = AppConfig.API_CARDS + "/" + userIdHex;
             java.net.URL url = new java.net.URL(apiUrl);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -946,7 +987,7 @@ public class CardService {
             );
             
             // Call backend API
-            String apiUrl = "http://localhost:4000/api/cards";
+            String apiUrl = AppConfig.API_CARDS;
             java.net.URL url = new java.net.URL(apiUrl);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");

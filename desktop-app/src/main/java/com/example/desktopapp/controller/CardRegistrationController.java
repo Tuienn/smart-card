@@ -4,6 +4,7 @@ import com.example.desktopapp.MainApp;
 import com.example.desktopapp.model.UserRegistration;
 import com.example.desktopapp.service.APDUConstants;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.util.AppConfig;
 import com.example.desktopapp.util.UIUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -65,9 +66,14 @@ public class CardRegistrationController implements Initializable {
     private StringBuilder pinBuilder = new StringBuilder();
 
     // Step 3: Payment
+    @FXML private Button buyCoinsBtn, buyComboBtn;
+    @FXML private VBox coinsSection, comboSection;
     @FXML private VBox customAmountBox;
     @FXML private TextField customAmountField;
     @FXML private Label coinDisplay, selectedAmountLabel;
+    @FXML private VBox comboListContainer;
+    @FXML private HBox comboLoadingBox;
+    @FXML private Label comboErrorLabel;
 
     // Step 4: Card Writing
     @FXML private VBox cardWaitingState, cardWritingState, cardSuccessState, cardErrorState;
@@ -86,6 +92,8 @@ public class CardRegistrationController implements Initializable {
     private UserRegistration user = new UserRegistration();
     private byte[] avatarBytes = null;
     private int selectedAmount = 0;
+    private Integer selectedComboId = null;
+    private String paymentType = "coins"; // "coins" or "combo"
     private ToggleGroup genderGroup;
     private CardService cardService;
     private NumberFormat currencyFormat;
@@ -172,6 +180,9 @@ public class CardRegistrationController implements Initializable {
             if (!pinInstructionLabel.getStyleClass().contains("pin-instruction-complete")) {
                 pinInstructionLabel.getStyleClass().add("pin-instruction-complete");
             }
+            
+            // Auto-advance to next step when PIN is complete
+            Platform.runLater(() -> onNext());
         }
     }
 
@@ -304,6 +315,320 @@ public class CardRegistrationController implements Initializable {
         ToggleButton selected = (ToggleButton) event.getSource();
         byte gender = Byte.parseByte((String) selected.getUserData());
         user.setGender(gender);
+    }
+
+    @FXML
+    private void onSelectBuyCoins() {
+        paymentType = "coins";
+        selectedComboId = null;
+        
+        // Update button styles
+        buyCoinsBtn.getStyleClass().remove("btn-secondary");
+        buyCoinsBtn.getStyleClass().add("btn-primary");
+        buyComboBtn.getStyleClass().remove("btn-primary");
+        buyComboBtn.getStyleClass().add("btn-secondary");
+        
+        // Show coins section, hide combo section
+        coinsSection.setVisible(true);
+        coinsSection.setManaged(true);
+        comboSection.setVisible(false);
+        comboSection.setManaged(false);
+    }
+
+    @FXML
+    private void onSelectBuyCombo() {
+        paymentType = "combo";
+        selectedAmount = 0;
+        
+        // Update button styles
+        buyComboBtn.getStyleClass().remove("btn-secondary");
+        buyComboBtn.getStyleClass().add("btn-primary");
+        buyCoinsBtn.getStyleClass().remove("btn-primary");
+        buyCoinsBtn.getStyleClass().add("btn-secondary");
+        
+        // Show combo section, hide coins section
+        coinsSection.setVisible(false);
+        coinsSection.setManaged(false);
+        comboSection.setVisible(true);
+        comboSection.setManaged(true);
+        
+        // Load combos if not loaded yet
+        if (comboListContainer.getChildren().isEmpty()) {
+            loadCombos();
+        }
+    }
+
+    private void loadCombos() {
+        comboLoadingBox.setVisible(true);
+        comboErrorLabel.setVisible(false);
+        
+        Task<String> loadTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                // Call backend API to get combos
+                java.net.URL url = new java.net.URL(AppConfig.API_COMBOS);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Content-Type", "application/json");
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    return response.toString();
+                } else {
+                    throw new Exception("API trả về lỗi: " + responseCode);
+                }
+            }
+
+            @Override
+            protected void succeeded() {
+                Platform.runLater(() -> {
+                    comboLoadingBox.setVisible(false);
+                    displayCombos(getValue());
+                });
+            }
+
+            @Override
+            protected void failed() {
+                Platform.runLater(() -> {
+                    comboLoadingBox.setVisible(false);
+                    comboErrorLabel.setText("Không thể tải danh sách combo. Vui lòng thử lại.");
+                    comboErrorLabel.setVisible(true);
+                });
+            }
+        };
+        
+        new Thread(loadTask).start();
+    }
+
+    private void displayCombos(String jsonResponse) {
+        try {
+            // Parse JSON more carefully
+            // Expected format: {"success":true,"data":[{combo1},{combo2},...]}
+            
+            // Find the data array
+            int dataStart = jsonResponse.indexOf("\"data\":[");
+            if (dataStart == -1) {
+                throw new Exception("Invalid response format: missing 'data' field");
+            }
+            dataStart += 8; // Move past "data":[
+            
+            // Find matching closing bracket for data array
+            int bracketCount = 0;
+            int dataEnd = -1;
+            boolean inString = false;
+            boolean escaped = false;
+            
+            for (int i = dataStart; i < jsonResponse.length(); i++) {
+                char c = jsonResponse.charAt(i);
+                
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+                
+                if (c == '\\') {
+                    escaped = true;
+                    continue;
+                }
+                
+                if (c == '"') {
+                    inString = !inString;
+                    continue;
+                }
+                
+                if (!inString) {
+                    if (c == '[' || c == '{') {
+                        bracketCount++;
+                    } else if (c == ']' || c == '}') {
+                        bracketCount--;
+                        if (c == ']' && bracketCount == -1) {
+                            dataEnd = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (dataEnd == -1) {
+                throw new Exception("Invalid response format: unclosed array");
+            }
+            
+            String dataArray = jsonResponse.substring(dataStart, dataEnd).trim();
+            
+            if (dataArray.isEmpty() || dataArray.equals("")) {
+                comboErrorLabel.setText("Không có combo nào.");
+                comboErrorLabel.setVisible(true);
+                return;
+            }
+            
+            comboListContainer.getChildren().clear();
+            
+            // Parse each combo object manually
+            // Split by },{ pattern but only at top level
+            java.util.List<String> comboStrings = new java.util.ArrayList<>();
+            int start = 0;
+            bracketCount = 0;
+            inString = false;
+            escaped = false;
+            
+            for (int i = 0; i < dataArray.length(); i++) {
+                char c = dataArray.charAt(i);
+                
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+                
+                if (c == '\\') {
+                    escaped = true;
+                    continue;
+                }
+                
+                if (c == '"') {
+                    inString = !inString;
+                    continue;
+                }
+                
+                if (!inString) {
+                    if (c == '{' || c == '[') {
+                        bracketCount++;
+                    } else if (c == '}' || c == ']') {
+                        bracketCount--;
+                        if (c == '}' && bracketCount == 0) {
+                            // Found end of a top-level object
+                            String comboStr = dataArray.substring(start, i + 1);
+                            comboStrings.add(comboStr);
+                            // Skip comma and whitespace
+                            while (i + 1 < dataArray.length() && 
+                                   (dataArray.charAt(i + 1) == ',' || 
+                                    Character.isWhitespace(dataArray.charAt(i + 1)))) {
+                                i++;
+                            }
+                            start = i + 1;
+                        }
+                    }
+                }
+            }
+            
+            // Create cards for each combo
+            for (String comboStr : comboStrings) {
+                try {
+                    // Remove outer braces
+                    comboStr = comboStr.trim();
+                    if (comboStr.startsWith("{")) comboStr = comboStr.substring(1);
+                    if (comboStr.endsWith("}")) comboStr = comboStr.substring(0, comboStr.length() - 1);
+                    
+                    // Parse fields
+                    int id = parseJsonInt(comboStr, "_id");
+                    String name = parseJsonString(comboStr, "name");
+                    int price = parseJsonInt(comboStr, "priceVND");
+                    int discount = parseJsonInt(comboStr, "discountPercentage");
+                    String description = parseJsonString(comboStr, "description");
+                    
+                    // Skip if essential fields are missing
+                    if (name.isEmpty() || price == 0) {
+                        continue;
+                    }
+                    
+                    // Create combo card
+                    VBox comboCard = createComboCard(id, name, price, discount, description);
+                    comboListContainer.getChildren().add(comboCard);
+                } catch (Exception e) {
+                    System.err.println("Error parsing combo: " + e.getMessage());
+                    // Skip this combo and continue with others
+                }
+            }
+            
+            if (comboListContainer.getChildren().isEmpty()) {
+                comboErrorLabel.setText("Không tìm thấy combo nào.");
+                comboErrorLabel.setVisible(true);
+            }
+            
+        } catch (Exception e) {
+            comboErrorLabel.setText("Lỗi khi hiển thị combo: " + e.getMessage());
+            comboErrorLabel.setVisible(true);
+            e.printStackTrace();
+        }
+    }
+
+    private int parseJsonInt(String json, String key) {
+        try {
+            int start = json.indexOf("\"" + key + "\":")+key.length()+3;
+            int end = json.indexOf(",", start);
+            if (end == -1) end = json.length();
+            return Integer.parseInt(json.substring(start, end).trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private String parseJsonString(String json, String key) {
+        try {
+            int start = json.indexOf("\"" + key + "\":\"") + key.length() + 4;
+            int end = json.indexOf("\"", start);
+            return json.substring(start, end);
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private VBox createComboCard(int id, String name, int price, int discount, String description) {
+        VBox card = new VBox(10);
+        card.getStyleClass().add("glass-panel");
+        card.setStyle("-fx-padding: 20; -fx-cursor: hand;");
+        card.setMaxWidth(650);
+        
+        // Header with name and discount badge
+        HBox header = new HBox(15);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        
+        Label nameLabel = new Label(name);
+        nameLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+        nameLabel.getStyleClass().add("text-primary");
+        
+        Label discountBadge = new Label("-" + discount + "%");
+        discountBadge.setStyle("-fx-background-color: #22c55e; -fx-text-fill: white; "
+                + "-fx-padding: 4 12; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        header.getChildren().addAll(nameLabel, discountBadge);
+        
+        // Description
+        Label descLabel = new Label(description);
+        descLabel.getStyleClass().add("text-secondary");
+        descLabel.setWrapText(true);
+        
+        // Price
+        Label priceLabel = new Label("Giá: " + currencyFormat.format(price) + "đ");
+        priceLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #f59e0b;");
+        
+        card.getChildren().addAll(header, descLabel, priceLabel);
+        
+        // Click handler
+        card.setOnMouseClicked(e -> onComboSelect(id, price, card));
+        
+        return card;
+    }
+
+    private void onComboSelect(int comboId, int price, VBox selectedCard) {
+        selectedComboId = comboId;
+        user.setAmountVND(price);
+        
+        // Highlight selected combo
+        for (var node : comboListContainer.getChildren()) {
+            if (node instanceof VBox) {
+                node.setStyle(node.getStyle().replace("-fx-border-color: #3b82f6;", ""));
+                node.setStyle(node.getStyle().replace("-fx-border-width: 2;", ""));
+            }
+        }
+        selectedCard.setStyle(selectedCard.getStyle() + "-fx-border-color: #3b82f6; -fx-border-width: 2; -fx-border-radius: 8;");
     }
 
     @FXML
@@ -514,14 +839,21 @@ public class CardRegistrationController implements Initializable {
 
             case 3:
                 // Validate payment
-                updateCoinDisplay();
-                if (user.getAmountVND() <= 0) {
-                    showAlert("Lỗi", "Vui lòng chọn số tiền nạp");
-                    return false;
-                }
-                if (user.getAmountVND() < 10000) {
-                    showAlert("Lỗi", "Số tiền tối thiểu là 10,000đ");
-                    return false;
+                if (paymentType.equals("coins")) {
+                    updateCoinDisplay();
+                    if (user.getAmountVND() <= 0) {
+                        showAlert("Lỗi", "Vui lòng chọn số tiền nạp");
+                        return false;
+                    }
+                    if (user.getAmountVND() < 10000) {
+                        showAlert("Lỗi", "Số tiền tối thiểu là 10,000đ");
+                        return false;
+                    }
+                } else if (paymentType.equals("combo")) {
+                    if (selectedComboId == null) {
+                        showAlert("Lỗi", "Vui lòng chọn một combo");
+                        return false;
+                    }
                 }
                 return true;
 
@@ -571,7 +903,7 @@ public class CardRegistrationController implements Initializable {
                 nextBtn.setGraphic(createIcon(FontAwesomeSolid.ARROW_RIGHT, "white", 14));
                 break;
             case 3:
-                stepTitle.setText("Chọn gói nạp tiền");
+                stepTitle.setText("Chọn hình thức nạp");
                 nextBtn.setVisible(true);
                 nextBtn.setText(" TIẾP TỤC");
                 nextBtn.setGraphic(createIcon(FontAwesomeSolid.ARROW_RIGHT, "white", 14));

@@ -521,3 +521,49 @@
   -fx-font-weight: bold;
   -fx-text-fill: #6366f1;
 }
+
+/* ============ Main Screen Styles ============ */
+.main-icon-container {
+  -fx-background-color: linear-gradient(to bottom right, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+  -fx-background-radius: 50;
+  -fx-min-width: 160;
+  -fx-min-height: 160;
+  -fx-max-width: 160;
+  -fx-max-height: 160;
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.4), 30, 0, 0, 10);
+}
+
+.check-card-section {
+  -fx-max-width: 600;
+}
+
+.info-badge {
+  -fx-background-color: rgba(30, 41, 59, 0.6);
+  -fx-background-radius: 16;
+  -fx-padding: 20 30;
+  -fx-min-width: 120;
+  -fx-border-color: rgba(99, 102, 241, 0.3);
+  -fx-border-radius: 16;
+  -fx-border-width: 1;
+}
+
+.primary-button {
+  -fx-background-color: linear-gradient(to right, #6366f1, #8b5cf6);
+  -fx-text-fill: white;
+  -fx-background-radius: 16;
+  -fx-cursor: hand;
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.5), 20, 0, 0, 8);
+  -fx-padding: 20;
+}
+
+.primary-button:hover {
+  -fx-background-color: linear-gradient(to right, #818cf8, #a78bfa);
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.7), 25, 0, 0, 10);
+  -fx-scale-x: 1.02;
+  -fx-scale-y: 1.02;
+}
+
+.primary-button:pressed {
+  -fx-background-color: linear-gradient(to right, #4f46e5, #7c3aed);
+  -fx-effect: dropshadow(gaussian, rgba(99, 102, 241, 0.8), 15, 0, 0, 5);
+}

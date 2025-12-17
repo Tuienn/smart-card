@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Combo = require('../models/Combo');
 
-// GET all combos
+// GET all combos (without populating game details for list view)
 router.get('/', async (req, res) => {
   try {
-    const combos = await Combo.find().populate('game_ids');
+    const combos = await Combo.find();
+    console.log('Combos retrieved:', combos);
     res.json({ success: true, data: combos });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

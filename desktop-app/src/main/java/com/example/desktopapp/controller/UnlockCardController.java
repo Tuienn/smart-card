@@ -198,6 +198,9 @@ public class UnlockCardController implements Initializable {
                 pinInstructionLabel.getStyleClass().add("pin-instruction-complete");
             }
             unlockBtn.setDisable(false);
+            
+            // Auto-unlock when Admin PIN is complete
+            Platform.runLater(() -> onUnlock());
         }
     }
 

@@ -170,60 +170,99 @@
                     </VBox>
                 </VBox>
                 
-                <!-- STEP 3: Payment Amount -->
+                <!-- STEP 3: Payment Type Selection -->
                 <VBox fx:id="step3Content" alignment="CENTER" spacing="30" visible="false">
-                    <VBox styleClass="card-container" spacing="30" maxWidth="700">
+                    <VBox styleClass="card-container" spacing="30" maxWidth="750">
                         
                         <HBox alignment="CENTER" spacing="10">
-                            <FontIcon iconLiteral="fas-coins" iconSize="24" styleClass="icon-warning"/>
-                            <Label text="Chọn số tiền nạp" styleClass="title-small"/>
+                            <FontIcon iconLiteral="fas-shopping-cart" iconSize="24" styleClass="icon-primary"/>
+                            <Label text="Chọn hình thức nạp" styleClass="title-small"/>
                         </HBox>
                         
-                        <!-- Amount Buttons Grid -->
-                        <GridPane hgap="20" vgap="20" alignment="CENTER">
-                            <Button text="100,000đ" styleClass="btn, amount-btn" 
-                                    onAction="#onAmountSelect" userData="100000"
-                                    GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                            <Button text="200,000đ" styleClass="btn, amount-btn" 
-                                    onAction="#onAmountSelect" userData="200000"
-                                    GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                            <Button text="300,000đ" styleClass="btn, amount-btn" 
-                                    onAction="#onAmountSelect" userData="300000"
-                                    GridPane.columnIndex="2" GridPane.rowIndex="0"/>
-                            <Button text="500,000đ" styleClass="btn, amount-btn" 
-                                    onAction="#onAmountSelect" userData="500000"
-                                    GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                            <Button text="1,000,000đ" styleClass="btn, amount-btn" 
-                                    onAction="#onAmountSelect" userData="1000000"
-                                    GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                            <Button text="Khác" styleClass="btn, amount-btn" 
-                                    onAction="#onCustomAmount"
-                                    GridPane.columnIndex="2" GridPane.rowIndex="1"/>
-                        </GridPane>
+                        <!-- Payment Type Toggle -->
+                        <HBox alignment="CENTER" spacing="20">
+                            <Button fx:id="buyCoinsBtn" text="MUA COINS" styleClass="btn, btn-primary" 
+                                    onAction="#onSelectBuyCoins" style="-fx-min-width: 200; -fx-min-height: 50;">
+                                <graphic><FontIcon iconLiteral="fas-coins" iconSize="18" styleClass="icon-white"/></graphic>
+                            </Button>
+                            <Button fx:id="buyComboBtn" text="MUA COMBO" styleClass="btn, btn-secondary" 
+                                    onAction="#onSelectBuyCombo" style="-fx-min-width: 200; -fx-min-height: 50;">
+                                <graphic><FontIcon iconLiteral="fas-box-open" iconSize="18" styleClass="icon-white"/></graphic>
+                            </Button>
+                        </HBox>
                         
-                        <!-- Custom Amount Input -->
-                        <VBox fx:id="customAmountBox" spacing="8" visible="false" managed="false">
-                            <Label text="Nhập số tiền (VNĐ)" styleClass="form-label"/>
-                            <TextField fx:id="customAmountField" promptText="Ví dụ: 150000" 
-                                       styleClass="text-field"/>
-                        </VBox>
-                        
-                        <!-- Coin Display -->
-                        <VBox styleClass="coin-display" alignment="CENTER" spacing="10">
-                            <Label text="Bạn sẽ nhận được" styleClass="text-secondary"/>
-                            <HBox alignment="CENTER" spacing="15">
-                                <Label fx:id="coinDisplay" text="0" styleClass="coin-amount"/>
-                                <HBox alignment="CENTER" spacing="5">
-                                    <FontIcon iconLiteral="fas-coins" iconSize="24" styleClass="icon-warning"/>
-                                    <Label text="COINS" style="-fx-font-size: 24px; -fx-text-fill: #fbbf24;"/>
+                        <!-- Coins Section -->
+                        <VBox fx:id="coinsSection" alignment="CENTER" spacing="25">
+                            <Label text="Chọn số tiền nạp" styleClass="subtitle"/>
+                            
+                            <!-- Amount Buttons Grid -->
+                            <GridPane hgap="20" vgap="20" alignment="CENTER">
+                                <Button text="100,000đ" styleClass="btn, amount-btn" 
+                                        onAction="#onAmountSelect" userData="100000"
+                                        GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <Button text="200,000đ" styleClass="btn, amount-btn" 
+                                        onAction="#onAmountSelect" userData="200000"
+                                        GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                <Button text="300,000đ" styleClass="btn, amount-btn" 
+                                        onAction="#onAmountSelect" userData="300000"
+                                        GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                <Button text="500,000đ" styleClass="btn, amount-btn" 
+                                        onAction="#onAmountSelect" userData="500000"
+                                        GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                <Button text="1,000,000đ" styleClass="btn, amount-btn" 
+                                        onAction="#onAmountSelect" userData="1000000"
+                                        GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                <Button text="Khác" styleClass="btn, amount-btn" 
+                                        onAction="#onCustomAmount"
+                                        GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                            </GridPane>
+                            
+                            <!-- Custom Amount Input -->
+                            <VBox fx:id="customAmountBox" spacing="8" visible="false" managed="false">
+                                <Label text="Nhập số tiền (VNĐ)" styleClass="form-label"/>
+                                <TextField fx:id="customAmountField" promptText="Ví dụ: 150000" 
+                                           styleClass="text-field"/>
+                            </VBox>
+                            
+                            <!-- Coin Display -->
+                            <VBox styleClass="coin-display" alignment="CENTER" spacing="10">
+                                <Label text="Bạn sẽ nhận được" styleClass="text-secondary"/>
+                                <HBox alignment="CENTER" spacing="15">
+                                    <Label fx:id="coinDisplay" text="0" styleClass="coin-amount"/>
+                                    <HBox alignment="CENTER" spacing="5">
+                                        <FontIcon iconLiteral="fas-coins" iconSize="24" styleClass="icon-warning"/>
+                                        <Label text="COINS" style="-fx-font-size: 24px; -fx-text-fill: #fbbf24;"/>
+                                    </HBox>
                                 </HBox>
-                            </HBox>
-                            <Label text="(10,000đ = 1 Coin)" styleClass="text-secondary" style="-fx-font-size: 14px;"/>
+                                <Label text="(10,000đ = 1 Coin)" styleClass="text-secondary" style="-fx-font-size: 14px;"/>
+                            </VBox>
+                            
+                            <!-- Selected Amount Display -->
+                            <Label fx:id="selectedAmountLabel" text="" styleClass="text-secondary" 
+                                   style="-fx-font-size: 18px;"/>
                         </VBox>
                         
-                        <!-- Selected Amount Display -->
-                        <Label fx:id="selectedAmountLabel" text="" styleClass="text-secondary" 
-                               style="-fx-font-size: 18px;"/>
+                        <!-- Combo Section -->
+                        <VBox fx:id="comboSection" alignment="CENTER" spacing="25" visible="false" managed="false">
+                            <Label text="Chọn combo ưu đãi" styleClass="subtitle"/>
+                            
+                            <!-- Combo List (ScrollPane for dynamic combos) -->
+                            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="400" 
+                                        style="-fx-background: transparent; -fx-background-color: transparent;">
+                                <VBox fx:id="comboListContainer" spacing="15" alignment="CENTER"/>
+                            </ScrollPane>
+                            
+                            <!-- Loading indicator -->
+                            <HBox fx:id="comboLoadingBox" alignment="CENTER" spacing="10" visible="false">
+                                <ProgressIndicator style="-fx-max-width: 30; -fx-max-height: 30;"/>
+                                <Label text="Đang tải danh sách combo..." styleClass="text-secondary"/>
+                            </HBox>
+                            
+                            <!-- Error message -->
+                            <Label fx:id="comboErrorLabel" text="" styleClass="text-secondary" 
+                                   style="-fx-text-fill: #ef4444;" visible="false"/>
+                        </VBox>
+                        
                     </VBox>
                 </VBox>
                 

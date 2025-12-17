@@ -117,4 +117,11 @@ public class APDUConstants {
             (byte) (value & 0xFF)
         };
     }
+    
+    /**
+     * Convert 2 bytes from array to short (Big Endian)
+     */
+    public static short bytesToShort(byte[] bytes, int offset) {
+        return (short) (((bytes[offset] & 0xFF) << 8) | (bytes[offset + 1] & 0xFF));
+    }
 }

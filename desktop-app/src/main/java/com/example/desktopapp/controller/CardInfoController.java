@@ -11,6 +11,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
@@ -52,10 +53,15 @@ public class CardInfoController implements Initializable {
     @FXML private Label ageLabel;
     @FXML private Label genderLabel;
     @FXML private Label coinsLabel;
+    @FXML private VBox purchasedGamesContainer;
+    @FXML private Label noGamesLabel;
+    @FXML private HBox actionButtonsBox;
 
     // Error state
     @FXML private Label errorLabel;
     @FXML private Label titleLabel;
+    @FXML private Button unlockCardBtn;
+    @FXML private VBox unlockWarningBox;
 
     // Service
     private CardService cardService;
@@ -186,6 +192,9 @@ public class CardInfoController implements Initializable {
                 pinInstructionLabel.getStyleClass().add("pin-instruction-complete");
             }
             verifyBtn.setDisable(false);
+            
+            // Auto-verify when PIN is complete
+            Platform.runLater(() -> onVerifyPin());
         }
     }
     /**
@@ -209,6 +218,7 @@ public class CardInfoController implements Initializable {
             private byte gender;
             private int coins;
             private byte[] avatar;
+            private short[] gameIds;
 
             @Override
             protected Void call() throws Exception {
@@ -222,6 +232,14 @@ public class CardInfoController implements Initializable {
                 age = cardService.readAge();
                 gender = cardService.readGender();
                 coins = cardService.readCoins();
+
+                // Read purchased games
+                updateMessage("Đang đọc game đã mua...");
+                try {
+                    gameIds = cardService.readPurchasedGames();
+                } catch (CardException e) {
+                    gameIds = new short[0];
+                }
 
                 // Read avatar
                 updateMessage("Đang đọc ảnh đại diện...");
@@ -242,7 +260,7 @@ public class CardInfoController implements Initializable {
                     connectingLabel.textProperty().unbind();
                     
                     // Display card info
-                    displayCardInfo(name, age, gender, coins, avatar);
+                    displayCardInfo(name, age, gender, coins, avatar, gameIds);
                     showState("info");
                 });
             }
@@ -260,9 +278,11 @@ public class CardInfoController implements Initializable {
                         PinVerificationException pinEx = (PinVerificationException) ex;
                         
                         if (pinEx.isCardBlocked()) {
-                            // Card is blocked (0x6983) - show error state
+                            // Card is blocked (0x6983) - show error state with unlock option
                             showState("error");
-                            errorLabel.setText("Thẻ đã bị khóa do nhập sai PIN quá 3 lần.\nVui lòng liên hệ quản trị viên để mở khóa.");
+                            errorLabel.setText("Thẻ đã bị khóa do nhập sai PIN quá 3 lần.\nBạn cần liên hệ ban tổ chức để tiến hành mở khóa.");
+                            unlockCardBtn.setVisible(true);
+                            unlockWarningBox.setVisible(true);
                         } else {
                             // Wrong PIN but card not blocked - show remaining attempts
                             showState("pin");
@@ -302,7 +322,7 @@ public class CardInfoController implements Initializable {
     /**
      * Display card info on screen
      */
-    private void displayCardInfo(String name, byte age, byte gender, int coins, byte[] avatar) {
+    private void displayCardInfo(String name, byte age, byte gender, int coins, byte[] avatar, short[] gameIds) {
         // Name
         nameLabel.setText(name != null && !name.isEmpty() ? name : "Chưa có tên");
 
@@ -338,6 +358,112 @@ public class CardInfoController implements Initializable {
         } else {
             avatarPlaceholder.setVisible(true);
         }
+        
+        // Display purchased games
+        displayPurchasedGames(gameIds);
+    }
+    
+    /**
+     * Display purchased games list
+     */
+    private void displayPurchasedGames(short[] gameIds) {
+        if (purchasedGamesContainer == null) {
+            return;
+        }
+        
+        purchasedGamesContainer.getChildren().clear();
+        
+        if (gameIds == null || gameIds.length == 0) {
+            if (noGamesLabel != null) {
+                noGamesLabel.setVisible(true);
+            }
+            return;
+        }
+        
+        if (noGamesLabel != null) {
+            noGamesLabel.setVisible(false);
+        }
+        
+        // Load game names from backend and display
+        Task<Void> loadGamesTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                for (short gameId : gameIds) {
+                    try {
+                        String gameName = fetchGameName(gameId);
+                        Platform.runLater(() -> {
+                            Label gameLabel = createGameLabel(gameId, gameName);
+                            purchasedGamesContainer.getChildren().add(gameLabel);
+                        });
+                    } catch (Exception e) {
+                        // Skip games that can't be loaded
+                        System.err.println("Error loading game " + gameId + ": " + e.getMessage());
+                    }
+                }
+                return null;
+            }
+        };
+        
+        new Thread(loadGamesTask).start();
+    }
+    
+    /**
+     * Fetch game name from backend API
+     */
+    private String fetchGameName(short gameId) throws Exception {
+        java.net.URL url = new java.net.URL(com.example.desktopapp.util.AppConfig.API_GAMES + "/" + gameId);
+        java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json");
+        
+        int responseCode = conn.getResponseCode();
+        if (responseCode == 200) {
+            java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(conn.getInputStream()));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+            
+            // Parse JSON to get name
+            String json = response.toString();
+            int nameStart = json.indexOf("\"name\":\"") + 8;
+            int nameEnd = json.indexOf("\"", nameStart);
+            return json.substring(nameStart, nameEnd);
+        } else {
+            return "Game #" + gameId;
+        }
+    }
+    
+    /**
+     * Create game label UI component
+     */
+    private Label createGameLabel(short gameId, String gameName) {
+        Label label = new Label(gameName);
+        label.setStyle("-fx-padding: 8 15; -fx-background-color: rgba(59, 130, 246, 0.1); " +
+                      "-fx-text-fill: #3b82f6; -fx-font-size: 13px; -fx-background-radius: 6;");
+        label.setGraphic(UIUtils.createIcon(FontAwesomeSolid.GAMEPAD, "#3b82f6", 14));
+        return label;
+    }
+    
+    /**
+     * Buy more coins
+     */
+    @FXML
+    private void onBuyCoins() {
+        // TODO: Implement top-up flow
+        UIUtils.showAlert("Thông báo", "Tính năng nạp thêm coins đang được phát triển");
+    }
+    
+    /**
+     * Buy combo
+     */
+    @FXML
+    private void onBuyCombo() {
+        // TODO: Implement combo purchase flow
+        UIUtils.showAlert("Thông báo", "Tính năng mua combo đang được phát triển");
     }
 
     /**
@@ -345,7 +471,25 @@ public class CardInfoController implements Initializable {
      */
     @FXML
     private void onRetry() {
+        // Hide unlock button and warning when retrying
+        if (unlockCardBtn != null) {
+            unlockCardBtn.setVisible(false);
+        }
+        if (unlockWarningBox != null) {
+            unlockWarningBox.setVisible(false);
+        }
         connectToCard();
+    }
+
+    /**
+     * Navigate to unlock card screen
+     */
+    @FXML
+    private void onUnlockCard() {
+        if (cardService != null) {
+            cardService.disconnect();
+        }
+        MainApp.setRoot("unlock-card.fxml");
     }
 
     /**

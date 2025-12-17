@@ -10,10 +10,11 @@ const gameSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  price: {
+  points: {
     type: Number,
     required: true,
-    min: 0
+    min: 0,
+    comment: 'Điểm cần để chơi (100k = 10 điểm)'
   },
   description: {
     type: String,

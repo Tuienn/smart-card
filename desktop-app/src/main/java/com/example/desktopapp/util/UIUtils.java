@@ -44,6 +44,21 @@ public final class UIUtils {
     }
 
     /**
+     * Shows an error alert dialog.
+     * 
+     * @param title   The title of the alert
+     * @param header  The header text
+     * @param message The message content
+     */
+    public static void showError(String title, String header, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
      * Creates a FontIcon with specified icon, color and size.
      * 
      * @param iconCode The FontAwesome icon code
