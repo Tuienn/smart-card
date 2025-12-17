@@ -32,9 +32,9 @@
 
 .card-container {
   -fx-background-color: rgba(30, 41, 59, 0.9);
-  -fx-background-radius: 24;
-  -fx-padding: 40;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 20, 0, 0, 10);
+  -fx-background-radius: 20;
+  -fx-padding: 25;
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 15, 0, 0, 8);
 }
 
 .glass-panel {
@@ -48,25 +48,25 @@
 
 /* ============ Typography ============ */
 .title-large {
-  -fx-font-size: 48px;
+  -fx-font-size: 36px;
   -fx-font-weight: bold;
   -fx-text-fill: linear-gradient(to right, #818cf8, #c084fc);
 }
 
 .title-medium {
-  -fx-font-size: 32px;
+  -fx-font-size: 26px;
   -fx-font-weight: bold;
   -fx-text-fill: #f8fafc;
 }
 
 .title-small {
-  -fx-font-size: 24px;
+  -fx-font-size: 20px;
   -fx-font-weight: 600;
   -fx-text-fill: #f8fafc;
 }
 
 .subtitle {
-  -fx-font-size: 18px;
+  -fx-font-size: 16px;
   -fx-text-fill: #94a3b8;
 }
 
@@ -88,13 +88,13 @@
 
 /* ============ Buttons ============ */
 .btn {
-  -fx-min-height: 60px;
-  -fx-min-width: 200px;
-  -fx-padding: 16 32;
-  -fx-font-size: 18px;
+  -fx-min-height: 45px;
+  -fx-min-width: 150px;
+  -fx-padding: 12 24;
+  -fx-font-size: 16px;
   -fx-font-weight: bold;
-  -fx-background-radius: 16;
-  -fx-border-radius: 16;
+  -fx-background-radius: 12;
+  -fx-border-radius: 12;
   -fx-cursor: hand;
 }
 
@@ -147,17 +147,17 @@
 }
 
 .btn-large {
-  -fx-min-height: 80px;
-  -fx-min-width: 300px;
-  -fx-font-size: 24px;
-  -fx-background-radius: 20;
-  -fx-border-radius: 20;
+  -fx-min-height: 55px;
+  -fx-min-width: 220px;
+  -fx-font-size: 18px;
+  -fx-background-radius: 16;
+  -fx-border-radius: 16;
 }
 
 .btn-icon {
-  -fx-min-height: 64px;
-  -fx-min-width: 64px;
-  -fx-padding: 16;
+  -fx-min-height: 50px;
+  -fx-min-width: 50px;
+  -fx-padding: 12;
   -fx-background-radius: 50;
   -fx-border-radius: 50;
 }
@@ -192,13 +192,13 @@
   -fx-background-color: #334155;
   -fx-text-fill: #f8fafc;
   -fx-prompt-text-fill: #64748b;
-  -fx-padding: 16 20;
-  -fx-font-size: 18px;
-  -fx-background-radius: 12;
-  -fx-border-radius: 12;
+  -fx-padding: 12 16;
+  -fx-font-size: 16px;
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
   -fx-border-color: transparent;
   -fx-border-width: 2;
-  -fx-min-height: 56px;
+  -fx-min-height: 45px;
 }
 
 .text-field:focused,
@@ -370,10 +370,10 @@
 
 /* PIN Dots Display */
 .pin-dot {
-  -fx-min-width: 24;
-  -fx-min-height: 24;
-  -fx-max-width: 24;
-  -fx-max-height: 24;
+  -fx-min-width: 18;
+  -fx-min-height: 18;
+  -fx-max-width: 18;
+  -fx-max-height: 18;
   -fx-background-radius: 50;
   -fx-border-radius: 50;
 }
@@ -393,18 +393,18 @@
 
 /* Keypad Buttons */
 .keypad-btn {
-  -fx-min-width: 80;
-  -fx-min-height: 80;
-  -fx-max-width: 80;
-  -fx-max-height: 80;
-  -fx-font-size: 28px;
+  -fx-min-width: 65;
+  -fx-min-height: 65;
+  -fx-max-width: 65;
+  -fx-max-height: 65;
+  -fx-font-size: 24px;
   -fx-font-weight: bold;
   -fx-background-color: #334155;
   -fx-text-fill: #f8fafc;
   -fx-background-radius: 50;
   -fx-border-radius: 50;
   -fx-cursor: hand;
-  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 8, 0, 0, 4);
+  -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 6, 0, 0, 3);
 }
 
 .keypad-btn:hover {

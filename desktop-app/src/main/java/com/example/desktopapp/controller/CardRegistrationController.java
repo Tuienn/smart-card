@@ -93,6 +93,8 @@ public class CardRegistrationController implements Initializable {
     private byte[] avatarBytes = null;
     private int selectedAmount = 0;
     private Integer selectedComboId = null;
+    private short[] selectedComboGameIds = null; // Game IDs in selected combo
+    private boolean loadingComboDetails = false; // Loading state for combo details
     private String paymentType = "coins"; // "coins" or "combo"
     private ToggleGroup genderGroup;
     private CardService cardService;
@@ -321,6 +323,7 @@ public class CardRegistrationController implements Initializable {
     private void onSelectBuyCoins() {
         paymentType = "coins";
         selectedComboId = null;
+        selectedComboGameIds = null;
         
         // Update button styles
         buyCoinsBtn.getStyleClass().remove("btn-secondary");
@@ -339,6 +342,7 @@ public class CardRegistrationController implements Initializable {
     private void onSelectBuyCombo() {
         paymentType = "combo";
         selectedAmount = 0;
+        selectedComboGameIds = null;
         
         // Update button styles
         buyComboBtn.getStyleClass().remove("btn-secondary");
@@ -629,6 +633,9 @@ public class CardRegistrationController implements Initializable {
             }
         }
         selectedCard.setStyle(selectedCard.getStyle() + "-fx-border-color: #3b82f6; -fx-border-width: 2; -fx-border-radius: 8;");
+        
+        // Fetch combo details from backend to get game IDs
+        fetchComboDetails(comboId);
     }
 
     @FXML
@@ -681,6 +688,103 @@ public class CardRegistrationController implements Initializable {
         
         user.setAmountVND(amount);
     }
+    
+    /**
+     * Fetch combo details from backend to get game IDs
+     */
+    private void fetchComboDetails(int comboId) {
+        loadingComboDetails = true;
+        Task<short[]> fetchTask = new Task<>() {
+            @Override
+            protected short[] call() throws Exception {
+                // Call backend API to get combo details
+                java.net.URL url = new java.net.URL(AppConfig.API_COMBOS + "/" + comboId);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Content-Type", "application/json");
+                
+                int responseCode = conn.getResponseCode();
+                if (responseCode == 200) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(conn.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+                    
+                    // Parse game IDs from response
+                    String jsonResponse = response.toString();
+                    return parseComboGameIds(jsonResponse);
+                } else {
+                    throw new Exception("API trả về lỗi: " + responseCode);
+                }
+            }
+
+            @Override
+            protected void succeeded() {
+                selectedComboGameIds = getValue();
+                loadingComboDetails = false;
+                System.out.println("Loaded " + selectedComboGameIds.length + " games for combo " + comboId);
+            }
+
+            @Override
+            protected void failed() {
+                loadingComboDetails = false;
+                selectedComboId = null;
+                selectedComboGameIds = null;
+                System.err.println("Failed to fetch combo details: " + getException().getMessage());
+                showAlert("Lỗi", "Không thể tải chi tiết combo. Vui lòng thử lại.");
+            }
+        };
+        
+        new Thread(fetchTask).start();
+    }
+    
+    /**
+     * Parse game IDs from combo JSON response
+     * Expected: {"success":true,"data":{"games":[1,2,3,...]}}
+     */
+    private short[] parseComboGameIds(String jsonResponse) {
+        try {
+            // Find games array in data.games
+            int gamesStart = jsonResponse.indexOf("\"games\":[");
+            if (gamesStart == -1) {
+                // Try alternative format: "gameIds"
+                gamesStart = jsonResponse.indexOf("\"gameIds\":[");
+            }
+            
+            if (gamesStart == -1) {
+                throw new Exception("No games array found in response");
+            }
+            
+            gamesStart += (jsonResponse.charAt(gamesStart + 1) == 'g' && jsonResponse.charAt(gamesStart + 2) == 'a' && jsonResponse.charAt(gamesStart + 3) == 'm' && jsonResponse.charAt(gamesStart + 4) == 'e' && jsonResponse.charAt(gamesStart + 5) == 's') ? 9 : 11; // Skip \"games\":[ or \"gameIds\":[
+            
+            int gamesEnd = jsonResponse.indexOf(']', gamesStart);
+            if (gamesEnd == -1) {
+                throw new Exception("Unclosed games array");
+            }
+            
+            String gamesStr = jsonResponse.substring(gamesStart, gamesEnd).trim();
+            if (gamesStr.isEmpty()) {
+                return new short[0];
+            }
+            
+            // Split by comma and parse
+            String[] gameStrs = gamesStr.split(",");
+            short[] gameIds = new short[gameStrs.length];
+            
+            for (int i = 0; i < gameStrs.length; i++) {
+                gameIds[i] = Short.parseShort(gameStrs[i].trim());
+            }
+            
+            return gameIds;
+        } catch (Exception e) {
+            System.err.println("Error parsing game IDs: " + e.getMessage());
+            return new short[0];
+        }
+    }
 
     @FXML
     private void onWriteCard() {
@@ -723,7 +827,19 @@ public class CardRegistrationController implements Initializable {
                 updateMessage("Đang ghi thông tin người dùng...");
                 cardService.writeUserData(user);
 
-                if (user.getCoins() > 0) {
+                // Handle payment based on type
+                System.out.println("Payment type: " + paymentType);
+                System.out.println("Combo game IDs: " + (selectedComboGameIds != null ? selectedComboGameIds.length : "null"));
+                System.out.println("User coins: " + user.getCoins());
+                
+                if (paymentType.equals("combo") && selectedComboGameIds != null && selectedComboGameIds.length > 0) {
+                    // Purchase combo
+                    updateMessage("Đang mua combo (" + selectedComboGameIds.length + " games)...");
+                    int totalPrice = user.getCoins(); // Price is already converted to coins
+                    System.out.println("Calling purchaseCombo with gameIds: " + java.util.Arrays.toString(selectedComboGameIds) + ", price: " + totalPrice);
+                    cardService.purchaseCombo(selectedComboGameIds, totalPrice);
+                } else if (user.getCoins() > 0) {
+                    // Top up coins
                     updateMessage("Đang nạp " + user.getCoins() + " coins...");
                     cardService.topupCoins(user.getCoins());
                 }
@@ -854,6 +970,14 @@ public class CardRegistrationController implements Initializable {
                         showAlert("Lỗi", "Vui lòng chọn một combo");
                         return false;
                     }
+                    if (loadingComboDetails) {
+                        showAlert("Vui lòng đợi", "Đang tải thông tin combo...");
+                        return false;
+                    }
+                    if (selectedComboGameIds == null || selectedComboGameIds.length == 0) {
+                        showAlert("Lỗi", "Không thể tải danh sách game trong combo. Vui lòng chọn lại.");
+                        return false;
+                    }
                 }
                 return true;
 
@@ -960,6 +1084,9 @@ public class CardRegistrationController implements Initializable {
         user = new UserRegistration();
         avatarBytes = null;
         selectedAmount = 0;
+        selectedComboId = null;
+        selectedComboGameIds = null;
+        loadingComboDetails = false;
 
         nameField.clear();
         ageField.clear();

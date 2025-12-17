@@ -11,34 +11,34 @@
             styleClass="root">
     
     <top>
-        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 30 40 20 40;">
+        <VBox alignment="CENTER" spacing="10" style="-fx-padding: 15 30 10 30;">
             <!-- Home Button -->
             <HBox alignment="CENTER_LEFT">
-                <Button styleClass="btn, btn-secondary" onAction="#onGoHome" style="-fx-min-width: 120; -fx-min-height: 40;">
-                    <graphic><FontIcon iconLiteral="fas-home" iconSize="14" styleClass="icon-primary"/></graphic>
+                <Button styleClass="btn, btn-secondary" onAction="#onGoHome" style="-fx-min-width: 100; -fx-min-height: 35;">
+                    <graphic><FontIcon iconLiteral="fas-home" iconSize="12" styleClass="icon-primary"/></graphic>
                     <text> Trang chủ</text>
                 </Button>
             </HBox>
             
-            <Label fx:id="titleLabel" text="Mở khóa thẻ" styleClass="title-medium"/>
+            <Label fx:id="titleLabel" text="Mở khóa thẻ" styleClass="title-small"/>
         </VBox>
     </top>
     
     <center>
-        <StackPane fx:id="contentStack" style="-fx-padding: 0 60;">
+        <StackPane fx:id="contentStack" style="-fx-padding: 0 40;">
             
             <!-- State 1: Connecting -->
-            <VBox fx:id="connectingState" alignment="CENTER" spacing="30" visible="true">
-                <VBox styleClass="card-container" spacing="30" maxWidth="500" alignment="CENTER">
-                    <ProgressIndicator styleClass="loading-spinner" style="-fx-min-width: 80; -fx-min-height: 80;"/>
-                    <Label fx:id="connectingLabel" text="Đang kết nối thẻ..." styleClass="subtitle"/>
-                    <Label text="Đảm bảo thẻ đã được đặt lên đầu đọc" styleClass="text-secondary"/>
+            <VBox fx:id="connectingState" alignment="CENTER" spacing="15" visible="true">
+                <VBox styleClass="card-container" spacing="15" maxWidth="450" alignment="CENTER">
+                    <ProgressIndicator styleClass="loading-spinner" style="-fx-min-width: 60; -fx-min-height: 60;"/>
+                    <Label fx:id="connectingLabel" text="Đang kết nối thẻ..." styleClass="subtitle" style="-fx-font-size: 16px;"/>
+                    <Label text="Đảm bảo thẻ đã được đặt lên đầu đọc" styleClass="text-secondary" style="-fx-font-size: 14px;"/>
                 </VBox>
             </VBox>
             
             <!-- State 2: Admin PIN Input -->
-            <VBox fx:id="pinInputState" alignment="CENTER" spacing="30" visible="false">
-                <VBox styleClass="card-container" spacing="25" maxWidth="600" alignment="CENTER">
+            <VBox fx:id="pinInputState" alignment="CENTER" spacing="15" visible="false">
+                <VBox styleClass="card-container" spacing="15" maxWidth="550" alignment="CENTER">
                     
                     <HBox alignment="CENTER" spacing="10">
                         <FontIcon iconLiteral="fas-unlock-alt" iconSize="24" styleClass="icon-primary"/>

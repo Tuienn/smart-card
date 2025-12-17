@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Combo = require('../models/Combo');
 
-// GET all combos (without populating game details for list view)
+// GET all combos
 router.get('/', async (req, res) => {
   try {
-    const combos = await Combo.find();
+    const combos = await Combo.find().populate('game_ids');
     console.log('Combos retrieved:', combos);
     res.json({ success: true, data: combos });
   } catch (error) {
@@ -16,11 +16,24 @@ router.get('/', async (req, res) => {
 // GET combo by ID
 router.get('/:id', async (req, res) => {
   try {
-    const combo = await Combo.findById(req.params.id).populate('game_ids');
+    const combo = await Combo.findById(req.params.id);
     if (!combo) {
       return res.status(404).json({ success: false, message: 'Combo not found' });
     }
-    res.json({ success: true, data: combo });
+    
+    // Return combo with game_ids as array of numbers (not populated)
+    // This is needed for JavaCard to receive just the IDs
+    res.json({ 
+      success: true, 
+      data: {
+        _id: combo._id,
+        name: combo.name,
+        description: combo.description,
+        priceVND: combo.priceVND,
+        discountPercentage: combo.discountPercentage,
+        games: combo.game_ids  // Return as array of IDs
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

@@ -584,32 +584,54 @@ public class Entertainment extends Applet {
         // Decrypt user data
         decryptUserData(tempBuffer);
 
-        // Add games to boughtGameIds
+        // Check coins first
+        short coinsOffset = findTag(tempBuffer, TAG_COINS);
+        if (coinsOffset < 0) {
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
+        short currentCoins = Util.getShort(tempBuffer, (short) (coinsOffset + 2));
+        if (currentCoins < totalPrice) {
+            ISOException.throwIt(SW_INSUFFICIENT_FUNDS);
+        }
+
+        // Get current bought games
         short gamesOffset = findTag(tempBuffer, TAG_BOUGHT_GAMES);
         if (gamesOffset < 0) {
             ISOException.throwIt(SW_WRONG_DATA);
         }
 
         byte currentGameCount = tempBuffer[(short) (gamesOffset + 1)];
+        
+        // Build new game list (avoid duplicates)
+        byte[] newGameList = new byte[MAX_GAMES];
+        byte newGameCount = 0;
+        
+        // Copy existing games
         short gamesDataOffset = (short) (gamesOffset + 2);
-
-        // Add new games (avoid duplicates)
+        for (byte i = 0; i < currentGameCount; i++) {
+            newGameList[newGameCount++] = tempBuffer[(short) (gamesDataOffset + i)];
+        }
+        
+        // Add new games if not already in list
         for (byte i = 0; i < numGames; i++) {
             boolean exists = false;
-            for (byte j = 0; j < currentGameCount; j++) {
-                if (tempBuffer[(short) (gamesDataOffset + j)] == gamesToAdd[i]) {
+            for (byte j = 0; j < newGameCount; j++) {
+                if (newGameList[j] == gamesToAdd[i]) {
                     exists = true;
                     break;
                 }
             }
-            if (!exists && currentGameCount < MAX_GAMES) {
-                tempBuffer[(short) (gamesDataOffset + currentGameCount)] = gamesToAdd[i];
-                currentGameCount++;
+            if (!exists && newGameCount < MAX_GAMES) {
+                newGameList[newGameCount++] = gamesToAdd[i];
             }
         }
 
-        // Update game count
-        tempBuffer[(short) (gamesOffset + 1)] = currentGameCount;
+        // Rebuild TLV with updated games (this prevents overwriting other tags)
+        rebuildTLVWithUpdatedField(tempBuffer, TAG_BOUGHT_GAMES, newGameList, (short) 0, newGameCount);
+
+        // Deduct coins
+        short newCoins = (short)(currentCoins - totalPrice);
+        Util.setShort(tempBuffer, (short) (findTag(tempBuffer, TAG_COINS) + 2), newCoins);
 
         // Encrypt and save
         encryptUserData(tempBuffer);
