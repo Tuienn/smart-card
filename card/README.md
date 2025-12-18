@@ -392,6 +392,8 @@ Response: [256 bytes image data] 90 00
 ### 14. INS_RESET_CARD (0x99) - Reset thẻ
 **Mục đích:** Xóa toàn bộ dữ liệu và reset thẻ về trạng thái ban đầu
 
+**Yêu cầu tiên quyết:** Phải xác thực Admin PIN (INS 0x22) trước
+
 **Request:**
 ```
 CLA: 0x00
@@ -402,6 +404,19 @@ P2: 0x00
 
 **Response:**
 - Success: `SW=0x9000`
+- Error:
+  - `0x6982`: Chưa xác thực Admin PIN
+
+**Ví dụ:**
+```
+// Bước 1: Xác thực Admin PIN
+Request: 00 22 00 00 10 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36
+Response: 90 00
+
+// Bước 2: Reset thẻ
+Request: 00 99 00 00
+Response: 90 00
+```
 
 ---
 

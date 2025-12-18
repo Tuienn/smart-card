@@ -14,11 +14,23 @@
     
     <top>
         <VBox alignment="CENTER" spacing="10" style="-fx-padding: 15 30 10 30;">
-            <!-- Home Button -->
-            <HBox alignment="CENTER_LEFT">
+            <!-- Home Button and Reset Card Button -->
+            <HBox alignment="CENTER_LEFT" spacing="15">
                 <Button styleClass="btn, btn-secondary" onAction="#onGoHome" style="-fx-min-width: 100; -fx-min-height: 35;">
                     <graphic><FontIcon iconLiteral="fas-home" iconSize="12" styleClass="icon-primary"/></graphic>
                     <text> Trang chủ</text>
+                </Button>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="resetCardBtn" styleClass="btn, btn-danger" onAction="#onResetCardRequest" 
+                        style="-fx-min-width: 140; -fx-min-height: 38; -fx-font-size: 13px; -fx-font-weight: bold; 
+                               -fx-background-color: #dc2626; -fx-text-fill: white;
+                               -fx-background-radius: 8; -fx-border-radius: 8; 
+                               -fx-effect: dropshadow(gaussian, rgba(220, 38, 38, 0.4), 10, 0.4, 0, 2);
+                               -fx-padding: 8 16; -fx-cursor: hand;" visible="false">
+                    <graphic>
+                        <FontIcon iconLiteral="fas-trash-alt" iconSize="14" styleClass="icon-white"/>
+                    </graphic>
+                    <text> RESET THẺ</text>
                 </Button>
             </HBox>
             
@@ -180,7 +192,110 @@
                 </VBox>
             </VBox>
             
-            <!-- State 4: Error -->
+            <!-- State 4: Reset Card (Admin PIN Input) -->
+            <VBox fx:id="resetCardState" alignment="CENTER" spacing="8" visible="false">
+                <VBox styleClass="card-container" spacing="10" maxWidth="550" alignment="CENTER">
+                    
+                    <!-- Warning Banner -->
+                    <VBox alignment="CENTER" spacing="6" styleClass="glass-panel" style="-fx-background-color: rgba(239, 68, 68, 0.15); -fx-border-color: #ef4444; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 12;">
+                        <HBox alignment="CENTER" spacing="8">
+                            <FontIcon iconLiteral="fas-exclamation-triangle" iconSize="24" style="-fx-fill: #ef4444;"/>
+                            <Label text="CẢNH BÁO NGHIÊM TRỌNG" style="-fx-font-weight: bold; -fx-text-fill: #ef4444; -fx-font-size: 15px;"/>
+                        </HBox>
+                        <Label text="Thao tác này sẽ XÓA TOÀN BỘ dữ liệu trong thẻ" 
+                               styleClass="text-primary" wrapText="true" textAlignment="CENTER" 
+                               style="-fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label text="Thẻ sẽ được đặt lại về trạng thái ban đầu chưa khởi tạo" 
+                               styleClass="text-secondary" wrapText="true" textAlignment="CENTER" 
+                               style="-fx-font-size: 12px;"/>
+                        <Label text="Yêu cầu được thực hiện bởi người có thẩm quyền" 
+                               style="-fx-font-weight: bold; -fx-text-fill: #f59e0b; -fx-font-size: 12px;"/>
+                    </VBox>
+                    
+                    <HBox alignment="CENTER" spacing="8">
+                        <FontIcon iconLiteral="fas-shield-alt" iconSize="20" styleClass="icon-danger"/>
+                        <Label text="Xác thực Admin PIN" styleClass="title-small" style="-fx-font-size: 16px;"/>
+                    </HBox>
+                    <Label text="Nhập mã Admin PIN 16 số để xác nhận reset thẻ" styleClass="text-secondary" style="-fx-font-size: 12px;"/>
+                    
+                    <!-- Admin PIN Display - 16 dots in 2 rows -->
+                    <VBox alignment="CENTER" spacing="6">
+                        <!-- Row 1: dots 1-8 -->
+                        <HBox alignment="CENTER" spacing="6">
+                            <Label fx:id="resetPinDot1" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot2" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot3" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot4" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot5" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot6" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot7" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot8" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                        <!-- Row 2: dots 9-16 -->
+                        <HBox alignment="CENTER" spacing="6">
+                            <Label fx:id="resetPinDot9" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot10" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot11" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot12" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot13" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot14" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot15" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="resetPinDot16" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <!-- Numeric Keypad -->
+                    <GridPane hgap="8" vgap="8" alignment="CENTER" style="-fx-scale-x: 0.9; -fx-scale-y: 0.9;">
+                        <Button text="1" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="1"
+                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Button text="2" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="2"
+                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Button text="3" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="3"
+                                GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        
+                        <Button text="4" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="4"
+                                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Button text="5" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="5"
+                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Button text="6" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="6"
+                                GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        
+                        <Button text="7" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="7"
+                                GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <Button text="8" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="8"
+                                GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        <Button text="9" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="9"
+                                GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                        
+                        <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onResetPinClearAll"
+                                GridPane.columnIndex="0" GridPane.rowIndex="3">
+                            <graphic><FontIcon iconLiteral="fas-trash-alt" iconSize="18"/></graphic>
+                        </Button>
+                        <Button text="0" styleClass="keypad-btn" onAction="#onResetKeypadPress" userData="0"
+                                GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                        <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onResetPinBackspace"
+                                GridPane.columnIndex="2" GridPane.rowIndex="3">
+                            <graphic><FontIcon iconLiteral="fas-backspace" iconSize="18"/></graphic>
+                        </Button>
+                    </GridPane>
+                    
+                    <Label fx:id="resetPinInstructionLabel" text="Nhập mã Admin PIN 16 số" styleClass="pin-instruction" style="-fx-font-size: 12px;"/>
+                    
+                    <!-- Action Buttons -->
+                    <HBox alignment="CENTER" spacing="12" style="-fx-padding: 5 0 0 0;">
+                        <Button styleClass="btn, btn-secondary" onAction="#onCancelReset" style="-fx-min-width: 130; -fx-min-height: 35; -fx-font-size: 12px;">
+                            <graphic><FontIcon iconLiteral="fas-times" iconSize="12" styleClass="icon-primary"/></graphic>
+                            <text> HỦY BỎ</text>
+                        </Button>
+                        <Button fx:id="confirmResetBtn" styleClass="btn, btn-danger" onAction="#onConfirmReset" disable="true" style="-fx-min-width: 130; -fx-min-height: 35; -fx-font-size: 12px;">
+                            <graphic><FontIcon iconLiteral="fas-check" iconSize="14" styleClass="icon-white"/></graphic>
+                            <text> XÁC NHẬN RESET</text>
+                        </Button>
+                    </HBox>
+                </VBox>
+            </VBox>
+            
+            <!-- State 5: Error -->
             <VBox fx:id="errorState" alignment="CENTER" spacing="30" visible="false">
                 <VBox styleClass="card-container" spacing="30" maxWidth="550" alignment="CENTER">
                     <FontIcon iconLiteral="fas-times-circle" iconSize="64" styleClass="icon-danger"/>

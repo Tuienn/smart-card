@@ -79,7 +79,7 @@ public class Entertainment extends Applet {
 
     // Crypto objects
     private Cipher aesCipher;
-    private MessageDigest sha256;
+    private MessageDigest sha1;
     private Signature rsaSignature;
     private RandomData randomGen;
     private PBKDF2 pbkdf2;
@@ -117,7 +117,7 @@ public class Entertainment extends Applet {
             }
             
             // Use SHA-1 for better compatibility
-            sha256 = MessageDigest.getInstance(MessageDigest.ALG_SHA, false);
+            sha1 = MessageDigest.getInstance(MessageDigest.ALG_SHA, false);
             
             // Try RSA signature
             try {
@@ -252,9 +252,9 @@ public class Entertainment extends Applet {
         randomGen.generateData(masterKey, (short) 0, AES_KEY_SIZE);
 
         // Hash master key
-        if (sha256 != null) {
-            sha256.reset();
-            sha256.doFinal(masterKey, (short) 0, AES_KEY_SIZE, masterKeyHash, (short) 0);
+        if (sha1 != null) {
+            sha1.reset();
+            sha1.doFinal(masterKey, (short) 0, AES_KEY_SIZE, masterKeyHash, (short) 0);
         }
 
         // Derive KEK from PIN + salt
@@ -362,9 +362,9 @@ public class Entertainment extends Applet {
 
         // Verify master key hash
         byte[] computedHash = new byte[HASH_SIZE];
-        if (sha256 != null) {
-            sha256.reset();
-            sha256.doFinal(masterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
+        if (sha1 != null) {
+            sha1.reset();
+            sha1.doFinal(masterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
         }
 
         boolean hashMatch = true;
@@ -440,9 +440,9 @@ public class Entertainment extends Applet {
 
         // Verify master key hash
         byte[] computedHash = new byte[HASH_SIZE];
-        if (sha256 != null) {
-            sha256.reset();
-            sha256.doFinal(tempMasterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
+        if (sha1 != null) {
+            sha1.reset();
+            sha1.doFinal(tempMasterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
         }
 
         boolean hashMatch = true;
@@ -867,7 +867,11 @@ public class Entertainment extends Applet {
     }
 
     private void processResetCard(APDU apdu) {
-        // Admin authentication should be required here
+        // Require admin authentication
+        if (!adminSessionAuth) {
+            ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
+        }
+        
         // Clear all sensitive data
         Util.arrayFillNonAtomic(userID, (short) 0, (short) 16, (byte) 0);
         Util.arrayFillNonAtomic(salt, (short) 0, SALT_SIZE, (byte) 0);
@@ -1054,11 +1058,11 @@ public class Entertainment extends Applet {
         Util.arrayCopy(pin, (short) 0, temp, (short) 0, pinLen);
         Util.arrayCopy(salt, (short) 0, temp, pinLen, SALT_SIZE);
         
-        if (sha256 != null) {
+        if (sha1 != null) {
             // SHA-1 produces 20 bytes, but we only need 16 bytes for AES-128
             byte[] hashOutput = new byte[HASH_SIZE];
-            sha256.reset();
-            sha256.doFinal(temp, (short) 0, (short)(pinLen + SALT_SIZE), hashOutput, (short) 0);
+            sha1.reset();
+            sha1.doFinal(temp, (short) 0, (short)(pinLen + SALT_SIZE), hashOutput, (short) 0);
             // Copy only the first 16 bytes for AES-128 key
             Util.arrayCopy(hashOutput, (short) 0, derivedKey, (short) 0, AES_KEY_SIZE);
             Util.arrayFillNonAtomic(hashOutput, (short) 0, HASH_SIZE, (byte) 0);

@@ -30,11 +30,13 @@ import java.util.ResourceBundle;
 public class CardInfoController implements Initializable {
 
     private static final int MAX_PIN_LENGTH = 6;
+    private static final int MAX_ADMIN_PIN_LENGTH = 16;
 
     // States
     @FXML private VBox connectingState;
     @FXML private VBox pinInputState;
     @FXML private VBox cardInfoState;
+    @FXML private VBox resetCardState;
     @FXML private VBox errorState;
 
     // Connecting state
@@ -44,6 +46,7 @@ public class CardInfoController implements Initializable {
     @FXML private Label pinDot1, pinDot2, pinDot3, pinDot4, pinDot5, pinDot6;
     @FXML private Label pinInstructionLabel;
     @FXML private Button verifyBtn;
+    @FXML private Button resetCardBtn;
     private Label[] pinDots;
     private StringBuilder pinBuilder = new StringBuilder();
 
@@ -64,6 +67,16 @@ public class CardInfoController implements Initializable {
     @FXML private Button unlockCardBtn;
     @FXML private VBox unlockWarningBox;
 
+    // Reset card state
+    @FXML private Label resetPinDot1, resetPinDot2, resetPinDot3, resetPinDot4;
+    @FXML private Label resetPinDot5, resetPinDot6, resetPinDot7, resetPinDot8;
+    @FXML private Label resetPinDot9, resetPinDot10, resetPinDot11, resetPinDot12;
+    @FXML private Label resetPinDot13, resetPinDot14, resetPinDot15, resetPinDot16;
+    @FXML private Label resetPinInstructionLabel;
+    @FXML private Button confirmResetBtn;
+    private Label[] resetPinDots;
+    private StringBuilder resetPinBuilder = new StringBuilder();
+
     // Service
     private CardService cardService;
     private String verifiedPin; // Store PIN after successful verification
@@ -71,6 +84,12 @@ public class CardInfoController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         pinDots = new Label[]{pinDot1, pinDot2, pinDot3, pinDot4, pinDot5, pinDot6};
+        resetPinDots = new Label[]{
+            resetPinDot1, resetPinDot2, resetPinDot3, resetPinDot4,
+            resetPinDot5, resetPinDot6, resetPinDot7, resetPinDot8,
+            resetPinDot9, resetPinDot10, resetPinDot11, resetPinDot12,
+            resetPinDot13, resetPinDot14, resetPinDot15, resetPinDot16
+        };
         cardService = new CardService();
         
         // Auto-connect to card on initialize
@@ -120,7 +139,13 @@ public class CardInfoController implements Initializable {
         connectingState.setVisible("connecting".equals(state));
         pinInputState.setVisible("pin".equals(state));
         cardInfoState.setVisible("info".equals(state));
+        resetCardState.setVisible("reset".equals(state));
         errorState.setVisible("error".equals(state));
+        
+        // Show/hide reset button based on state
+        if (resetCardBtn != null) {
+            resetCardBtn.setVisible("pin".equals(state));
+        }
 
         switch (state) {
             case "connecting":
@@ -131,6 +156,9 @@ public class CardInfoController implements Initializable {
                 break;
             case "info":
                 titleLabel.setText("Thông tin thẻ");
+                break;
+            case "reset":
+                titleLabel.setText("Reset thẻ");
                 break;
             case "error":
                 titleLabel.setText("Lỗi");
@@ -541,5 +569,174 @@ public class CardInfoController implements Initializable {
             cardService.disconnect();
         }
         MainApp.setRoot("main-menu.fxml");
+    }
+
+    // ============ Reset Card Handlers ============
+
+    /**
+     * Handle reset card request
+     */
+    @FXML
+    private void onResetCardRequest() {
+        resetPinBuilder.setLength(0);
+        updateResetPinDisplay();
+        showState("reset");
+    }
+
+    /**
+     * Cancel reset operation
+     */
+    @FXML
+    private void onCancelReset() {
+        resetPinBuilder.setLength(0);
+        showState("pin");
+    }
+
+    /**
+     * Handle reset keypad press
+     */
+    @FXML
+    private void onResetKeypadPress(ActionEvent event) {
+        if (resetPinBuilder.length() >= MAX_ADMIN_PIN_LENGTH) {
+            return;
+        }
+        Button btn = (Button) event.getSource();
+        String digit = (String) btn.getUserData();
+        resetPinBuilder.append(digit);
+        updateResetPinDisplay();
+    }
+
+    /**
+     * Clear all reset PIN digits
+     */
+    @FXML
+    private void onResetPinClearAll() {
+        resetPinBuilder.setLength(0);
+        updateResetPinDisplay();
+    }
+
+    /**
+     * Backspace reset PIN
+     */
+    @FXML
+    private void onResetPinBackspace() {
+        if (resetPinBuilder.length() > 0) {
+            resetPinBuilder.deleteCharAt(resetPinBuilder.length() - 1);
+            updateResetPinDisplay();
+        }
+    }
+
+    /**
+     * Update reset PIN display
+     */
+    private void updateResetPinDisplay() {
+        int length = resetPinBuilder.length();
+        for (int i = 0; i < resetPinDots.length; i++) {
+            resetPinDots[i].getStyleClass().removeAll("pin-dot-filled", "pin-dot-empty");
+            if (i < length) {
+                resetPinDots[i].getStyleClass().add("pin-dot-filled");
+            } else {
+                resetPinDots[i].getStyleClass().add("pin-dot-empty");
+            }
+        }
+
+        // Update instruction and button state
+        if (length == 0) {
+            resetPinInstructionLabel.setText("Nhập mã Admin PIN 16 số");
+            resetPinInstructionLabel.setGraphic(null);
+            resetPinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
+            confirmResetBtn.setDisable(true);
+        } else if (length < MAX_ADMIN_PIN_LENGTH) {
+            resetPinInstructionLabel.setText("Còn " + (MAX_ADMIN_PIN_LENGTH - length) + " số nữa");
+            resetPinInstructionLabel.setGraphic(null);
+            resetPinInstructionLabel.getStyleClass().remove("pin-instruction-complete");
+            confirmResetBtn.setDisable(true);
+        } else {
+            resetPinInstructionLabel.setText("Hoàn tất");
+            resetPinInstructionLabel.setGraphic(UIUtils.createIcon(FontAwesomeSolid.CHECK, "#22c55e", 14));
+            if (!resetPinInstructionLabel.getStyleClass().contains("pin-instruction-complete")) {
+                resetPinInstructionLabel.getStyleClass().add("pin-instruction-complete");
+            }
+            confirmResetBtn.setDisable(false);
+        }
+    }
+
+    /**
+     * Confirm reset card with admin PIN
+     */
+    @FXML
+    private void onConfirmReset() {
+        if (resetPinBuilder.length() != MAX_ADMIN_PIN_LENGTH) {
+            UIUtils.showAlert("Lỗi", "Vui lòng nhập đủ 16 số Admin PIN");
+            return;
+        }
+
+        String adminPin = resetPinBuilder.toString();
+        confirmResetBtn.setDisable(true);
+        showState("connecting");
+        connectingLabel.setText("Đang xác thực Admin PIN...");
+
+        Task<Void> resetTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                // Step 1: Verify Admin PIN
+                updateMessage("Đang xác thực Admin PIN...");
+                cardService.verifyAdminPin(adminPin);
+
+                // Step 2: Reset card
+                updateMessage("Đang reset thẻ...");
+                cardService.resetCard();
+
+                return null;
+            }
+
+            @Override
+            protected void succeeded() {
+                Platform.runLater(() -> {
+                    UIUtils.showAlert(Alert.AlertType.INFORMATION, "Thành công", 
+                        "Reset thẻ thành công!\n\nThẻ đã được đặt lại về trạng thái ban đầu.\n" +
+                        "Người dùng cần khởi tạo lại thẻ để sử dụng.");
+                    
+                    // Disconnect and return to main menu
+                    if (cardService != null) {
+                        cardService.disconnect();
+                    }
+                    MainApp.setRoot("main-menu.fxml");
+                });
+            }
+
+            @Override
+            protected void failed() {
+                Platform.runLater(() -> {
+                    Throwable ex = getException();
+                    String errorMsg;
+                    
+                    if (ex instanceof PinVerificationException) {
+                        PinVerificationException pinEx = (PinVerificationException) ex;
+                        int remaining = pinEx.getRemainingAttempts();
+                        
+                        if (remaining == 0) {
+                            errorMsg = "Admin PIN bị khóa!\n\nĐã nhập sai quá 3 lần.\nVui lòng liên hệ quản trị viên.";
+                        } else {
+                            errorMsg = "Admin PIN không đúng!\n\nCòn " + remaining + " lần thử.";
+                        }
+                    } else if (ex instanceof CardException) {
+                        errorMsg = "Lỗi kết nối thẻ: " + ex.getMessage();
+                    } else {
+                        errorMsg = "Lỗi: " + (ex != null ? ex.getMessage() : "Không xác định");
+                    }
+                    
+                    errorLabel.setText(errorMsg);
+                    showState("error");
+                    
+                    // Reset PIN builder
+                    resetPinBuilder.setLength(0);
+                    confirmResetBtn.setDisable(false);
+                });
+            }
+        };
+
+        connectingLabel.textProperty().bind(resetTask.messageProperty());
+        new Thread(resetTask).start();
     }
 }
