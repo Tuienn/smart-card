@@ -40,7 +40,7 @@ public class Entertainment extends Applet {
     private static final byte MAX_NAME_LENGTH = (byte) 64;
     private static final byte MAX_GAMES = (byte) 50;
     private static final short MAX_IMAGE_SIZE = (short) 32767; // ~32KB for image (max short value, close to 64KB with two buffers if needed)
-    private static final short PBKDF2_ITERATIONS = (short) 10;
+    private static final short PBKDF2_ITERATIONS = (short) 500;
     private static final short MAX_ENCRYPTED_DATA_SIZE = (short) 256;
 
     // TLV tags for user data
@@ -83,6 +83,67 @@ public class Entertainment extends Applet {
     private Signature rsaSignature;
     private RandomData randomGen;
     private PBKDF2 pbkdf2;
+
+    public void process(APDU apdu) {
+        if (selectingApplet()) {
+            sessionAuth = false;
+            adminSessionAuth = false;
+            return;
+        }
+
+        byte[] buf = apdu.getBuffer();
+        byte ins = buf[ISO7816.OFFSET_INS];
+
+        switch (ins) {
+            case INS_INSTALL:
+                processInstall(apdu);
+                break;
+            case INS_VERIFY_PIN:
+                processVerifyPin(apdu);
+                break;
+            case INS_VERIFY_ADMIN_PIN:
+                processVerifyAdminPin(apdu);
+                break;
+            case INS_UNLOCK_BY_ADMIN:
+                processUnlockByAdmin(apdu);
+                break;
+            case INS_TRY_PLAY_GAME:
+                processTryPlayGame(apdu);
+                break;
+            case INS_TOPUP_COINS:
+                processTopupCoins(apdu);
+                break;
+            case INS_PURCHASE_COMBO:
+                processPurchaseCombo(apdu);
+                break;
+            case INS_SIGN_CHALLENGE:
+                processSignChallenge(apdu);
+                break;
+            case INS_READ_USER_DATA_BASIC:
+                processReadUserDataBasic(apdu);
+                break;
+            case INS_WRITE_USER_DATA_BASIC:
+                processWriteUserDataBasic(apdu);
+                break;
+            case INS_WRITE_IMAGE_START:
+                processWriteImageStart(apdu);
+                break;
+            case INS_WRITE_IMAGE_CONTINUE:
+                processWriteImageContinue(apdu);
+                break;
+            case INS_READ_IMAGE:
+                processReadImage(apdu);
+                break;
+            case INS_READ_USER_ID:
+                processReadUserId(apdu);
+                break;
+            case INS_RESET_CARD:
+                processResetCard(apdu);
+                break;
+            default:
+                ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
+        }
+    }
 
     private Entertainment() {
         // Initialize persistent storage
@@ -154,67 +215,6 @@ public class Entertainment extends Applet {
 
     public static void install(byte[] bArray, short bOffset, byte bLength) {
         new Entertainment().register(bArray, (short) (bOffset + 1), bArray[bOffset]);
-    }
-
-    public void process(APDU apdu) {
-        if (selectingApplet()) {
-            sessionAuth = false;
-            adminSessionAuth = false;
-            return;
-        }
-
-        byte[] buf = apdu.getBuffer();
-        byte ins = buf[ISO7816.OFFSET_INS];
-
-        switch (ins) {
-            case INS_INSTALL:
-                processInstall(apdu);
-                break;
-            case INS_VERIFY_PIN:
-                processVerifyPin(apdu);
-                break;
-            case INS_VERIFY_ADMIN_PIN:
-                processVerifyAdminPin(apdu);
-                break;
-            case INS_UNLOCK_BY_ADMIN:
-                processUnlockByAdmin(apdu);
-                break;
-            case INS_TRY_PLAY_GAME:
-                processTryPlayGame(apdu);
-                break;
-            case INS_TOPUP_COINS:
-                processTopupCoins(apdu);
-                break;
-            case INS_PURCHASE_COMBO:
-                processPurchaseCombo(apdu);
-                break;
-            case INS_SIGN_CHALLENGE:
-                processSignChallenge(apdu);
-                break;
-            case INS_READ_USER_DATA_BASIC:
-                processReadUserDataBasic(apdu);
-                break;
-            case INS_WRITE_USER_DATA_BASIC:
-                processWriteUserDataBasic(apdu);
-                break;
-            case INS_WRITE_IMAGE_START:
-                processWriteImageStart(apdu);
-                break;
-            case INS_WRITE_IMAGE_CONTINUE:
-                processWriteImageContinue(apdu);
-                break;
-            case INS_READ_IMAGE:
-                processReadImage(apdu);
-                break;
-            case INS_READ_USER_ID:
-                processReadUserId(apdu);
-                break;
-            case INS_RESET_CARD:
-                processResetCard(apdu);
-                break;
-            default:
-                ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
-        }
     }
 
     private void processInstall(APDU apdu) {
@@ -790,9 +790,9 @@ public class Entertainment extends Applet {
     }
 
     private void processWriteImageStart(APDU apdu) {
-        // if (!sessionAuth) {
-            // ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
-        // }
+        if (!sessionAuth) {
+            ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
+        }
 
         byte[] buffer = apdu.getBuffer();
         apdu.setIncomingAndReceive();
