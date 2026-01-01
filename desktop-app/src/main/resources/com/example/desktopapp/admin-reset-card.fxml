@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.desktopapp.controller.AdminResetCardController"
+            styleClass="root">
+    
+    <top>
+        <HBox>
+            <padding>
+                <Insets top="20" right="20" bottom="0" left="20"/>
+            </padding>
+            <Button text="" onAction="#onBackToHome" styleClass="btn-back" style="-fx-min-width: 50; -fx-min-height: 50; -fx-background-radius: 50; -fx-border-radius: 50;">
+                <graphic>
+                    <FontIcon iconLiteral="fas-home" iconSize="20"/>
+                </graphic>
+                <Tooltip text="Về trang chủ Admin"/>
+            </Button>
+        </HBox>
+    </top>
+    
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+            <VBox alignment="TOP_CENTER" spacing="15" styleClass="main-container">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+
+            <!-- Header -->
+            <VBox alignment="CENTER" spacing="10">
+                <StackPane styleClass="main-icon-container" style="-fx-min-width: 80; -fx-min-height: 80; -fx-max-width: 80; -fx-max-height: 80; -fx-background-color: rgba(239, 68, 68, 0.2);">
+                    <FontIcon iconLiteral="fas-redo-alt" iconSize="40" style="-fx-icon-color: #ef4444;"/>
+                </StackPane>
+                <Label text="RESET THẺ" styleClass="title-large" style="-fx-font-size: 28px; -fx-text-fill: #ef4444;"/>
+                <Label text="⚠️ CẢNH BÁO: Xóa toàn bộ dữ liệu thẻ (không thể khôi phục)" styleClass="subtitle" style="-fx-text-fill: #f59e0b;"/>
+            </VBox>
+
+            <!-- Content -->
+            <VBox spacing="20" alignment="CENTER" style="-fx-max-width: 600;">
+                
+                <!-- Step Indicator -->
+                <HBox spacing="15" alignment="CENTER">
+                    <VBox alignment="CENTER" spacing="5">
+                        <StackPane fx:id="step1Circle" styleClass="step-circle-active" style="-fx-min-width: 40; -fx-min-height: 40;">
+                            <Label text="1" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                        </StackPane>
+                        <Label text="Đặt thẻ" styleClass="step-label"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" style="-fx-max-width: 60; -fx-min-height: 2; -fx-background-color: rgba(99, 102, 241, 0.3);"/>
+                    <VBox alignment="CENTER" spacing="5">
+                        <StackPane fx:id="step2Circle" styleClass="step-circle" style="-fx-min-width: 40; -fx-min-height: 40;">
+                            <Label text="2" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                        </StackPane>
+                        <Label text="Admin PIN" styleClass="step-label"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS" style="-fx-max-width: 60; -fx-min-height: 2; -fx-background-color: rgba(99, 102, 241, 0.3);"/>
+                    <VBox alignment="CENTER" spacing="5">
+                        <StackPane fx:id="step3Circle" styleClass="step-circle" style="-fx-min-width: 40; -fx-min-height: 40;">
+                            <Label text="3" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                        </StackPane>
+                        <Label text="Xác nhận" styleClass="step-label"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Step 1: Card Check -->
+                <VBox fx:id="step1Content" spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 30;">
+                    <FontIcon iconLiteral="far-address-card" iconSize="60" styleClass="icon-primary" style="-fx-opacity: 0.8;"/>
+                    <Label text="Đặt thẻ vào đầu đọc" styleClass="title-small"/>
+                    <Label fx:id="cardStatusLabel" text="Nhấn nút bên dưới để kiểm tra thẻ" styleClass="subtitle" textAlignment="CENTER" wrapText="true"/>
+                    <Button text="Kiểm tra thẻ" onAction="#onCheckCard" styleClass="btn-primary" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-search" iconSize="18"/>
+                        </graphic>
+                    </Button>
+                </VBox>
+
+                <!-- Step 2: Admin PIN -->
+                <VBox fx:id="step2Content" spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 30;" visible="false" managed="false">
+                    <FontIcon iconLiteral="fas-shield-alt" iconSize="60" styleClass="icon-primary" style="-fx-opacity: 0.8;"/>
+                    <Label text="Nhập Admin PIN" styleClass="title-small"/>
+                    <Label text="Xác thực quyền quản trị để reset thẻ" styleClass="subtitle"/>
+                    
+                    <PasswordField fx:id="adminPinField" promptText="Nhập Admin PIN" 
+                                  style="-fx-min-width: 300; -fx-pref-height: 40; -fx-font-size: 16px;"/>
+                    
+                    <Button text="Xác thực" onAction="#onVerifyAdminPin" styleClass="btn-primary" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-check" iconSize="18"/>
+                        </graphic>
+                    </Button>
+                    
+                    <Label fx:id="adminPinErrorLabel" text="" styleClass="error-label" visible="false"/>
+                </VBox>
+
+                <!-- Step 3: Confirm Reset -->
+                <VBox fx:id="step3Content" spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 30; -fx-border-color: #ef4444;" visible="false" managed="false">
+                    <FontIcon iconLiteral="fas-exclamation-triangle" iconSize="60" style="-fx-icon-color: #f59e0b;"/>
+                    <Label text="XÁC NHẬN RESET THẺ" styleClass="title-small" style="-fx-text-fill: #ef4444;"/>
+                    
+                    <VBox spacing="8" style="-fx-max-width: 450;">
+                        <Label text="⚠️ Hành động này sẽ:" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #f59e0b;"/>
+                        <Label text="• Xóa toàn bộ dữ liệu người dùng" style="-fx-font-size: 13px; -fx-text-fill: #cbd5e1;"/>
+                        <Label text="• Xóa số dư coins" style="-fx-font-size: 13px; -fx-text-fill: #cbd5e1;"/>
+                        <Label text="• Xóa danh sách games đã mua" style="-fx-font-size: 13px; -fx-text-fill: #cbd5e1;"/>
+                        <Label text="• Reset master key và RSA keys" style="-fx-font-size: 13px; -fx-text-fill: #cbd5e1;"/>
+                        <Label text="• Thẻ sẽ về trạng thái chưa khởi tạo" style="-fx-font-size: 13px; -fx-text-fill: #cbd5e1;"/>
+                        <Label text="" style="-fx-pref-height: 5;"/>
+                        <Label text="❌ KHÔNG THỂ KHÔI PHỤC!" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ef4444;"/>
+                    </VBox>
+                    
+                    <CheckBox fx:id="confirmCheckbox" text="Tôi hiểu và xác nhận reset thẻ này" 
+                             style="-fx-font-size: 13px; -fx-text-fill: #cbd5e1;"/>
+                    
+                    <Button fx:id="resetBtn" text="RESET THẺ" onAction="#onResetCard" styleClass="btn-danger" 
+                           style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px; -fx-background-color: #ef4444;" 
+                           disable="true">
+                        <graphic>
+                            <FontIcon iconLiteral="fas-trash-alt" iconSize="18"/>
+                        </graphic>
+                    </Button>
+                    
+                    <ProgressIndicator fx:id="resetProgress" visible="false" style="-fx-max-width: 50; -fx-max-height: 50;"/>
+                    <Label fx:id="resetStatusLabel" text="" styleClass="subtitle" visible="false"/>
+                </VBox>
+
+            </VBox>
+
+            <!-- Back Button -->
+            <Button text="Quay lại" onAction="#onBack" styleClass="btn-secondary" style="-fx-min-width: 150;">
+                <graphic>
+                    <FontIcon iconLiteral="fas-arrow-left" iconSize="14"/>
+                </graphic>
+            </Button>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

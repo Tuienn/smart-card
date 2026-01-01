@@ -59,6 +59,36 @@ public final class UIUtils {
     }
 
     /**
+     * Shows a warning alert dialog.
+     * 
+     * @param title   The title of the alert
+     * @param header  The header text
+     * @param message The message content
+     */
+    public static void showWarning(String title, String header, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
+     * Shows a success alert dialog.
+     * 
+     * @param title   The title of the alert
+     * @param header  The header text
+     * @param message The message content
+     */
+    public static void showSuccess(String title, String header, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
      * Creates a FontIcon with specified icon, color and size.
      * 
      * @param iconCode The FontAwesome icon code

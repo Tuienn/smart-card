@@ -28,7 +28,14 @@ router.get('/:id', async (req, res) => {
 // POST create new game
 router.post('/', async (req, res) => {
   try {
-    const game = new Game(req.body);
+    // Tự động sinh ID = max ID hiện tại + 1
+    const maxGame = await Game.findOne().sort({ _id: -1 });
+    const newId = maxGame ? maxGame._id + 1 : 1;
+    
+    const game = new Game({
+      ...req.body,
+      _id: newId
+    });
     await game.save();
     res.status(201).json({ success: true, data: game });
   } catch (error) {

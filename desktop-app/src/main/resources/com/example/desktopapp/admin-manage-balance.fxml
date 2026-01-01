@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.desktopapp.controller.AdminManageBalanceController"
+            styleClass="root">
+    
+    <top>
+        <HBox>
+            <padding>
+                <Insets top="20" right="20" bottom="0" left="20"/>
+            </padding>
+            <Button text="" onAction="#onBackToHome" styleClass="btn-back" style="-fx-min-width: 50; -fx-min-height: 50; -fx-background-radius: 50; -fx-border-radius: 50;">
+                <graphic>
+                    <FontIcon iconLiteral="fas-home" iconSize="20"/>
+                </graphic>
+                <Tooltip text="Về trang chủ Admin"/>
+            </Button>
+        </HBox>
+    </top>
+    
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+            <VBox alignment="TOP_CENTER" spacing="15" styleClass="main-container">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+
+            <!-- Header -->
+            <VBox alignment="CENTER" spacing="10">
+                <StackPane styleClass="main-icon-container" style="-fx-min-width: 80; -fx-min-height: 80; -fx-max-width: 80; -fx-max-height: 80;">
+                    <FontIcon iconLiteral="fas-coins" iconSize="40" styleClass="icon-primary"/>
+                </StackPane>
+                <Label text="QUẢN LÝ SỐ DƯ" styleClass="title-large" style="-fx-font-size: 28px;"/>
+                <Label text="Nạp tiền hoặc điều chỉnh số dư cho thẻ" styleClass="subtitle"/>
+            </VBox>
+
+            <!-- Coming Soon Placeholder -->
+            <VBox spacing="20" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 60; -fx-max-width: 600;">
+                <FontIcon iconLiteral="fas-tools" iconSize="80" style="-fx-icon-color: #6366f1; -fx-opacity: 0.6;"/>
+                <Label text="Đang phát triển" styleClass="title-small" style="-fx-font-size: 24px;"/>
+                <Label text="Chức năng này đang được phát triển" styleClass="subtitle" textAlignment="CENTER" wrapText="true"/>
+                <Label text="Sẽ cho phép Admin nạp coins hoặc điều chỉnh số dư thẻ sau khi xác thực Admin PIN" 
+                      styleClass="subtitle" style="-fx-opacity: 0.7;" textAlignment="CENTER" wrapText="true"/>
+            </VBox>
+
+            <!-- Back Button -->
+            <Button text="Quay lại" onAction="#onBack" styleClass="btn-secondary" style="-fx-min-width: 150;">
+                <graphic>
+                    <FontIcon iconLiteral="fas-arrow-left" iconSize="14"/>
+                </graphic>
+            </Button>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

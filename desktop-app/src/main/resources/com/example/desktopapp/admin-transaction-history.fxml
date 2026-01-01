@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.desktopapp.controller.AdminTransactionHistoryController"
+            styleClass="root">
+    
+    <top>
+        <HBox>
+            <padding>
+                <Insets top="20" right="20" bottom="0" left="20"/>
+            </padding>
+            <Button text="" onAction="#onBackToHome" styleClass="btn-back" style="-fx-min-width: 50; -fx-min-height: 50; -fx-background-radius: 50; -fx-border-radius: 50;">
+                <graphic>
+                    <FontIcon iconLiteral="fas-home" iconSize="20"/>
+                </graphic>
+                <Tooltip text="Về trang chủ Admin"/>
+            </Button>
+        </HBox>
+    </top>
+    
+    <center>
+        <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+            <VBox alignment="TOP_CENTER" spacing="15" styleClass="main-container">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+
+            <!-- Header -->
+            <VBox alignment="CENTER" spacing="10">
+                <StackPane styleClass="main-icon-container" style="-fx-min-width: 80; -fx-min-height: 80; -fx-max-width: 80; -fx-max-height: 80;">
+                    <FontIcon iconLiteral="fas-history" iconSize="40" styleClass="icon-primary"/>
+                </StackPane>
+                <Label text="LỊCH SỬ GIAO DỊCH" styleClass="title-large" style="-fx-font-size: 28px;"/>
+                <Label text="Xem lịch sử giao dịch của thẻ người dùng" styleClass="subtitle"/>
+            </VBox>
+
+            <!-- Content -->
+            <VBox spacing="20" alignment="CENTER" style="-fx-max-width: 800;">
+                
+                <!-- Card ID Input -->
+                <VBox spacing="10" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 25;">
+                    <Label text="Nhập Card ID" styleClass="title-small"/>
+                    <HBox spacing="10" alignment="CENTER">
+                        <TextField fx:id="cardIdField" promptText="Nhập Card ID (16 bytes hex)" 
+                                  style="-fx-min-width: 400; -fx-pref-height: 40; -fx-font-size: 14px;"/>
+                        <Button text="Lấy từ thẻ" onAction="#onReadCardId" styleClass="btn-secondary" style="-fx-pref-height: 40;">
+                            <graphic>
+                                <FontIcon iconLiteral="fas-id-card" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <Label fx:id="cardIdStatus" text="" styleClass="subtitle" visible="false"/>
+                </VBox>
+
+                <!-- Admin PIN -->
+                <VBox spacing="10" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 25;">
+                    <Label text="Xác thực Admin" styleClass="title-small"/>
+                    <HBox spacing="10" alignment="CENTER">
+                        <PasswordField fx:id="adminPinField" promptText="Nhập Admin PIN" 
+                                      style="-fx-min-width: 300; -fx-pref-height: 40; -fx-font-size: 14px;"/>
+                        <Button text="Xem lịch sử" onAction="#onViewHistory" styleClass="btn-primary" style="-fx-pref-height: 40; -fx-min-width: 150;">
+                            <graphic>
+                                <FontIcon iconLiteral="fas-search" iconSize="16"/>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <Label fx:id="errorLabel" text="" styleClass="error-label" visible="false"/>
+                </VBox>
+
+                <!-- Transaction List -->
+                <VBox fx:id="transactionContainer" spacing="10" visible="false" managed="false">
+                    <Label text="Danh sách giao dịch" styleClass="title-small"/>
+                    
+                    <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-max-height: 400;">
+                        <VBox fx:id="transactionList" spacing="10" style="-fx-padding: 10;"/>
+                    </ScrollPane>
+                    
+                    <Label fx:id="totalLabel" text="" styleClass="subtitle" style="-fx-font-weight: bold; -fx-font-size: 15px;"/>
+                </VBox>
+
+                <!-- Loading -->
+                <VBox fx:id="loadingBox" spacing="10" alignment="CENTER" visible="false" managed="false">
+                    <ProgressIndicator style="-fx-max-width: 50; -fx-max-height: 50;"/>
+                    <Label text="Đang tải..." styleClass="subtitle"/>
+                </VBox>
+
+                <!-- Empty State -->
+                <VBox fx:id="emptyBox" spacing="10" alignment="CENTER" styleClass="glass-panel" 
+                     style="-fx-padding: 40;" visible="false" managed="false">
+                    <FontIcon iconLiteral="fas-inbox" iconSize="60" style="-fx-icon-color: #64748b; -fx-opacity: 0.5;"/>
+                    <Label text="Không có giao dịch nào" styleClass="subtitle"/>
+                </VBox>
+
+            </VBox>
+
+            <!-- Back Button -->
+            <Button text="Quay lại" onAction="#onBack" styleClass="btn-secondary" style="-fx-min-width: 150;">
+                <graphic>
+                    <FontIcon iconLiteral="fas-arrow-left" iconSize="14"/>
+                </graphic>
+            </Button>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

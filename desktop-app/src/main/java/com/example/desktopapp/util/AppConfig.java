@@ -21,6 +21,7 @@ public class AppConfig {
     public static final String API_COMBOS = API_BASE_URL + "/api/combos";
     public static final String API_CARDS = API_BASE_URL + "/api/cards";
     public static final String API_GAMES = API_BASE_URL + "/api/games";
+    public static final String API_TRANSACTIONS = API_BASE_URL + "/api/transactions";
     
     /**
      * Connection timeout in milliseconds

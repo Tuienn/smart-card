@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
   card_id: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,  // Phải là String vì Card._id là String
     ref: 'Card',
     required: true
   },

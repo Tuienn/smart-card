@@ -14,6 +14,21 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET transactions by card ID (phải đặt trước /:id để tránh conflict)
+router.get('/card/:cardId', async (req, res) => {
+  try {
+    // Normalize cardId to uppercase để match với Card._id
+    const cardId = req.params.cardId.toUpperCase();
+    const transactions = await Transaction.find({ card_id: cardId })
+      .populate('card_id')
+      .populate('combo_id')
+      .sort({ time_stamp: -1 }); // Sắp xếp mới nhất trước
+    res.json({ success: true, data: transactions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // GET transaction by ID
 router.get('/:id', async (req, res) => {
   try {
@@ -24,18 +39,6 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
     }
     res.json({ success: true, data: transaction });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// GET transactions by card ID
-router.get('/card/:cardId', async (req, res) => {
-  try {
-    const transactions = await Transaction.find({ card_id: req.params.cardId })
-      .populate('card_id')
-      .populate('combo_id');
-    res.json({ success: true, data: transactions });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
