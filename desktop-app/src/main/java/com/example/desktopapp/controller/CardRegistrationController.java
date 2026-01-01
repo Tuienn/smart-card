@@ -4,6 +4,7 @@ import com.example.desktopapp.MainApp;
 import com.example.desktopapp.model.UserRegistration;
 import com.example.desktopapp.service.APDUConstants;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.service.MomoService;
 import com.example.desktopapp.util.AppConfig;
 import com.example.desktopapp.util.UIUtils;
 import javafx.application.Platform;
@@ -37,6 +38,9 @@ import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Controller for Card Registration wizard
@@ -76,11 +80,12 @@ public class CardRegistrationController implements Initializable {
     @FXML private Label comboErrorLabel;
     private Label selectedCombosSummaryLabel; // Label hiển thị tổng quan các combo đã chọn
 
-    // Step 4: Card Writing
-    @FXML private VBox cardWaitingState, cardWritingState, cardSuccessState, cardErrorState;
+    // Step 4: QR Payment & Card Writing
+    @FXML private VBox qrLoadingState, qrDisplayState, cardWritingState, cardSuccessState, cardErrorState;
+    @FXML private ImageView qrImageView;
+    @FXML private Label step4Title, paymentAmountLabel, paymentStatusLabel;
     @FXML private ProgressIndicator writeProgress;
     @FXML private Label writeStatusLabel, errorMessageLabel;
-    @FXML private Button writeCardBtn;
 
     // Step 5: Success
     @FXML private Label summaryName, summaryAge, summaryCoins;
@@ -101,7 +106,13 @@ public class CardRegistrationController implements Initializable {
     private String paymentType = "coins"; // "coins" or "combo"
     private ToggleGroup genderGroup;
     private CardService cardService;
+    private MomoService momoService;
     private NumberFormat currencyFormat;
+    
+    // QR Payment polling
+    private ScheduledExecutorService paymentPollingExecutor;
+    private String currentOrderId;
+    private volatile boolean isPolling = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -113,8 +124,9 @@ public class CardRegistrationController implements Initializable {
         // Setup currency format
         currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
 
-        // Setup card service
+        // Setup services
         cardService = new CardService();
+        momoService = new MomoService();
 
         // Setup custom amount field listener
         customAmountField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -860,14 +872,143 @@ public class CardRegistrationController implements Initializable {
         }
     }
 
+    // ============ QR Payment Methods ============
+    
+    /**
+     * Start QR payment flow
+     */
+    private void startQrPayment() {
+        // Reset UI states
+        qrLoadingState.setVisible(true);
+        qrDisplayState.setVisible(false);
+        cardWritingState.setVisible(false);
+        cardSuccessState.setVisible(false);
+        cardErrorState.setVisible(false);
+        
+        // Calculate amount
+        int amount = user.getAmountVND();
+        String description = "USER" + System.currentTimeMillis(); // User identifier
+        
+        paymentAmountLabel.setText("Số tiền: " + currencyFormat.format(amount) + "đ");
+        
+        // Create QR in background
+        Task<MomoService.QrPaymentResponse> qrTask = new Task<>() {
+            @Override
+            protected MomoService.QrPaymentResponse call() throws Exception {
+                return momoService.createQrPayment(amount, description);
+            }
+            
+            @Override
+            protected void succeeded() {
+                MomoService.QrPaymentResponse response = getValue();
+                Platform.runLater(() -> {
+                    if (response.resultCode == 0 && response.qrCodeUrl != null) {
+                        // Show QR code
+                        qrLoadingState.setVisible(false);
+                        qrDisplayState.setVisible(true);
+                        
+                        // Load QR image
+                        Image qrImage = new Image(response.qrCodeUrl, true);
+                        qrImageView.setImage(qrImage);
+                        
+                        currentOrderId = response.orderId;
+                        paymentStatusLabel.setText("Đang chờ thanh toán...");
+                        
+                        // Start polling for payment status
+                        startPaymentPolling(response.orderId);
+                    } else {
+                        // Show error
+                        showQrError("Lỗi tạo QR: " + (response.message != null ? response.message : "Unknown error"));
+                    }
+                });
+            }
+            
+            @Override
+            protected void failed() {
+                Platform.runLater(() -> {
+                    showQrError("Lỗi kết nối: " + getException().getMessage());
+                });
+            }
+        };
+        
+        new Thread(qrTask).start();
+    }
+    
+    private void showQrError(String message) {
+        qrLoadingState.setVisible(false);
+        qrDisplayState.setVisible(false);
+        cardErrorState.setVisible(true);
+        errorMessageLabel.setText(message);
+    }
+    
+    /**
+     * Start polling payment status every 1 second
+     */
+    private void startPaymentPolling(String orderId) {
+        stopPaymentPolling(); // Stop any existing polling
+        
+        isPolling = true;
+        paymentPollingExecutor = Executors.newSingleThreadScheduledExecutor();
+        
+        paymentPollingExecutor.scheduleAtFixedRate(() -> {
+            if (!isPolling) return;
+            
+            try {
+                MomoService.PaymentStatusResponse status = momoService.checkPaymentStatus(orderId);
+                
+                Platform.runLater(() -> {
+                    if (status.isSuccess()) {
+                        // Payment successful - start writing to card
+                        stopPaymentPolling();
+                        paymentStatusLabel.setText("Thanh toán thành công! Đang ghi thẻ...");
+                        writeCardAfterPayment();
+                    } else if (!status.isPending()) {
+                        // Payment failed
+                        stopPaymentPolling();
+                        showQrError("Thanh toán thất bại: " + status.message);
+                    } else {
+                        // Still pending
+                        paymentStatusLabel.setText("Đang chờ thanh toán...");
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("Error polling payment status: " + e.getMessage());
+            }
+        }, 1, 1, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Stop payment status polling
+     */
+    private void stopPaymentPolling() {
+        isPolling = false;
+        if (paymentPollingExecutor != null && !paymentPollingExecutor.isShutdown()) {
+            paymentPollingExecutor.shutdown();
+            try {
+                paymentPollingExecutor.awaitTermination(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                paymentPollingExecutor.shutdownNow();
+            }
+        }
+    }
+    
+    /**
+     * Retry payment (called from UI)
+     */
     @FXML
-    private void onWriteCard() {
+    private void onRetryPayment() {
+        startQrPayment();
+    }
+    
+    /**
+     * Write card data after successful payment
+     */
+    private void writeCardAfterPayment() {
         // Show writing state
-        cardWaitingState.setVisible(false);
+        qrDisplayState.setVisible(false);
         cardWritingState.setVisible(true);
         cardSuccessState.setVisible(false);
         cardErrorState.setVisible(false);
-        writeCardBtn.setDisable(true);
 
         // Run card writing in background
         Task<Void> writeTask = new Task<>() {
@@ -887,7 +1028,6 @@ public class CardRegistrationController implements Initializable {
                 byte[] publicKey = cardService.installCard(user);
 
                 updateMessage("Đang đăng ký thẻ vào hệ thống...");
-                // Register card to backend with public key
                 Toggle selectedGender = genderGroup.getSelectedToggle();
                 boolean isMale = (selectedGender == maleBtn);
                 cardService.registerCardToBackend(
@@ -907,13 +1047,10 @@ public class CardRegistrationController implements Initializable {
                 System.out.println("User coins: " + user.getCoins());
                 
                 if (paymentType.equals("combo") && selectedComboGameIds != null && selectedComboGameIds.length > 0) {
-                    // Purchase combo
                     updateMessage("Đang mua combo (" + selectedComboGameIds.length + " games)...");
-                    int totalPrice = user.getCoins(); // Price is already converted to coins
-                    System.out.println("Calling purchaseCombo with gameIds: " + java.util.Arrays.toString(selectedComboGameIds) + ", price: " + totalPrice);
+                    int totalPrice = user.getCoins();
                     cardService.purchaseCombo(selectedComboGameIds, totalPrice);
                 } else if (user.getCoins() > 0) {
-                    // Top up coins
                     updateMessage("Đang nạp " + user.getCoins() + " coins...");
                     cardService.topupCoins(user.getCoins());
                 }
@@ -932,9 +1069,8 @@ public class CardRegistrationController implements Initializable {
                 Platform.runLater(() -> {
                     cardWritingState.setVisible(false);
                     cardSuccessState.setVisible(true);
-                    writeCardBtn.setVisible(false);
                     
-                    // Auto advance to step 4 after 2 seconds
+                    // Auto advance to step 5 after 2 seconds
                     new Thread(() -> {
                         try {
                             Thread.sleep(2000);
@@ -951,9 +1087,6 @@ public class CardRegistrationController implements Initializable {
                     cardWritingState.setVisible(false);
                     cardErrorState.setVisible(true);
                     errorMessageLabel.setText(getException().getMessage());
-                    writeCardBtn.setDisable(false);
-                    writeCardBtn.setText(" THỬ LẠI");
-                    writeCardBtn.setGraphic(createIcon(FontAwesomeSolid.REDO, "white", 16));
                 });
             }
         };
@@ -961,6 +1094,7 @@ public class CardRegistrationController implements Initializable {
         writeStatusLabel.textProperty().bind(writeTask.messageProperty());
         new Thread(writeTask).start();
     }
+
 
     @FXML
     private void onBack() {
@@ -1107,17 +1241,11 @@ public class CardRegistrationController implements Initializable {
                 nextBtn.setGraphic(createIcon(FontAwesomeSolid.ARROW_RIGHT, "white", 14));
                 break;
             case 4:
-                stepTitle.setText("Ghi thẻ");
+                stepTitle.setText("Thanh toán MoMo");
                 nextBtn.setVisible(false);
-                // Reset card states
-                cardWaitingState.setVisible(true);
-                cardWritingState.setVisible(false);
-                cardSuccessState.setVisible(false);
-                cardErrorState.setVisible(false);
-                writeCardBtn.setVisible(true);
-                writeCardBtn.setDisable(false);
-                writeCardBtn.setText(" BẮT ĐẦU GHI THẺ");
-                writeCardBtn.setGraphic(createIcon(FontAwesomeSolid.LOCK, "white", 16));
+                backBtn.setVisible(false); // Không cho quay lại khi đang thanh toán
+                // Bắt đầu QR payment flow
+                startQrPayment();
                 break;
             case 5:
                 stepTitle.setText("Hoàn thành");

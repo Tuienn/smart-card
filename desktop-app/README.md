@@ -35,7 +35,7 @@ desktop app fake data api lên server và lưu giao dịch lại
 
 3️⃣ Sinh thẻ vào chơi
 
-desktop nhận dữ liệu từ server và ghi dữ liệu vào thẻ (số coin, thông tin người dùng, mã để xác thực mã pin)
+desktop nhận dữ liệu từ server, gọi api để lấy ra QR và spam 1s 1 lần api lấy trạng thái thanh toán, nếu hợp lệ sẽ ghi dữ liệu vào thẻ (số coin, thông tin người dùng, mã để xác thực mã pin)
 
 4️⃣ Sử dụng thẻ tại khu vui chơi
 
