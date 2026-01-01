@@ -14,6 +14,7 @@ public class APDUConstants {
     public static final byte INS_VERIFY_PIN = (byte) 0x20;
     public static final byte INS_UNLOCK_BY_ADMIN = (byte) 0x21;
     public static final byte INS_VERIFY_ADMIN_PIN = (byte) 0x22;
+    public static final byte INS_CHANGE_PIN = (byte) 0x23;
     public static final byte INS_CHECK_ACCESS_FOR_GAME = (byte) 0x30;
     public static final byte INS_TOPUP_COINS = (byte) 0x32;
     public static final byte INS_PURCHASE_COMBO = (byte) 0x33;

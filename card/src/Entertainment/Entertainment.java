@@ -8,6 +8,7 @@ public class Entertainment extends Applet {
     // INS codes
     private static final byte INS_INSTALL = (byte) 0x10;
     private static final byte INS_VERIFY_PIN = (byte) 0x20;
+    private static final byte INS_CHANGE_PIN = (byte) 0x23;
     private static final byte INS_VERIFY_ADMIN_PIN = (byte) 0x22;
     private static final byte INS_UNLOCK_BY_ADMIN = (byte) 0x21;
     private static final byte INS_TRY_PLAY_GAME = (byte) 0x30;
@@ -65,6 +66,13 @@ public class Entertainment extends Applet {
     private byte[] imageBuffer;
     private short imageSize;
     private byte imageType;
+    private byte[] imageIV;
+    private short actualImageSize;
+    private short encryptedImageSize;
+    private byte[] tempImageChunk;
+    private byte tempChunkLen;
+    private short currentWriteOffset;
+    private short totalImageSize;
 
     // RSA keys
     private RSAPrivateKey rsaPrivateKey;
@@ -100,6 +108,9 @@ public class Entertainment extends Applet {
                 break;
             case INS_VERIFY_PIN:
                 processVerifyPin(apdu);
+                break;
+            case INS_CHANGE_PIN:
+                processChangePin(apdu);
                 break;
             case INS_VERIFY_ADMIN_PIN:
                 processVerifyAdminPin(apdu);
@@ -154,6 +165,8 @@ public class Entertainment extends Applet {
         masterKeyHash = new byte[HASH_SIZE];
         encryptedUserData = new byte[MAX_ENCRYPTED_DATA_SIZE];
         imageBuffer = new byte[MAX_IMAGE_SIZE];
+        imageIV = new byte[16];
+        tempImageChunk = new byte[16];
 
         pinTryCounter = PIN_TRY_LIMIT;
         adminPinTryCounter = ADMIN_PIN_TRY_LIMIT;
@@ -162,6 +175,11 @@ public class Entertainment extends Applet {
         initialized = false;
         imageSize = 0;
         imageType = 0;
+        actualImageSize = 0;
+        encryptedImageSize = 0;
+        tempChunkLen = 0;
+        currentWriteOffset = 0;
+        totalImageSize = 0;
 
         // Initialize transient arrays
         masterKey = JCSystem.makeTransientByteArray(AES_KEY_SIZE, JCSystem.CLEAR_ON_RESET);
@@ -392,6 +410,110 @@ public class Entertainment extends Applet {
         } else {
             ISOException.throwIt((short) (0x63C0 | pinTryCounter));
         }
+    }
+
+    private void processChangePin(APDU apdu) {
+        if (!initialized) {
+            ISOException.throwIt(ISO7816.SW_COMMAND_NOT_ALLOWED);
+        }
+        
+        // Require user authentication first
+        if (!sessionAuth) {
+            ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
+        }
+        
+        if (lockedFlag) {
+            ISOException.throwIt(SW_AUTHENTICATION_BLOCKED);
+        }
+
+        byte[] buffer = apdu.getBuffer();
+        short lc = (short) (buffer[ISO7816.OFFSET_LC] & 0xFF);
+        apdu.setIncomingAndReceive();
+
+        // Parse: oldPinLen | oldPin | newPinLen | newPin
+        short offset = ISO7816.OFFSET_CDATA;
+        byte oldPinLen = buffer[offset++];
+        
+        if (oldPinLen < 4 || oldPinLen > MAX_PIN_SIZE) {
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
+        
+        byte[] oldPin = new byte[oldPinLen];
+        Util.arrayCopy(buffer, offset, oldPin, (short) 0, oldPinLen);
+        offset += oldPinLen;
+        
+        byte newPinLen = buffer[offset++];
+        
+        if (newPinLen < 4 || newPinLen > MAX_PIN_SIZE) {
+            Util.arrayFillNonAtomic(oldPin, (short) 0, oldPinLen, (byte) 0);
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
+        
+        byte[] newPin = new byte[newPinLen];
+        Util.arrayCopy(buffer, offset, newPin, (short) 0, newPinLen);
+        
+        // Step 1: Re-verify old PIN for security
+        byte[] oldKek = new byte[AES_KEY_SIZE];
+        if (pbkdf2 != null) {
+            pbkdf2.doFinal(oldPin, (short) 0, oldPinLen, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, oldKek, (short) 0);
+        } else {
+            deriveKeySimple(oldPin, oldPinLen, salt, oldKek);
+        }
+        
+        // Verify old PIN by trying to unwrap
+        byte[] tempMasterKey = new byte[AES_KEY_SIZE];
+        boolean unwrapSuccess = unwrapKey(wrappedMasterKey, oldKek, tempMasterKey);
+        
+        Util.arrayFillNonAtomic(oldKek, (short) 0, AES_KEY_SIZE, (byte) 0);
+        Util.arrayFillNonAtomic(oldPin, (short) 0, oldPinLen, (byte) 0);
+        
+        if (!unwrapSuccess) {
+            Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
+            Util.arrayFillNonAtomic(newPin, (short) 0, newPinLen, (byte) 0);
+            ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
+        }
+        
+        // Step 2: Verify master key hash to ensure unwrap was correct
+        byte[] computedHash = new byte[HASH_SIZE];
+        if (sha1 != null) {
+            sha1.reset();
+            sha1.doFinal(tempMasterKey, (short) 0, AES_KEY_SIZE, computedHash, (short) 0);
+        }
+        
+        boolean hashMatch = true;
+        for (short i = 0; i < HASH_SIZE; i++) {
+            if (computedHash[i] != masterKeyHash[i]) {
+                hashMatch = false;
+                break;
+            }
+        }
+        
+        if (!hashMatch) {
+            Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
+            Util.arrayFillNonAtomic(newPin, (short) 0, newPinLen, (byte) 0);
+            ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
+        }
+        
+        // Step 3: Derive new KEK from new PIN
+        byte[] newKek = new byte[AES_KEY_SIZE];
+        if (pbkdf2 != null) {
+            pbkdf2.doFinal(newPin, (short) 0, newPinLen, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, newKek, (short) 0);
+        } else {
+            deriveKeySimple(newPin, newPinLen, salt, newKek);
+        }
+        
+        // Step 4: Re-wrap master key with new KEK
+        wrapKey(tempMasterKey, AES_KEY_SIZE, newKek, wrappedMasterKey);
+        
+        // Step 5: Update session master key to continue using
+        Util.arrayCopy(tempMasterKey, (short) 0, masterKey, (short) 0, AES_KEY_SIZE);
+        
+        // Step 6: Clean up sensitive data
+        Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
+        Util.arrayFillNonAtomic(newKek, (short) 0, AES_KEY_SIZE, (byte) 0);
+        Util.arrayFillNonAtomic(newPin, (short) 0, newPinLen, (byte) 0);
+        
+        // PIN changed successfully, session remains authenticated
     }
 
     private void processVerifyAdminPin(APDU apdu) {
@@ -789,6 +911,55 @@ public class Entertainment extends Applet {
         Util.arrayCopy(newTLV, (short) 0, tlvData, (short) 0, (short) 160);
     }
 
+    /**
+     * Helper method to encrypt image chunk data in 16-byte blocks
+     * Handles partial blocks by accumulating data in tempImageChunk
+     * NOTE: Cipher must be initialized BEFORE first call (in processWriteImageStart)
+     */
+    private void encryptImageChunk(byte[] sourceData, short sourceOffset, short dataLength) {
+        // DO NOT re-init cipher here - it would break CBC chain!
+        // Cipher is already initialized in processWriteImageStart
+
+        short chunkOffset = 0;
+
+        // If we have remainder from previous chunk
+        if (tempChunkLen > 0) {
+            // Calculate how many bytes we need to complete a 16-byte block
+            byte needed = (byte)(16 - tempChunkLen);
+            
+            if (dataLength >= needed) {
+                // Copy needed bytes to complete the block
+                Util.arrayCopy(sourceData, sourceOffset, tempImageChunk, tempChunkLen, needed);
+                
+                // Encrypt the complete 16-byte block
+                aesCipher.update(tempImageChunk, (short) 0, (short) 16, 
+                               imageBuffer, currentWriteOffset);
+                currentWriteOffset += 16;
+                chunkOffset += needed;
+                tempChunkLen = 0;
+            } else {
+                // Not enough to complete a block, just accumulate
+                Util.arrayCopy(sourceData, sourceOffset, tempImageChunk, tempChunkLen, dataLength);
+                tempChunkLen += dataLength;
+                return;
+            }
+        }
+
+        // Process remaining full 16-byte blocks from new chunk
+        while ((short)(chunkOffset + 16) <= dataLength) {
+            aesCipher.update(sourceData, (short)(sourceOffset + chunkOffset), (short) 16, 
+                           imageBuffer, currentWriteOffset);
+            currentWriteOffset += 16;
+            chunkOffset += 16;
+        }
+
+        // Save new remainder
+        tempChunkLen = (byte)(dataLength - chunkOffset);
+        if (tempChunkLen > 0) {
+            Util.arrayCopy(sourceData, (short)(sourceOffset + chunkOffset), tempImageChunk, (short) 0, tempChunkLen);
+        }
+    }
+
     private void processWriteImageStart(APDU apdu) {
         if (!sessionAuth) {
             ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
@@ -806,11 +977,23 @@ public class Entertainment extends Applet {
         }
 
         imageType = buffer[offset++];
-        imageSize = totalImageSize;
+        actualImageSize = totalImageSize;
+        this.totalImageSize = totalImageSize;
+        currentWriteOffset = 0;
+        tempChunkLen = 0;
 
-        // Copy first chunk
+        // Generate IV for image encryption
+        randomGen.generateData(imageIV, (short) 0, (short) 16);
+
+        // Initialize cipher ONCE for entire image encryption session
+        AESKey aesKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
+        aesKey.setKey(masterKey, (short) 0);
+        aesCipher.init(aesKey, Cipher.MODE_ENCRYPT, imageIV, (short) 0, (short) 16);
+        aesKey.clearKey();
+
+        // Get first chunk and encrypt it
         short chunkLen = (short) ((buffer[ISO7816.OFFSET_LC] & 0xFF) - 3);
-        Util.arrayCopy(buffer, offset, imageBuffer, (short) 0, chunkLen);
+        encryptImageChunk(buffer, offset, chunkLen);
     }
 
     private void processWriteImageContinue(APDU apdu) {
@@ -827,11 +1010,73 @@ public class Entertainment extends Applet {
 
         short chunkLen = (short) ((buffer[ISO7816.OFFSET_LC] & 0xFF) - 2);
 
-        if ((short) (imageOffset + chunkLen) > MAX_IMAGE_SIZE) {
+        if ((short) (currentWriteOffset + chunkLen + tempChunkLen) > MAX_IMAGE_SIZE) {
             ISOException.throwIt(SW_NOT_ENOUGH_MEMORY);
         }
 
-        Util.arrayCopy(buffer, offset, imageBuffer, imageOffset, chunkLen);
+        // Encrypt the chunk using helper method
+        encryptImageChunk(buffer, offset, chunkLen);
+
+        // Auto-finalize khi đã nhận đủ data
+        short totalReceived = (short)(imageOffset + chunkLen);
+        if (totalReceived >= totalImageSize) {
+            // Apply PKCS#7 padding to the last block
+            byte paddingLen = (byte)(16 - tempChunkLen);
+            
+            // Fill padding bytes (each byte = padding length)
+            for (byte i = tempChunkLen; i < 16; i++) {
+                tempImageChunk[i] = paddingLen;
+            }
+
+            // DO NOT re-init cipher - use existing cipher state to maintain CBC chain
+            // Encrypt final padded block using doFinal to complete the encryption
+            aesCipher.doFinal(tempImageChunk, (short) 0, (short) 16, 
+                             imageBuffer, currentWriteOffset);
+            currentWriteOffset += 16;
+
+            // Set final sizes
+            encryptedImageSize = currentWriteOffset;
+            imageSize = encryptedImageSize;
+
+            // Clear temp data
+            tempChunkLen = 0;
+            Util.arrayFillNonAtomic(tempImageChunk, (short) 0, (short) 16, (byte) 0);
+        }
+    }
+
+    /**
+     * Helper method to decrypt image blocks from encrypted storage
+     * Returns the actual length of decrypted data (with padding removed if needed)
+     */
+    private short decryptImageBlocks(short startBlock, short endBlock, short requestedOffset, short requestedLength) {
+        // Decrypt needed blocks into tempBuffer
+        AESKey aesKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
+        aesKey.setKey(masterKey, (short) 0);
+        aesCipher.init(aesKey, Cipher.MODE_DECRYPT, imageIV, (short) 0, (short) 16);
+
+        short tempOffset = 0;
+        for (short blockIdx = startBlock; blockIdx <= endBlock; blockIdx++) {
+            short encryptedBlockOffset = (short)(blockIdx * 16);
+            aesCipher.update(imageBuffer, encryptedBlockOffset, (short) 16, 
+                           tempBuffer, tempOffset);
+            tempOffset += 16;
+        }
+
+        // Calculate the last block index of the entire image
+        short lastBlock = (short)((actualImageSize - 1) / 16);
+        
+        // Only remove PKCS#7 padding if we decrypted the last block of the image
+        if (endBlock == lastBlock) {
+            // Get padding length from last byte of last decrypted block
+            byte paddingLen = tempBuffer[(short)(tempOffset - 1)];
+            // Adjust length to exclude padding
+            if (paddingLen > 0 && paddingLen <= 16) {
+                tempOffset -= paddingLen;
+            }
+        }
+
+        aesKey.clearKey();
+        return tempOffset;
     }
 
     private void processReadImage(APDU apdu) {
@@ -843,16 +1088,33 @@ public class Entertainment extends Applet {
         apdu.setIncomingAndReceive();
 
         short offset = ISO7816.OFFSET_CDATA;
-        short imageOffset = Util.getShort(buffer, offset);
+        short requestedOffset = Util.getShort(buffer, offset);
         offset += 2;
-        short length = Util.getShort(buffer, offset);
+        short requestedLength = Util.getShort(buffer, offset);
 
-        if ((short) (imageOffset + length) > imageSize) {
-            length = (short) (imageSize - imageOffset);
+        // Validate request against actual (unencrypted) size
+        if ((short) (requestedOffset + requestedLength) > actualImageSize) {
+            requestedLength = (short) (actualImageSize - requestedOffset);
         }
 
-        Util.arrayCopy(imageBuffer, imageOffset, buffer, (short) 0, length);
-        apdu.setOutgoingAndSend((short) 0, length);
+        // Determine which encrypted blocks we need to decrypt
+        short startBlock = (short)(requestedOffset / 16);
+        short endBlock = (short)((requestedOffset + requestedLength - 1) / 16);
+        
+        // Decrypt blocks using helper method
+        short decryptedDataLen = decryptImageBlocks(startBlock, endBlock, requestedOffset, requestedLength);
+
+        // Calculate offset within decrypted data
+        short offsetInDecrypted = (short)(requestedOffset % 16);
+        
+        // Copy requested portion to output
+        short actualLength = requestedLength;
+        if ((short)(offsetInDecrypted + actualLength) > decryptedDataLen) {
+            actualLength = (short)(decryptedDataLen - offsetInDecrypted);
+        }
+        
+        Util.arrayCopy(tempBuffer, offsetInDecrypted, buffer, (short) 0, actualLength);
+        apdu.setOutgoingAndSend((short) 0, actualLength);
     }
 
     private void processReadUserId(APDU apdu) {
@@ -880,6 +1142,8 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(masterKeyHash, (short) 0, HASH_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(encryptedUserData, (short) 0, MAX_ENCRYPTED_DATA_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(imageBuffer, (short) 0, MAX_IMAGE_SIZE, (byte) 0);
+        Util.arrayFillNonAtomic(imageIV, (short) 0, (short) 16, (byte) 0);
+        Util.arrayFillNonAtomic(tempImageChunk, (short) 0, (short) 16, (byte) 0);
         Util.arrayFillNonAtomic(masterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
 
         // Clear RSA keys
@@ -899,6 +1163,11 @@ public class Entertainment extends Applet {
         adminLockedFlag = false;
         imageSize = 0;
         imageType = 0;
+        actualImageSize = 0;
+        encryptedImageSize = 0;
+        tempChunkLen = 0;
+        currentWriteOffset = 0;
+        totalImageSize = 0;
     }
 
     // Helper methods

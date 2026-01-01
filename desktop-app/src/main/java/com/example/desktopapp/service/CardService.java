@@ -165,14 +165,14 @@ public class CardService {
      * Public method to allow sending raw APDU commands when needed
      */
     public ResponseAPDU transmitCommand(CommandAPDU cmd) throws CardException {
-        if (debugMode) {
-            System.out.println(">> " + bytesToHex(cmd.getBytes()));
-        }
+        // if (debugMode) {
+        //     System.out.println(">> " + bytesToHex(cmd.getBytes()));
+        // }
         ResponseAPDU response = channel.transmit(cmd);
-        if (debugMode) {
-            System.out.println("<< " + bytesToHex(response.getBytes()) + 
-                " (SW=" + String.format("%04X", response.getSW()) + ")");
-        }
+        // if (debugMode) {
+        //     System.out.println("<< " + bytesToHex(response.getBytes()) + 
+        //         " (SW=" + String.format("%04X", response.getSW()) + ")");
+        // }
         return response;
     }
     
@@ -325,6 +325,43 @@ public class CardService {
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
             throw new CardException("Lỗi mở khóa thẻ: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+    }
+    
+    /**
+     * Change PIN (INS_CHANGE_PIN)
+     * User changes their own PIN after authentication
+     * Requires user PIN verification first (call verifyPin())
+     * @param oldPin Current PIN
+     * @param newPin New PIN to set
+     * @throws CardException for card communication errors
+     */
+    public void changePin(String oldPin, String newPin) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] oldPinBytes = oldPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        byte[] newPinBytes = newPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        
+        // Build data: [OLD_PIN_LENGTH(1)] [OLD_PIN] [NEW_PIN_LENGTH(1)] [NEW_PIN]
+        byte[] data = new byte[2 + oldPinBytes.length + newPinBytes.length];
+        data[0] = (byte) oldPinBytes.length;
+        System.arraycopy(oldPinBytes, 0, data, 1, oldPinBytes.length);
+        data[1 + oldPinBytes.length] = (byte) newPinBytes.length;
+        System.arraycopy(newPinBytes, 0, data, 2 + oldPinBytes.length, newPinBytes.length);
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_CHANGE_PIN,
+            0x00, 0x00,
+            data
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi đổi PIN: " + APDUConstants.getErrorMessage(response.getSW()));
         }
     }
     
@@ -491,6 +528,56 @@ public class CardService {
     }
     
     /**
+     * Write user data (name, age, gender) using TLV format (INS_WRITE_USER_DATA_BASIC)
+     * Overload method that accepts individual parameters
+     * @param name User's name
+     * @param age User's age (0-255)
+     * @param gender Gender code (0=other, 1=male, 2=female)
+     * @throws CardException if write fails
+     */
+    public void writeUserData(String name, byte age, byte gender) throws CardException {
+        if (!isConnected()) {
+            throw new CardException("Chưa kết nối với thẻ");
+        }
+        
+        byte[] nameBytes = name.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        
+        // Build TLV data: [TAG_NAME][LEN][VALUE] [TAG_GENDER][LEN][VALUE] [TAG_AGE][LEN][VALUE]
+        int dataLen = 2 + nameBytes.length + 3 + 3; // Name TLV + Gender TLV + Age TLV
+        byte[] data = new byte[dataLen];
+        int offset = 0;
+        
+        // Name TLV
+        data[offset++] = APDUConstants.TAG_NAME;
+        data[offset++] = (byte) nameBytes.length;
+        System.arraycopy(nameBytes, 0, data, offset, nameBytes.length);
+        offset += nameBytes.length;
+        
+        // Gender TLV
+        data[offset++] = APDUConstants.TAG_GENDER;
+        data[offset++] = (byte) 1;
+        data[offset++] = gender;
+        
+        // Age TLV
+        data[offset++] = APDUConstants.TAG_AGE;
+        data[offset++] = (byte) 1;
+        data[offset++] = age;
+        
+        CommandAPDU cmd = new CommandAPDU(
+            APDUConstants.CLA,
+            APDUConstants.INS_WRITE_USER_DATA_BASIC,
+            0x00, 0x00,
+            data
+        );
+        
+        ResponseAPDU response = transmitCommand(cmd);
+        
+        if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            throw new CardException("Lỗi ghi dữ liệu: " + APDUConstants.getErrorMessage(response.getSW()));
+        }
+    }
+    
+    /**
      * Write avatar image to card in chunks
      */
     public void writeAvatar(byte[] imageData, byte imageType) throws CardException {
@@ -553,6 +640,25 @@ public class CardService {
             }
             
             offset += thisChunkLen;
+        }
+        
+        // Debug: Print first 5 and last 5 bytes of written image
+        if (debugMode) {
+            System.out.println("=== Image Write Complete ===");
+            System.out.println("lenght: " + imageData.length);
+            System.out.print("First 5 bytes: ");
+            for (int i = 0; i < Math.min(5, imageData.length); i++) {
+                System.out.printf("%02X ", imageData[i]);
+            }
+            System.out.println();
+            
+            if (imageData.length > 5) {
+                System.out.print("Last 5 bytes:  ");
+                for (int i = Math.max(0, imageData.length - 5); i < imageData.length; i++) {
+                    System.out.printf("%02X ", imageData[i]);
+                }
+                System.out.println();
+            }
         }
     }
     
@@ -768,6 +874,26 @@ public class CardService {
         }
         
         byte[] result = baos.toByteArray();
+        
+        // Debug: Print first 5 and last 5 bytes of read image
+        if (debugMode && result.length > 0) {
+            System.out.println("=== Image Read Complete ===");
+            System.out.println("lenght: " + result.length);
+            System.out.print("First 5 bytes: ");
+            for (int i = 0; i < Math.min(5, result.length); i++) {
+                System.out.printf("%02X ", result[i]);
+            }
+            System.out.println();
+            
+            if (result.length > 5) {
+                System.out.print("Last 5 bytes:  ");
+                for (int i = Math.max(0, result.length - 5); i < result.length; i++) {
+                    System.out.printf("%02X ", result[i]);
+                }
+                System.out.println();
+            }
+        }
+        
         return result.length > 0 ? result : null;
     }
     
