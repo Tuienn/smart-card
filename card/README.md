@@ -65,7 +65,50 @@ Response: 90 00
 
 ---
 
-### 3. INS_VERIFY_ADMIN_PIN (0x22) - Xác thực Admin PIN
+### 3. INS_CHANGE_PIN (0x23) - Đổi PIN của User
+**Mục đích:** User tự đổi PIN của mình khi đã xác thực
+
+**Yêu cầu tiên quyết:** Phải xác thực User PIN (INS 0x20) trước
+
+**Request:**
+```
+CLA: 0x00
+INS: 0x23
+P1: 0x00
+P2: 0x00
+Lc: OLD_PIN_LENGTH + NEW_PIN_LENGTH + 2
+Data: [OLD_PIN_LENGTH(1)] [OLD_PIN(4-16)] [NEW_PIN_LENGTH(1)] [NEW_PIN(4-16)]
+```
+
+**Response:**
+- Success: `SW=0x9000`
+- Error:
+  - `0x6982`: Chưa xác thực User PIN
+  - `0x6983`: Thẻ bị khóa
+  - `0x6985`: Old PIN không đúng
+  - `0x6A80`: Dữ liệu không hợp lệ (PIN length sai)
+
+**Ví dụ:**
+```
+// Bước 1: Xác thực User PIN hiện tại
+Request: 00 20 00 00 04 31 32 33 34  // PIN="1234"
+Response: 90 00
+
+// Bước 2: Đổi PIN từ "1234" sang "567890"
+Request: 00 23 00 00 0C 04 31 32 33 34 06 35 36 37 38 39 30
+// Data: [0x04][1234][0x06][567890]
+Response: 90 00
+```
+
+**Lưu ý bảo mật:**
+- Yêu cầu verify lại old PIN để tăng cường bảo mật
+- Chỉ re-wrap master key, không ảnh hưởng đến encrypted user data
+- Session vẫn được giữ nguyên sau khi đổi PIN thành công
+- Master key hash được verify để đảm bảo tính toàn vẹn
+
+---
+
+### 4. INS_VERIFY_ADMIN_PIN (0x22) - Xác thực Admin PIN
 **Mục đích:** Xác thực Admin PIN để có quyền unlock user PIN
 
 **Request:**
@@ -95,10 +138,18 @@ Response: 90 00
 
 ---
 
-### 4. INS_UNLOCK_BY_ADMIN (0x21) - Mở khóa bởi Admin
-**Mục đích:** Reset user PIN counter và tùy chọn đổi user PIN mới
+### 5. INS_UNLOCK_BY_ADMIN (0x21) - Mở khóa bởi Admin (Emergency Recovery)
+**Mục đích:** Reset user PIN counter và tùy chọn đổi user PIN mới (dành cho trường hợp user quên PIN)
 
 **Yêu cầu tiên quyết:** Phải xác thực Admin PIN (INS 0x22) trước
+
+**So sánh với INS_CHANGE_PIN:**
+| Đặc điểm | CHANGE_PIN (0x23) | UNLOCK_BY_ADMIN (0x21) |
+|----------|-------------------|------------------------|
+| Yêu cầu auth | User PIN | Admin PIN |
+| Verify old PIN | ✅ Bắt buộc | ❌ Không cần |
+| Use case | Đổi PIN thường xuyên | Emergency recovery |
+| Reset counter | ❌ Không | ✅ Có |
 
 **Request:**
 ```
@@ -450,7 +501,24 @@ Response: 90 00
 3. Khi deselect applet, session tự động đóng
 ```
 
-### 3. Chơi game
+### 3. Đổi PIN
+**Cách 1: User tự đổi PIN (khuyên dùng)**
+```
+1. Xác thực User PIN (INS 0x20)
+2. Gọi INS_CHANGE_PIN (0x23) với old PIN + new PIN
+3. Hệ thống verify lại old PIN để đảm bảo bảo mật
+4. Session vẫn được giữ sau khi đổi PIN
+```
+
+**Cách 2: Admin reset PIN (emergency)**
+```
+1. Xác thực Admin PIN (INS 0x22)
+2. Gọi INS_UNLOCK_BY_ADMIN (0x21) với new PIN
+3. User PIN counter được reset về 3 lần thử
+4. Không cần biết old user PIN
+```
+
+### 4. Chơi game
 ```
 1. Xác thực PIN
 2. Gọi INS_TRY_PLAY_GAME (0x30) để chơi game
@@ -463,14 +531,14 @@ Response: 90 00
    - Sau đó INS_TRY_PLAY_GAME sẽ miễn phí
 ```
 
-### 4. Quản lý dữ liệu user
+### 5. Quản lý dữ liệu user
 ```
 1. Xác thực PIN
 2. Gọi INS_READ_USER_DATA_BASIC để đọc dữ liệu
 3. Gọi INS_WRITE_USER_DATA_BASIC để cập nhật
 ```
 
-### 5. Upload ảnh đại diện
+### 6. Upload ảnh đại diện
 ```
 1. Xác thực PIN
 2. Gọi INS_WRITE_IMAGE_START với chunk đầu tiên
@@ -478,7 +546,7 @@ Response: 90 00
 4. Gọi INS_READ_IMAGE để đọc lại ảnh
 ```
 
-### 6. Unlock user PIN bằng Admin
+### 7. Unlock user PIN bằng Admin (Emergency)
 ```
 1. Gọi INS_VERIFY_ADMIN_PIN (0x22) với admin PIN (mặc định: "1234567890123456")
 2. Sau khi xác thực admin thành công, gọi INS_UNLOCK_BY_ADMIN (0x21)
@@ -528,10 +596,14 @@ Response: 90 00
 
 1. **Byte Order:** Sử dụng Big Endian cho tất cả số nguyên nhiều byte
 2. **Session:** Luôn gọi VERIFY_PIN trước khi gọi các lệnh cần xác thực
-3. **Admin Operations:** Để unlock user PIN, phải gọi VERIFY_ADMIN_PIN (0x22) trước, sau đó mới gọi UNLOCK_BY_ADMIN (0x21)
-4. **Admin PIN Default:** Admin PIN mặc định là `1234567890123456`, nên đổi ngay sau lần đầu sử dụng (qua UNLOCK_BY_ADMIN)
-5. **Error Handling:** Check SW code để xử lý lỗi phù hợp
-6. **Image Upload:** Chia ảnh thành chunks ~200 bytes để tránh overflow
-7. **TLV Format:** Khi ghi user data, sử dụng đúng format Tag-Length-Value
-8. **Public Key:** Lưu public key sau INSTALL để verify signature sau này
-9. **Session Independence:** Admin session và user session độc lập - cần xác thực riêng
+3. **Đổi PIN:**
+   - **User tự đổi:** Dùng INS_CHANGE_PIN (0x23) - yêu cầu verify old PIN, bảo mật cao hơn
+   - **Admin reset:** Dùng INS_UNLOCK_BY_ADMIN (0x21) - cho trường hợp emergency, không cần old PIN
+4. **Admin Operations:** Để unlock user PIN, phải gọi VERIFY_ADMIN_PIN (0x22) trước, sau đó mới gọi UNLOCK_BY_ADMIN (0x21)
+5. **Admin PIN Default:** Admin PIN mặc định là `1234567890123456`, nên đổi ngay sau lần đầu sử dụng
+6. **Error Handling:** Check SW code để xử lý lỗi phù hợp
+7. **Image Upload:** Chia ảnh thành chunks ~200 bytes để tránh overflow
+8. **TLV Format:** Khi ghi user data, sử dụng đúng format Tag-Length-Value
+9. **Public Key:** Lưu public key sau INSTALL để verify signature sau này
+10. **Session Independence:** Admin session và user session độc lập - cần xác thực riêng
+11. **Master Key Persistence:** Khi đổi PIN (cả 2 cách), encrypted user data không bị ảnh hưởng vì chỉ re-wrap master key

@@ -23,6 +23,10 @@ public class AppConfig {
     public static final String API_GAMES = API_BASE_URL + "/api/games";
     public static final String API_TRANSACTIONS = API_BASE_URL + "/api/transactions";
     
+    // MoMo Payment API
+    public static final String API_MOMO_QR = API_BASE_URL + "/api/momo/qr";
+    public static final String API_MOMO_STATUS = API_BASE_URL + "/api/momo/status";
+    
     /**
      * Connection timeout in milliseconds
      */

@@ -178,14 +178,26 @@
                     </VBox>
                     
                     <!-- Action Buttons -->
-                    <HBox fx:id="actionButtonsBox" alignment="CENTER" spacing="20" style="-fx-padding: 10 0 0 0;">
-                        <Button styleClass="btn, btn-primary" onAction="#onBuyCoins" style="-fx-min-width: 180;">
+                    <HBox fx:id="actionButtonsBox" alignment="CENTER" spacing="15" style="-fx-padding: 10 0 0 0;">
+                        <Button styleClass="btn, btn-primary" onAction="#onBuyCoins" style="-fx-min-width: 140;">
                             <graphic><FontIcon iconLiteral="fas-coins" iconSize="14" styleClass="icon-white"/></graphic>
-                            <text> NẠP COINS</text>
+                            <text> NẠP TIỀN</text>
                         </Button>
-                        <Button styleClass="btn, btn-success" onAction="#onBuyCombo" style="-fx-min-width: 180;">
+                        <Button styleClass="btn, btn-success" onAction="#onBuyCombo" style="-fx-min-width: 140;">
                             <graphic><FontIcon iconLiteral="fas-shopping-cart" iconSize="14" styleClass="icon-white"/></graphic>
                             <text> MUA COMBO</text>
+                        </Button>
+                    </HBox>
+                    
+                    <!-- Edit Buttons -->
+                    <HBox alignment="CENTER" spacing="15" style="-fx-padding: 5 0 0 0;">
+                        <Button styleClass="btn, btn-secondary" onAction="#onEditInfo" style="-fx-min-width: 140;">
+                            <graphic><FontIcon iconLiteral="fas-user-edit" iconSize="14" styleClass="icon-primary"/></graphic>
+                            <text> Sửa thông tin</text>
+                        </Button>
+                        <Button styleClass="btn, btn-secondary" onAction="#onChangePin" style="-fx-min-width: 140;">
+                            <graphic><FontIcon iconLiteral="fas-key" iconSize="14" styleClass="icon-primary"/></graphic>
+                            <text> Đổi mã PIN</text>
                         </Button>
                     </HBox>
                     
@@ -295,7 +307,159 @@
                 </VBox>
             </VBox>
             
-            <!-- State 5: Error -->
+            <!-- State 5: Change PIN -->
+            <VBox fx:id="changePinState" alignment="CENTER" spacing="15" visible="false">
+                <VBox styleClass="card-container" spacing="15" maxWidth="450" alignment="CENTER">
+                    
+                    <HBox alignment="CENTER" spacing="10">
+                        <FontIcon iconLiteral="fas-key" iconSize="24" styleClass="icon-primary"/>
+                        <Label text="Đổi mã PIN" styleClass="title-small"/>
+                    </HBox>
+                    
+                    <!-- Old PIN Section -->
+                    <VBox alignment="CENTER" spacing="10">
+                        <Label text="Nhập mã PIN hiện tại" styleClass="text-secondary"/>
+                        <HBox alignment="CENTER" spacing="15" fx:id="oldPinDotsContainer">
+                            <Label fx:id="oldPinDot1" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="oldPinDot2" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="oldPinDot3" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="oldPinDot4" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="oldPinDot5" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="oldPinDot6" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <!-- New PIN Section -->
+                    <VBox alignment="CENTER" spacing="10">
+                        <Label text="Nhập mã PIN mới" styleClass="text-secondary"/>
+                        <HBox alignment="CENTER" spacing="15" fx:id="newPinDotsContainer">
+                            <Label fx:id="newPinDot1" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="newPinDot2" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="newPinDot3" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="newPinDot4" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="newPinDot5" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="newPinDot6" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <!-- Confirm PIN Section -->
+                    <VBox alignment="CENTER" spacing="10">
+                        <Label text="Xác nhận mã PIN mới" styleClass="text-secondary"/>
+                        <HBox alignment="CENTER" spacing="15" fx:id="confirmPinDotsContainer">
+                            <Label fx:id="confirmPinDot1" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="confirmPinDot2" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="confirmPinDot3" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="confirmPinDot4" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="confirmPinDot5" styleClass="pin-dot, pin-dot-empty"/>
+                            <Label fx:id="confirmPinDot6" styleClass="pin-dot, pin-dot-empty"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <!-- Numeric Keypad -->
+                    <GridPane hgap="15" vgap="15" alignment="CENTER">
+                        <Button text="1" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="1"
+                                GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <Button text="2" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="2"
+                                GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <Button text="3" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="3"
+                                GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                        
+                        <Button text="4" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="4"
+                                GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                        <Button text="5" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="5"
+                                GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                        <Button text="6" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="6"
+                                GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                        
+                        <Button text="7" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="7"
+                                GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <Button text="8" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="8"
+                                GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        <Button text="9" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="9"
+                                GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                        
+                        <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onChangePinClearAll"
+                                GridPane.columnIndex="0" GridPane.rowIndex="3">
+                            <graphic><FontIcon iconLiteral="fas-times" iconSize="14" styleClass="icon-danger"/></graphic>
+                        </Button>
+                        <Button text="0" styleClass="keypad-btn" onAction="#onChangePinKeypadPress" userData="0"
+                                GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                        <Button styleClass="keypad-btn, keypad-btn-action" onAction="#onChangePinBackspace"
+                                GridPane.columnIndex="2" GridPane.rowIndex="3">
+                            <graphic><FontIcon iconLiteral="fas-backspace" iconSize="14" styleClass="icon-secondary"/></graphic>
+                        </Button>
+                    </GridPane>
+                    
+                    <Label fx:id="changePinInstructionLabel" text="Nhập mã PIN hiện tại" styleClass="pin-instruction"/>
+                    
+                    <!-- Action Buttons -->
+                    <HBox alignment="CENTER" spacing="15">
+                        <Button styleClass="btn, btn-secondary" onAction="#onCancelChangePin" style="-fx-min-width: 120;">
+                            <graphic><FontIcon iconLiteral="fas-times" iconSize="14" styleClass="icon-secondary"/></graphic>
+                            <text> HỦY</text>
+                        </Button>
+                        <Button fx:id="confirmChangePinBtn" styleClass="btn, btn-primary" onAction="#onConfirmChangePin" disable="true" style="-fx-min-width: 120;">
+                            <graphic><FontIcon iconLiteral="fas-check" iconSize="14" styleClass="icon-white"/></graphic>
+                            <text> XÁC NHẬN</text>
+                        </Button>
+                    </HBox>
+                </VBox>
+            </VBox>
+            
+            <!-- State 6: Edit Info -->
+            <VBox fx:id="editInfoState" alignment="CENTER" spacing="15" visible="false">
+                <VBox styleClass="card-container" spacing="15" maxWidth="500" alignment="CENTER">
+                    
+                    <HBox alignment="CENTER" spacing="10">
+                        <FontIcon iconLiteral="fas-user-edit" iconSize="24" styleClass="icon-primary"/>
+                        <Label text="Chỉnh sửa thông tin" styleClass="title-small"/>
+                    </HBox>
+                    
+                    <!-- Name Input -->
+                    <VBox alignment="CENTER_LEFT" spacing="5" style="-fx-padding: 5 20;">
+                        <Label text="Tên" styleClass="text-secondary" style="-fx-font-size: 13px;"/>
+                        <TextField fx:id="editNameField" promptText="Nhập tên" 
+                                   style="-fx-min-width: 300; -fx-pref-height: 35; -fx-font-size: 14px;"/>
+                    </VBox>
+                    
+                    <!-- Age Input -->
+                    <VBox alignment="CENTER_LEFT" spacing="5" style="-fx-padding: 5 20;">
+                        <Label text="Tuổi" styleClass="text-secondary" style="-fx-font-size: 13px;"/>
+                        <TextField fx:id="editAgeField" promptText="Nhập tuổi" 
+                                   style="-fx-min-width: 300; -fx-pref-height: 35; -fx-font-size: 14px;"/>
+                    </VBox>
+                    
+                    <!-- Gender Selection -->
+                    <VBox alignment="CENTER_LEFT" spacing="5" style="-fx-padding: 5 20;">
+                        <Label text="Giới tính" styleClass="text-secondary" style="-fx-font-size: 13px;"/>
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <RadioButton fx:id="maleRadio" text="Nam" styleClass="radio-btn">
+                                <toggleGroup>
+                                    <ToggleGroup fx:id="genderGroup"/>
+                                </toggleGroup>
+                            </RadioButton>
+                            <RadioButton fx:id="femaleRadio" text="Nữ" toggleGroup="$genderGroup" styleClass="radio-btn"/>
+                            <RadioButton fx:id="otherRadio" text="Khác" toggleGroup="$genderGroup" styleClass="radio-btn"/>
+                        </HBox>
+                    </VBox>
+                    
+                    <Label fx:id="editInfoInstructionLabel" text="" styleClass="pin-instruction" style="-fx-font-size: 12px;"/>
+                    
+                    <!-- Action Buttons -->
+                    <HBox alignment="CENTER" spacing="15" style="-fx-padding: 10 0 0 0;">
+                        <Button styleClass="btn, btn-secondary" onAction="#onCancelEditInfo" style="-fx-min-width: 120;">
+                            <graphic><FontIcon iconLiteral="fas-times" iconSize="14" styleClass="icon-secondary"/></graphic>
+                            <text> HỦY</text>
+                        </Button>
+                        <Button fx:id="saveInfoBtn" styleClass="btn, btn-primary" onAction="#onSaveInfo" style="-fx-min-width: 120;">
+                            <graphic><FontIcon iconLiteral="fas-save" iconSize="14" styleClass="icon-white"/></graphic>
+                            <text> LƯU</text>
+                        </Button>
+                    </HBox>
+                </VBox>
+            </VBox>
+            
+            <!-- State 7: Error -->
             <VBox fx:id="errorState" alignment="CENTER" spacing="30" visible="false">
                 <VBox styleClass="card-container" spacing="30" maxWidth="550" alignment="CENTER">
                     <FontIcon iconLiteral="fas-times-circle" iconSize="64" styleClass="icon-danger"/>

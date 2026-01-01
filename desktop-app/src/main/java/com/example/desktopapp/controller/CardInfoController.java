@@ -37,6 +37,8 @@ public class CardInfoController implements Initializable {
     @FXML private VBox pinInputState;
     @FXML private VBox cardInfoState;
     @FXML private VBox resetCardState;
+    @FXML private VBox changePinState;
+    @FXML private VBox editInfoState;
     @FXML private VBox errorState;
 
     // Connecting state
@@ -76,6 +78,30 @@ public class CardInfoController implements Initializable {
     @FXML private Button confirmResetBtn;
     private Label[] resetPinDots;
     private StringBuilder resetPinBuilder = new StringBuilder();
+    
+    // Change PIN state
+    @FXML private Label oldPinDot1, oldPinDot2, oldPinDot3, oldPinDot4, oldPinDot5, oldPinDot6;
+    @FXML private Label newPinDot1, newPinDot2, newPinDot3, newPinDot4, newPinDot5, newPinDot6;
+    @FXML private Label confirmPinDot1, confirmPinDot2, confirmPinDot3, confirmPinDot4, confirmPinDot5, confirmPinDot6;
+    @FXML private Label changePinInstructionLabel;
+    @FXML private Button confirmChangePinBtn;
+    private Label[] oldPinDots;
+    private Label[] newPinDots;
+    private Label[] confirmPinDots;
+    private StringBuilder oldPinBuilder = new StringBuilder();
+    private StringBuilder newPinBuilder = new StringBuilder();
+    private StringBuilder confirmPinBuilder = new StringBuilder();
+    private int changePinStep = 0; // 0: old PIN, 1: new PIN, 2: confirm PIN
+    
+    // Edit info state
+    @FXML private TextField editNameField;
+    @FXML private TextField editAgeField;
+    @FXML private RadioButton maleRadio;
+    @FXML private RadioButton femaleRadio;
+    @FXML private RadioButton otherRadio;
+    @FXML private ToggleGroup genderGroup;
+    @FXML private Label editInfoInstructionLabel;
+    @FXML private Button saveInfoBtn;
 
     // Service
     private CardService cardService;
@@ -90,6 +116,9 @@ public class CardInfoController implements Initializable {
             resetPinDot9, resetPinDot10, resetPinDot11, resetPinDot12,
             resetPinDot13, resetPinDot14, resetPinDot15, resetPinDot16
         };
+        oldPinDots = new Label[]{oldPinDot1, oldPinDot2, oldPinDot3, oldPinDot4, oldPinDot5, oldPinDot6};
+        newPinDots = new Label[]{newPinDot1, newPinDot2, newPinDot3, newPinDot4, newPinDot5, newPinDot6};
+        confirmPinDots = new Label[]{confirmPinDot1, confirmPinDot2, confirmPinDot3, confirmPinDot4, confirmPinDot5, confirmPinDot6};
         cardService = new CardService();
         
         // Auto-connect to card on initialize
@@ -140,6 +169,8 @@ public class CardInfoController implements Initializable {
         pinInputState.setVisible("pin".equals(state));
         cardInfoState.setVisible("info".equals(state));
         resetCardState.setVisible("reset".equals(state));
+        changePinState.setVisible("changepin".equals(state));
+        editInfoState.setVisible("editinfo".equals(state));
         errorState.setVisible("error".equals(state));
         
         // Show/hide reset button based on state
@@ -159,6 +190,12 @@ public class CardInfoController implements Initializable {
                 break;
             case "reset":
                 titleLabel.setText("Reset thẻ");
+                break;
+            case "changepin":
+                titleLabel.setText("Đổi mã PIN");
+                break;
+            case "editinfo":
+                titleLabel.setText("Chỉnh sửa thông tin");
                 break;
             case "error":
                 titleLabel.setText("Lỗi");
@@ -738,5 +775,337 @@ public class CardInfoController implements Initializable {
 
         connectingLabel.textProperty().bind(resetTask.messageProperty());
         new Thread(resetTask).start();
+    }
+
+    // ============ Change PIN Handlers ============
+
+    /**
+     * Handle change PIN request
+     */
+    @FXML
+    private void onChangePin() {
+        changePinStep = 0;
+        oldPinBuilder.setLength(0);
+        newPinBuilder.setLength(0);
+        confirmPinBuilder.setLength(0);
+        updateChangePinDisplay();
+        showState("changepin");
+    }
+
+    /**
+     * Cancel change PIN operation
+     */
+    @FXML
+    private void onCancelChangePin() {
+        showState("info");
+    }
+
+    /**
+     * Handle change PIN keypad press
+     */
+    @FXML
+    private void onChangePinKeypadPress(ActionEvent event) {
+        StringBuilder currentBuilder;
+        switch (changePinStep) {
+            case 0: currentBuilder = oldPinBuilder; break;
+            case 1: currentBuilder = newPinBuilder; break;
+            case 2: currentBuilder = confirmPinBuilder; break;
+            default: return;
+        }
+        
+        if (currentBuilder.length() >= MAX_PIN_LENGTH) return;
+        
+        Button btn = (Button) event.getSource();
+        String digit = (String) btn.getUserData();
+        currentBuilder.append(digit);
+        updateChangePinDisplay();
+    }
+
+    /**
+     * Clear all change PIN digits
+     */
+    @FXML
+    private void onChangePinClearAll() {
+        switch (changePinStep) {
+            case 0: oldPinBuilder.setLength(0); break;
+            case 1: newPinBuilder.setLength(0); break;
+            case 2: confirmPinBuilder.setLength(0); break;
+        }
+        updateChangePinDisplay();
+    }
+
+    /**
+     * Backspace change PIN
+     */
+    @FXML
+    private void onChangePinBackspace() {
+        StringBuilder currentBuilder;
+        switch (changePinStep) {
+            case 0: currentBuilder = oldPinBuilder; break;
+            case 1: currentBuilder = newPinBuilder; break;
+            case 2: currentBuilder = confirmPinBuilder; break;
+            default: return;
+        }
+        
+        if (currentBuilder.length() > 0) {
+            currentBuilder.deleteCharAt(currentBuilder.length() - 1);
+            updateChangePinDisplay();
+        }
+    }
+
+    /**
+     * Update change PIN display
+     */
+    private void updateChangePinDisplay() {
+        // Update old PIN dots
+        int oldLength = oldPinBuilder.length();
+        for (int i = 0; i < oldPinDots.length; i++) {
+            oldPinDots[i].getStyleClass().removeAll("pin-dot-filled", "pin-dot-empty");
+            oldPinDots[i].getStyleClass().add(i < oldLength ? "pin-dot-filled" : "pin-dot-empty");
+        }
+        
+        // Update new PIN dots
+        int newLength = newPinBuilder.length();
+        for (int i = 0; i < newPinDots.length; i++) {
+            newPinDots[i].getStyleClass().removeAll("pin-dot-filled", "pin-dot-empty");
+            newPinDots[i].getStyleClass().add(i < newLength ? "pin-dot-filled" : "pin-dot-empty");
+        }
+        
+        // Update confirm PIN dots
+        int confirmLength = confirmPinBuilder.length();
+        for (int i = 0; i < confirmPinDots.length; i++) {
+            confirmPinDots[i].getStyleClass().removeAll("pin-dot-filled", "pin-dot-empty");
+            confirmPinDots[i].getStyleClass().add(i < confirmLength ? "pin-dot-filled" : "pin-dot-empty");
+        }
+        
+        // Update instruction and handle auto-advance
+        StringBuilder currentBuilder;
+        switch (changePinStep) {
+            case 0:
+                changePinInstructionLabel.setText("Nhập mã PIN hiện tại");
+                currentBuilder = oldPinBuilder;
+                break;
+            case 1:
+                changePinInstructionLabel.setText("Nhập mã PIN mới");
+                currentBuilder = newPinBuilder;
+                break;
+            case 2:
+                changePinInstructionLabel.setText("Xác nhận mã PIN mới");
+                currentBuilder = confirmPinBuilder;
+                break;
+            default:
+                return;
+        }
+        
+        // Auto-advance to next step when current PIN is complete
+        if (currentBuilder.length() == MAX_PIN_LENGTH) {
+            if (changePinStep < 2) {
+                changePinStep++;
+                Platform.runLater(() -> updateChangePinDisplay());
+            }
+        }
+        
+        // Enable confirm button only when all PINs are entered
+        confirmChangePinBtn.setDisable(oldPinBuilder.length() != MAX_PIN_LENGTH || 
+                                        newPinBuilder.length() != MAX_PIN_LENGTH || 
+                                        confirmPinBuilder.length() != MAX_PIN_LENGTH);
+    }
+
+    /**
+     * Confirm change PIN
+     */
+    @FXML
+    private void onConfirmChangePin() {
+        if (oldPinBuilder.length() != MAX_PIN_LENGTH || 
+            newPinBuilder.length() != MAX_PIN_LENGTH || 
+            confirmPinBuilder.length() != MAX_PIN_LENGTH) {
+            UIUtils.showAlert("Lỗi", "Vui lòng nhập đủ 6 số cho tất cả các trường PIN");
+            return;
+        }
+        
+        String newPin = newPinBuilder.toString();
+        String confirmPin = confirmPinBuilder.toString();
+        
+        if (!newPin.equals(confirmPin)) {
+            UIUtils.showAlert("Lỗi", "Mã PIN mới và xác nhận không khớp");
+            newPinBuilder.setLength(0);
+            confirmPinBuilder.setLength(0);
+            changePinStep = 1;
+            updateChangePinDisplay();
+            return;
+        }
+        
+        String oldPin = oldPinBuilder.toString();
+        confirmChangePinBtn.setDisable(true);
+        showState("connecting");
+        connectingLabel.setText("Đang đổi mã PIN...");
+        
+        Task<Void> changePinTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                updateMessage("Đang gửi lệnh đổi PIN...");
+                cardService.changePin(oldPin, newPin);
+                return null;
+            }
+            
+            @Override
+            protected void succeeded() {
+                verifiedPin = newPin; // Update stored PIN
+                Platform.runLater(() -> {
+                    UIUtils.showAlert("Thành công", "Đổi mã PIN thành công!");
+                    showState("info");
+                });
+            }
+            
+            @Override
+            protected void failed() {
+                Throwable ex = getException();
+                Platform.runLater(() -> {
+                    confirmChangePinBtn.setDisable(false);
+                    if (ex.getMessage().contains("6985")) {
+                        UIUtils.showAlert("Lỗi", "Mã PIN cũ không đúng. Vui lòng thử lại.");
+                        oldPinBuilder.setLength(0);
+                        newPinBuilder.setLength(0);
+                        confirmPinBuilder.setLength(0);
+                        changePinStep = 0;
+                        updateChangePinDisplay();
+                        showState("changepin");
+                    } else if (ex.getMessage().contains("6983")) {
+                        errorLabel.setText("Thẻ đã bị khóa do nhập sai PIN quá nhiều lần");
+                        showState("error");
+                    } else {
+                        UIUtils.showAlert("Lỗi", "Không thể đổi PIN: " + ex.getMessage());
+                        showState("changepin");
+                    }
+                });
+            }
+        };
+        
+        connectingLabel.textProperty().bind(changePinTask.messageProperty());
+        new Thread(changePinTask).start();
+    }
+
+    // ============ Edit Info Handlers ============
+
+    /**
+     * Handle edit info request
+     */
+    @FXML
+    private void onEditInfo() {
+        // Pre-fill current values
+        editNameField.setText(nameLabel.getText().equals("Chưa có tên") ? "" : nameLabel.getText());
+        editAgeField.setText(ageLabel.getText().equals("Chưa xác định") ? "" : ageLabel.getText());
+        
+        // Set gender radio button
+        String currentGender = genderLabel.getText();
+        if ("Nam".equals(currentGender)) {
+            maleRadio.setSelected(true);
+        } else if ("Nữ".equals(currentGender)) {
+            femaleRadio.setSelected(true);
+        } else {
+            otherRadio.setSelected(true);
+        }
+        
+        editInfoInstructionLabel.setText("");
+        showState("editinfo");
+    }
+
+    /**
+     * Cancel edit info operation
+     */
+    @FXML
+    private void onCancelEditInfo() {
+        showState("info");
+    }
+
+    /**
+     * Save edited info
+     */
+    @FXML
+    private void onSaveInfo() {
+        String name = editNameField.getText().trim();
+        String ageStr = editAgeField.getText().trim();
+        
+        // Validate inputs
+        if (name.isEmpty()) {
+            editInfoInstructionLabel.setText("⚠ Vui lòng nhập tên");
+            editInfoInstructionLabel.setStyle("-fx-text-fill: #ef4444;");
+            return;
+        }
+        
+        byte age = 0;
+        if (!ageStr.isEmpty()) {
+            try {
+                int ageInt = Integer.parseInt(ageStr);
+                if (ageInt < 1 || ageInt > 150) {
+                    editInfoInstructionLabel.setText("⚠ Tuổi phải từ 1-150");
+                    editInfoInstructionLabel.setStyle("-fx-text-fill: #ef4444;");
+                    return;
+                }
+                age = (byte) ageInt;
+            } catch (NumberFormatException e) {
+                editInfoInstructionLabel.setText("⚠ Tuổi phải là số");
+                editInfoInstructionLabel.setStyle("-fx-text-fill: #ef4444;");
+                return;
+            }
+        }
+        
+        byte gender = 0; // 0: other, 1: male, 2: female
+        if (maleRadio.isSelected()) {
+            gender = 1;
+        } else if (femaleRadio.isSelected()) {
+            gender = 2;
+        }
+        
+        // Create final variables for use in Task
+        final String finalName = name;
+        final byte finalAge = age;
+        final byte finalGender = gender;
+        
+        saveInfoBtn.setDisable(true);
+        showState("connecting");
+        connectingLabel.setText("Đang lưu thông tin...");
+        
+        Task<Void> saveInfoTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                updateMessage("Đang ghi dữ liệu vào thẻ...");
+                cardService.writeUserData(finalName, finalAge, finalGender);
+                return null;
+            }
+            
+            @Override
+            protected void succeeded() {
+                Platform.runLater(() -> {
+                    // Update display with new values
+                    nameLabel.setText(finalName);
+                    ageLabel.setText(finalAge > 0 ? String.valueOf(finalAge & 0xFF) : "Chưa xác định");
+                    
+                    String genderText;
+                    switch (finalGender) {
+                        case 1: genderText = "Nam"; break;
+                        case 2: genderText = "Nữ"; break;
+                        default: genderText = "Khác";
+                    }
+                    genderLabel.setText(genderText);
+                    
+                    UIUtils.showAlert("Thành công", "Cập nhật thông tin thành công!");
+                    showState("info");
+                });
+            }
+            
+            @Override
+            protected void failed() {
+                Throwable ex = getException();
+                Platform.runLater(() -> {
+                    saveInfoBtn.setDisable(false);
+                    UIUtils.showAlert("Lỗi", "Không thể lưu thông tin: " + ex.getMessage());
+                    showState("editinfo");
+                });
+            }
+        };
+        
+        connectingLabel.textProperty().bind(saveInfoTask.messageProperty());
+        new Thread(saveInfoTask).start();
     }
 }

@@ -2,6 +2,7 @@ package com.example.desktopapp.controller;
 
 import com.example.desktopapp.MainApp;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.service.MomoService;
 import com.example.desktopapp.util.AppConfig;
 import com.example.desktopapp.util.UIUtils;
 import javafx.application.Platform;
@@ -10,12 +11,17 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Controller for Payment Top-up screen
@@ -37,9 +43,14 @@ public class PaymentTopupController implements Initializable {
     
     // Writing state
     @FXML private VBox writingState;
+    @FXML private VBox qrLoadingState;
+    @FXML private VBox qrDisplayState;
     @FXML private VBox writingProgress;
     @FXML private VBox successIndicator;
     @FXML private VBox errorIndicator;
+    @FXML private ImageView qrImageView;
+    @FXML private Label paymentAmountLabel;
+    @FXML private Label paymentStatusLabel;
     @FXML private Label writeStatusLabel;
     @FXML private Label errorMessageLabel;
     @FXML private HBox actionButtons;
@@ -59,13 +70,20 @@ public class PaymentTopupController implements Initializable {
     
     // Services
     private CardService cardService;
+    private MomoService momoService;
     private NumberFormat currencyFormat;
     private String pin; // PIN from previous screen
+    
+    // QR Payment polling
+    private ScheduledExecutorService paymentPollingExecutor;
+    private String currentOrderId;
+    private volatile boolean isPolling = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         cardService = new CardService();
+        momoService = new MomoService();
         
         // Setup custom amount field listener
         customAmountField.textProperty().addListener((obs, oldVal, newVal) -> {
@@ -568,7 +586,7 @@ public class PaymentTopupController implements Initializable {
         }
     }
 
-    // ============ Confirm and Write ============
+    // ============ Confirm and QR Payment ============
     
     @FXML
     private void onConfirm() {
@@ -597,9 +615,9 @@ public class PaymentTopupController implements Initializable {
             }
         }
         
-        // Show writing state
+        // Show QR payment state and start payment flow
         showWritingState();
-        writeToCard();
+        startQrPayment();
     }
     
     private void showWritingState() {
@@ -607,31 +625,151 @@ public class PaymentTopupController implements Initializable {
         writingState.setVisible(true);
         bottomButtons.setVisible(false);
         
-        writingProgress.setVisible(true);
+        qrLoadingState.setVisible(true);
+        qrDisplayState.setVisible(false);
+        writingProgress.setVisible(false);
         successIndicator.setVisible(false);
         errorIndicator.setVisible(false);
         actionButtons.setVisible(false);
     }
     
+    /**
+     * Start QR payment flow
+     */
+    private void startQrPayment() {
+        // Calculate amount
+        int amount = paymentType.equals("coins") ? selectedAmount : totalComboPrice;
+        String description = "TOPUP" + System.currentTimeMillis();
+        
+        paymentAmountLabel.setText("Số tiền: " + currencyFormat.format(amount) + "đ");
+        
+        // Create QR in background
+        Task<MomoService.QrPaymentResponse> qrTask = new Task<>() {
+            @Override
+            protected MomoService.QrPaymentResponse call() throws Exception {
+                return momoService.createQrPayment(amount, description);
+            }
+            
+            @Override
+            protected void succeeded() {
+                MomoService.QrPaymentResponse response = getValue();
+                Platform.runLater(() -> {
+                    if (response.resultCode == 0 && response.qrCodeUrl != null) {
+                        // Show QR code
+                        qrLoadingState.setVisible(false);
+                        qrDisplayState.setVisible(true);
+                        
+                        // Load QR image
+                        Image qrImage = new Image(response.qrCodeUrl, true);
+                        qrImageView.setImage(qrImage);
+                        
+                        currentOrderId = response.orderId;
+                        paymentStatusLabel.setText("Đang chờ thanh toán...");
+                        
+                        // Start polling for payment status
+                        startPaymentPolling(response.orderId);
+                    } else {
+                        showQrError("Lỗi tạo QR: " + (response.message != null ? response.message : "Unknown error"));
+                    }
+                });
+            }
+            
+            @Override
+            protected void failed() {
+                Platform.runLater(() -> {
+                    showQrError("Lỗi kết nối: " + getException().getMessage());
+                });
+            }
+        };
+        
+        new Thread(qrTask).start();
+    }
+    
+    private void showQrError(String message) {
+        qrLoadingState.setVisible(false);
+        qrDisplayState.setVisible(false);
+        errorIndicator.setVisible(true);
+        actionButtons.setVisible(true);
+        errorMessageLabel.setText(message);
+    }
+    
+    /**
+     * Start polling payment status every 1 second
+     */
+    private void startPaymentPolling(String orderId) {
+        stopPaymentPolling();
+        
+        isPolling = true;
+        paymentPollingExecutor = Executors.newSingleThreadScheduledExecutor();
+        
+        paymentPollingExecutor.scheduleAtFixedRate(() -> {
+            if (!isPolling) return;
+            
+            try {
+                MomoService.PaymentStatusResponse status = momoService.checkPaymentStatus(orderId);
+                
+                Platform.runLater(() -> {
+                    if (status.isSuccess()) {
+                        stopPaymentPolling();
+                        paymentStatusLabel.setText("Thanh toán thành công! Đang ghi thẻ...");
+                        writeToCard();
+                    } else if (!status.isPending()) {
+                        stopPaymentPolling();
+                        showQrError("Thanh toán thất bại: " + status.message);
+                    } else {
+                        paymentStatusLabel.setText("Đang chờ thanh toán...");
+                    }
+                });
+            } catch (Exception e) {
+                System.err.println("Error polling payment status: " + e.getMessage());
+            }
+        }, 1, 1, TimeUnit.SECONDS);
+    }
+    
+    /**
+     * Stop payment status polling
+     */
+    private void stopPaymentPolling() {
+        isPolling = false;
+        if (paymentPollingExecutor != null && !paymentPollingExecutor.isShutdown()) {
+            paymentPollingExecutor.shutdown();
+            try {
+                paymentPollingExecutor.awaitTermination(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                paymentPollingExecutor.shutdownNow();
+            }
+        }
+    }
+    
+    /**
+     * Retry payment (called from UI)
+     */
+    @FXML
+    private void onRetryPayment() {
+        startQrPayment();
+    }
+    
+    /**
+     * Write data to card after successful payment
+     */
     private void writeToCard() {
+        qrDisplayState.setVisible(false);
+        writingProgress.setVisible(true);
+        
         Task<Void> writeTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                // Connect to card
                 updateMessage("Đang kết nối thẻ...");
                 cardService.connect();
                 
-                // Verify PIN
                 updateMessage("Đang xác thực PIN...");
                 cardService.verifyPin(pin);
                 
                 if (paymentType.equals("coins")) {
-                    // Top up coins
                     updateMessage("Đang nạp coins...");
                     int coins = selectedAmount / 10000;
                     cardService.topupCoins(coins);
                 } else {
-                    // Purchase combo
                     updateMessage("Đang ghi combo vào thẻ...");
                     cardService.purchaseCombo(selectedComboGameIds, totalComboPrice);
                 }
@@ -646,11 +784,11 @@ public class PaymentTopupController implements Initializable {
                     successIndicator.setVisible(true);
                     actionButtons.setVisible(true);
                     
-                    // Auto return after 2 seconds
+                    // Auto return to card info after 3 seconds
                     new Thread(() -> {
                         try {
-                            Thread.sleep(2000);
-                            Platform.runLater(() -> onCancel());
+                            Thread.sleep(3000);
+                            Platform.runLater(() -> goToCardInfo());
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -677,6 +815,18 @@ public class PaymentTopupController implements Initializable {
     
     @FXML
     private void onCancel() {
+        stopPaymentPolling();
+        if (cardService != null) {
+            cardService.disconnect();
+        }
+        MainApp.setRoot("card-info.fxml");
+    }
+    
+    /**
+     * Navigate back to card info screen after successful payment
+     */
+    private void goToCardInfo() {
+        stopPaymentPolling();
         if (cardService != null) {
             cardService.disconnect();
         }
