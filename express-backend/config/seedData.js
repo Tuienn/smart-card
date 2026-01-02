@@ -1,5 +1,6 @@
 const Game = require('../models/Game');
 const Combo = require('../models/Combo');
+const Admin = require('../models/Admin');
 
 // Dữ liệu mẫu cho các trò chơi (points: điểm cần để chơi, 100k VNĐ = 10 điểm)
 const gamesData = [
@@ -117,11 +118,23 @@ async function seedDatabase() {
     // Kiểm tra xem đã có dữ liệu chưa
     const gamesCount = await Game.countDocuments();
     const combosCount = await Combo.countDocuments();
+    const adminsCount = await Admin.countDocuments();
 
     if (gamesCount > 0 || combosCount > 0) {
       console.log('📊 Database đã có dữ liệu, bỏ qua seeding');
       console.log(`   - Games: ${gamesCount} trò chơi`);
       console.log(`   - Combos: ${combosCount} combo`);
+      console.log(`   - Admins: ${adminsCount} tài khoản admin`);
+      
+      // Tạo admin nếu chưa có
+      if (adminsCount === 0) {
+        const admin = await Admin.create({
+          username: 'admin',
+          password: '123456'
+        });
+        console.log('✅ Đã tạo tài khoản admin mặc định (admin/123456)');
+      }
+      
       return;
     }
 
@@ -134,6 +147,13 @@ async function seedDatabase() {
     // Insert combos (đã có game_ids cố định)
     const combos = await Combo.insertMany(combosData);
     console.log(`✅ Đã thêm ${combos.length} combo`);
+
+    // Insert admin mặc định
+    const admin = await Admin.create({
+      username: 'admin',
+      password: '123456'
+    });
+    console.log('✅ Đã tạo tài khoản admin mặc định (admin/123456)');
 
     console.log('🎉 Seed dữ liệu hoàn tất!');
     

@@ -2,6 +2,7 @@ package com.example.desktopapp.controller;
 
 import com.example.desktopapp.ClientApp;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.service.TransactionService;
 import com.example.desktopapp.service.APDUConstants;
 import com.example.desktopapp.service.PinVerificationException;
 import com.example.desktopapp.util.AppConfig;
@@ -28,10 +29,12 @@ public class PaymentClientController {
     private PinKeypadController pinKeypadController;
 
     private CardService cardService;
+    private TransactionService transactionService;
 
     @FXML
     public void initialize() {
         cardService = new CardService();
+        transactionService = new TransactionService();
         
         // Display selected game info
         String gameName = AppConfig.getProperty("selectedGameName", "Unknown Game");
@@ -99,6 +102,18 @@ public class PaymentClientController {
                     if (success) {
                         statusLabel.setText("Thanh toán thành công!");
                         statusLabel.setStyle("-fx-text-fill: green;");
+                        
+                        // Save transaction to database
+                        try {
+                            byte[] userIdBytes = cardService.readUserId();
+                            String cardId = bytesToHex(userIdBytes);
+                            int userAge = cardService.readAge() & 0xFF; // Convert byte to unsigned int
+                            transactionService.createGameTransaction(cardId, userAge, gameId, gamePrice * 10000);
+                            System.out.println("✓ Transaction saved to database");
+                        } catch (Exception e) {
+                            System.err.println("✗ Failed to save transaction: " + e.getMessage());
+                            // Don't block user flow if transaction save fails
+                        }
                         
                         // Navigate to success screen
                         ClientApp.setRoot("payment-success.fxml");
@@ -171,5 +186,16 @@ public class PaymentClientController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    /**
+     * Convert byte array to hex string
+     */
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 }

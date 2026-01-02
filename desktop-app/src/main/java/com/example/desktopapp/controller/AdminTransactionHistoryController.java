@@ -29,13 +29,10 @@ import java.util.Locale;
  */
 public class AdminTransactionHistoryController {
 
-    @FXML private TextField cardIdField;
-    @FXML private PasswordField adminPinField;
-    @FXML private Label cardIdStatus, errorLabel, totalLabel;
+    @FXML private Label errorLabel, totalLabel;
     @FXML private VBox transactionContainer, transactionList, loadingBox, emptyBox;
 
     private CardService cardService;
-    private boolean adminVerified = false;
     private NumberFormat currencyFormat;
     private SimpleDateFormat dateFormat;
 
@@ -44,81 +41,32 @@ public class AdminTransactionHistoryController {
         cardService = new CardService();
         currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        
+        // Tự động đọc thẻ và load lịch sử ngay khi mở trang
+        autoReadCardAndLoadHistory();
     }
-
-    @FXML
-    private void onReadCardId() {
-        cardIdStatus.setText("Đang đọc thẻ...");
-        cardIdStatus.setStyle("-fx-text-fill: #94a3b8;");
-        cardIdStatus.setVisible(true);
-
+    
+    private void autoReadCardAndLoadHistory() {
+        showLoading(true);
+        System.out.println("Đang đọc thẻ...");
+        
         new Thread(() -> {
             try {
                 cardService.connect();
                 byte[] userIdBytes = cardService.readUserId();
-                String userId = bytesToHex(userIdBytes);
+                String cardId = bytesToHex(userIdBytes);
                 cardService.disconnect();
-
-                Platform.runLater(() -> {
-                    cardIdField.setText(userId);
-                    cardIdStatus.setText("✓ Đọc thẻ thành công");
-                    cardIdStatus.setStyle("-fx-text-fill: #22c55e;");
-                });
-
+                
+                System.out.println("✓ Đọc thẻ thành công - Card ID: " + cardId);
+                
+                // Tự động load lịch sử giao dịch
+                loadTransactionHistory(cardId);
+                
             } catch (CardException e) {
-                Platform.runLater(() -> {
-                    cardIdStatus.setText("Lỗi: " + e.getMessage());
-                    cardIdStatus.setStyle("-fx-text-fill: #ef4444;");
-                    UIUtils.showError("Lỗi", "Không thể đọc thẻ", e.getMessage());
-                });
-            }
-        }).start();
-    }
-
-    @FXML
-    private void onViewHistory() {
-        String cardId = cardIdField.getText().trim();
-        String adminPin = adminPinField.getText();
-
-        if (cardId.isEmpty()) {
-            showError("Vui lòng nhập Card ID hoặc đọc từ thẻ");
-            return;
-        }
-
-        if (adminPin.isEmpty()) {
-            showError("Vui lòng nhập Admin PIN");
-            return;
-        }
-
-        // Verify admin PIN if not yet verified
-        if (!adminVerified) {
-            verifyAdminPinAndLoadHistory(cardId, adminPin);
-        } else {
-            loadTransactionHistory(cardId);
-        }
-    }
-
-    private void verifyAdminPinAndLoadHistory(String cardId, String adminPin) {
-        errorLabel.setVisible(false);
-        showLoading(true);
-
-        new Thread(() -> {
-            try {
-                // Connect and verify admin PIN
-                cardService.connect();
-                cardService.verifyAdminPin(adminPin);
-                cardService.disconnect();
-
-                adminVerified = true;
-
-                Platform.runLater(() -> {
-                    loadTransactionHistory(cardId);
-                });
-
-            } catch (Exception e) {
+                System.err.println("❌ Lỗi: Không thể đọc thẻ - " + e.getMessage());
                 Platform.runLater(() -> {
                     showLoading(false);
-                    showError("Admin PIN sai: " + e.getMessage());
+                    showError("Không thể đọc thẻ. Vui lòng cắm thẻ và thử lại.");
                 });
             }
         }).start();
@@ -194,7 +142,13 @@ public class AdminTransactionHistoryController {
         for (int i = 0; i < transactions.length(); i++) {
             JSONObject transaction = transactions.getJSONObject(i);
             transactionList.getChildren().add(createTransactionCard(transaction));
-            total += transaction.optDouble("payment", 0);
+            
+            // Tính tổng với logic tương tự: nếu payment < 1000 thì nhân 10000
+            double payment = transaction.optDouble("payment", 0);
+            if (payment > 0 && payment < 1000) {
+                payment = payment * 10000;
+            }
+            total += payment;
         }
 
         totalLabel.setText("Tổng cộng: " + currencyFormat.format(total) + " VNĐ (" + transactions.length() + " giao dịch)");
@@ -226,6 +180,13 @@ public class AdminTransactionHistoryController {
 
         // Payment amount
         double payment = transaction.optDouble("payment", 0);
+        
+        // Fix: Nếu payment nhỏ hơn 1000, có thể là lưu dưới dạng coins, cần nhân 10000
+        // (vì 1 coin = 10,000 VNĐ, nếu payment < 1000 thì chắc chắn là coins)
+        if (payment > 0 && payment < 1000) {
+            payment = payment * 10000;
+        }
+        
         Label amountLabel = new Label(currencyFormat.format(payment) + " VNĐ");
         amountLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #22c55e; -fx-font-weight: bold;");
 

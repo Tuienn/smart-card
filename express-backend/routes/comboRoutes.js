@@ -41,6 +41,13 @@ router.get('/:id', async (req, res) => {
 // POST create new combo
 router.post('/', async (req, res) => {
   try {
+    // Tự động tạo _id nếu không có
+    if (!req.body._id) {
+      // Tìm ID lớn nhất hiện tại và tăng lên 1
+      const maxCombo = await Combo.findOne().sort({ _id: -1 }).limit(1);
+      req.body._id = maxCombo ? maxCombo._id + 1 : 1;
+    }
+    
     const combo = new Combo(req.body);
     await combo.save();
     await combo.populate('game_ids');

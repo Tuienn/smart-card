@@ -2,6 +2,7 @@ package com.example.desktopapp.controller;
 
 import com.example.desktopapp.MainApp;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.service.TransactionService;
 import com.example.desktopapp.service.MomoService;
 import com.example.desktopapp.util.AppConfig;
 import com.example.desktopapp.util.UIUtils;
@@ -70,6 +71,7 @@ public class PaymentTopupController implements Initializable {
     
     // Services
     private CardService cardService;
+    private TransactionService transactionService;
     private MomoService momoService;
     private NumberFormat currencyFormat;
     private String pin; // PIN from previous screen
@@ -83,6 +85,7 @@ public class PaymentTopupController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         currencyFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
         cardService = new CardService();
+        transactionService = new TransactionService();
         momoService = new MomoService();
         
         // Setup custom amount field listener
@@ -774,6 +777,28 @@ public class PaymentTopupController implements Initializable {
                     cardService.purchaseCombo(selectedComboGameIds, totalComboPrice);
                 }
                 
+                // Save transaction to database
+                updateMessage("Đang lưu giao dịch...");
+                try {
+                    byte[] userIdBytes = cardService.readUserId();
+                    String cardId = bytesToHex(userIdBytes);
+                    int userAge = cardService.readAge() & 0xFF;
+                    
+                    if (paymentType.equals("coins")) {
+                        transactionService.createTopupTransaction(cardId, userAge, selectedAmount);
+                    } else {
+                        // For combo, need to get combo ID from selectedComboIds
+                        String comboId = selectedComboIds.isEmpty() ? null : String.valueOf(selectedComboIds.get(0));
+                        if (comboId != null) {
+                            transactionService.createComboTransaction(cardId, userAge, comboId, totalComboPrice);
+                        }
+                    }
+                    System.out.println("✓ Transaction saved to database");
+                } catch (Exception e) {
+                    System.err.println("✗ Failed to save transaction: " + e.getMessage());
+                    // Don't fail the whole flow if transaction save fails
+                }
+                
                 return null;
             }
 
@@ -831,5 +856,16 @@ public class PaymentTopupController implements Initializable {
             cardService.disconnect();
         }
         MainApp.setRoot("card-info.fxml");
+    }
+
+    /**
+     * Convert byte array to hex string
+     */
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 }

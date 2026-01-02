@@ -25,7 +25,7 @@ const comboSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true
+    default: ''
   },
   game_ids: [{
     type: Number,

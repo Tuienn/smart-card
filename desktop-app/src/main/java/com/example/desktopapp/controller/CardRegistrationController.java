@@ -4,6 +4,7 @@ import com.example.desktopapp.MainApp;
 import com.example.desktopapp.model.UserRegistration;
 import com.example.desktopapp.service.APDUConstants;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.service.TransactionService;
 import com.example.desktopapp.service.MomoService;
 import com.example.desktopapp.util.AppConfig;
 import com.example.desktopapp.util.UIUtils;
@@ -1055,6 +1056,29 @@ public class CardRegistrationController implements Initializable {
                     cardService.topupCoins(user.getCoins());
                 }
 
+                // Save transaction to database
+                if (user.getCoins() > 0 || (selectedComboGameIds != null && selectedComboGameIds.length > 0)) {
+                    updateMessage("Đang lưu giao dịch...");
+                    try {
+                        TransactionService transactionService = new TransactionService();
+                        byte[] userIdBytes = cardService.readUserId();
+                        String cardId = bytesToHex(userIdBytes);
+                        int userAge = Integer.parseInt(user.getAge());
+                        
+                        if (paymentType.equals("combo") && !selectedComboIds.isEmpty()) {
+                            String comboId = String.valueOf(selectedComboIds.get(0));
+                            // Chuyển đổi coins sang VNĐ (1 coin = 10,000 VNĐ)
+                            transactionService.createComboTransaction(cardId, userAge, comboId, user.getCoins() * 10000);
+                        } else if (user.getCoins() > 0) {
+                            // Chuyển đổi coins sang VNĐ (1 coin = 10,000 VNĐ)
+                            transactionService.createTopupTransaction(cardId, userAge, user.getCoins() * 10000);
+                        }
+                        System.out.println("✓ Transaction saved to database");
+                    } catch (Exception e) {
+                        System.err.println("✗ Failed to save transaction: " + e.getMessage());
+                    }
+                }
+
                 if (avatarBytes != null) {
                     updateMessage("Đang ghi ảnh đại diện...");
                     cardService.writeAvatar(avatarBytes, (byte) 0x01);
@@ -1336,5 +1360,16 @@ public class CardRegistrationController implements Initializable {
 
     private FontIcon createIcon(FontAwesomeSolid iconCode, String color, int size) {
         return UIUtils.createIcon(iconCode, color, size);
+    }
+
+    /**
+     * Convert byte array to hex string
+     */
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 }

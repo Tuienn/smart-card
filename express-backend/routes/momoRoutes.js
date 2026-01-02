@@ -1,6 +1,8 @@
 const express = require("express");
 const crypto = require("crypto");
 const axios = require("axios");
+const Transaction = require("../models/Transaction");
+const Card = require("../models/Card");
 const router = express.Router();
 
 // ===== CONFIG MOMO =====
@@ -140,6 +142,33 @@ router.post("/qr", async (req, res) => {
       createdAt: Date.now(),
     });
 
+    // ===== MOCK MODE for Development =====
+    if (process.env.MOMO_MOCK_MODE === 'true') {
+      console.log("🔧 MOCK MODE: Bypassing real MoMo API");
+      
+      // Tạo mock QR code URL (sẽ không hoạt động thật, chỉ để demo UI)
+      const mockPayUrl = `https://test-payment.momo.vn/pay?t=${orderId}`;
+      const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(mockPayUrl)}`;
+      
+      // Cập nhật storage
+      const payment = paymentStorage.get(orderId);
+      if (payment) {
+        payment.qrData = mockPayUrl;
+        paymentStorage.set(orderId, payment);
+      }
+      
+      console.log("✓ Mock QR created successfully");
+      
+      return res.json({
+        qrCodeUrl: qrCodeImageUrl,
+        orderId,
+        qrData: mockPayUrl,
+        resultCode: 0,
+        message: `[MOCK] QR được tạo với số tiền ${amountNum} VND. Sử dụng endpoint /api/momo/confirm/${orderId} để giả lập thanh toán thành công.`,
+      });
+    }
+
+    // ===== REAL MOMO API =====
     // Gọi API MOMO
     const momoRes = await axios.post(MOMO_CONFIG.endpoint, requestBody, {
       headers: { "Content-Type": "application/json" },
@@ -290,8 +319,35 @@ router.post("/ipn", async (req, res) => {
               console.log(
                 `✓ Would update balance for userId ${userId}: +${amount} VND`
               );
+
+              // Extract cardId from description (format: TOPUP<timestamp> or cardId)
+              // For now, we'll try to find the card by checking recent payments
+              // In production, you should pass cardId in the description
+              const cardId = description.startsWith("TOPUP") 
+                ? description.replace("TOPUP", "").substring(0, 32) // Extract potential cardId
+                : description.toUpperCase();
+
+              // Try to find card and create transaction
+              const card = await Card.findById(cardId).catch(() => null);
+              
+              if (card) {
+                const newTransaction = new Transaction({
+                  card_id: cardId,
+                  user_age: card.user_age,
+                  payment: parseInt(amount),
+                  time_stamp: new Date(),
+                  game_id: null,
+                  combo_id: null
+                });
+
+                await newTransaction.save();
+                console.log(`✓ Transaction created for card ${cardId}: ${amount} VND`);
+              } else {
+                console.log(`✗ Card not found: ${cardId}, transaction not saved`);
+              }
+
             } catch (e) {
-              console.error("✗ Error updating balance:", e.message);
+              console.error("✗ Error saving transaction:", e.message);
             }
           } else {
             console.log(`✗ Invalid userId (${userId}) or amount (${amount})`);

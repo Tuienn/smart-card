@@ -24,54 +24,15 @@ import java.nio.charset.StandardCharsets;
  */
 public class AdminManageGamesController {
 
-    @FXML private VBox adminPinBox, gamesManagementBox, gamesList, loadingBox;
-    @FXML private PasswordField adminPinField;
-    @FXML private Label adminPinErrorLabel;
+    @FXML private VBox gamesManagementBox, gamesList, loadingBox;
 
     private CardService cardService;
-    private boolean adminVerified = false;
 
     @FXML
     public void initialize() {
         cardService = new CardService();
-    }
-
-    @FXML
-    private void onVerifyAdminPin() {
-        String adminPin = adminPinField.getText();
-        
-        if (adminPin.isEmpty()) {
-            showAdminPinError("Vui lòng nhập Admin PIN");
-            return;
-        }
-
-        adminPinErrorLabel.setVisible(false);
-        adminPinField.setDisable(true);
-
-        new Thread(() -> {
-            try {
-                cardService.connect();
-                cardService.verifyAdminPin(adminPin);
-                cardService.disconnect();
-
-                adminVerified = true;
-
-                Platform.runLater(() -> {
-                    adminPinBox.setVisible(false);
-                    adminPinBox.setManaged(false);
-                    gamesManagementBox.setVisible(true);
-                    gamesManagementBox.setManaged(true);
-                    loadGames();
-                });
-
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    showAdminPinError("Admin PIN sai: " + e.getMessage());
-                    adminPinField.setDisable(false);
-                    adminPinField.clear();
-                });
-            }
-        }).start();
+        // Tự động load games khi mở trang
+        loadGames();
     }
 
     private void loadGames() {
@@ -380,11 +341,6 @@ public class AdminManageGamesController {
     private void showLoading(boolean show) {
         loadingBox.setVisible(show);
         loadingBox.setManaged(show);
-    }
-
-    private void showAdminPinError(String message) {
-        adminPinErrorLabel.setText(message);
-        adminPinErrorLabel.setVisible(true);
     }
 
     @FXML

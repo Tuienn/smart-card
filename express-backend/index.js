@@ -11,6 +11,8 @@ const comboRoutes = require("./routes/comboRoutes");
 const cardRoutes = require("./routes/cardRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
 const momoRoutes = require("./routes/momoRoutes");
+const statisticsRoutes = require("./routes/statisticsRoutes");
+const adminAuthRoutes = require("./routes/adminAuthRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -37,6 +39,8 @@ app.get("/", (req, res) => {
       cards: "/api/cards",
       transactions: "/api/transactions",
       momo: "/api/momo",
+      statistics: "/api/statistics",
+      admin: "/api/admin",
     },
   });
 });
@@ -47,6 +51,8 @@ app.use("/api/combos", comboRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/momo", momoRoutes);
+app.use("/api/statistics", statisticsRoutes);
+app.use("/api/admin", adminAuthRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -7,7 +7,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.example.desktopapp.controller.AdminManageGamesController"
+            fx:controller="com.example.desktopapp.controller.AdminManageCombosController"
             styleClass="root">
     
     <top>
@@ -34,18 +34,18 @@
             <!-- Header -->
             <VBox alignment="CENTER" spacing="10">
                 <StackPane styleClass="main-icon-container" style="-fx-min-width: 80; -fx-min-height: 80; -fx-max-width: 80; -fx-max-height: 80;">
-                    <FontIcon iconLiteral="fas-gamepad" iconSize="40" styleClass="icon-primary"/>
+                    <FontIcon iconLiteral="fas-box-open" iconSize="40" styleClass="icon-primary"/>
                 </StackPane>
-                <Label text="QUẢN LÝ TRÒ CHƠI" styleClass="title-large" style="-fx-font-size: 28px;"/>
-                <Label text="Thêm, sửa, xóa trò chơi trong hệ thống" styleClass="subtitle"/>
+                <Label text="QUẢN LÝ COMBO" styleClass="title-large" style="-fx-font-size: 28px;"/>
+                <Label text="Thêm, sửa, xóa combo trong hệ thống" styleClass="subtitle"/>
             </VBox>
 
-            <!-- Games Management -->
-            <VBox fx:id="gamesManagementBox" spacing="20" style="-fx-max-width: 900;">
+            <!-- Combos Management -->
+            <VBox fx:id="combosManagementBox" spacing="20" style="-fx-max-width: 900;">
                 
                 <!-- Action Buttons -->
                 <HBox spacing="15" alignment="CENTER">
-                    <Button text="Thêm trò chơi mới" onAction="#onAddGame" styleClass="btn-success" style="-fx-pref-height: 40;">
+                    <Button text="Thêm combo mới" onAction="#onAddCombo" styleClass="btn-success" style="-fx-pref-height: 40;">
                         <graphic>
                             <FontIcon iconLiteral="fas-plus-circle" iconSize="16"/>
                         </graphic>
@@ -57,12 +57,12 @@
                     </Button>
                 </HBox>
 
-                <!-- Games List -->
+                <!-- Combos List -->
                 <VBox spacing="10">
-                    <Label text="Danh sách trò chơi" styleClass="title-small"/>
+                    <Label text="Danh sách combo" styleClass="title-small"/>
                     
                     <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-max-height: 450;">
-                        <VBox fx:id="gamesList" spacing="10" style="-fx-padding: 10;"/>
+                        <VBox fx:id="combosList" spacing="10" style="-fx-padding: 10;"/>
                     </ScrollPane>
                 </VBox>
 

@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -15,10 +14,7 @@
             <padding>
                 <Insets top="20" right="20" bottom="0" left="20"/>
             </padding>
-            <Button text="" onAction="#onBackToHome" styleClass="btn-back" style="-fx-min-width: 50; -fx-min-height: 50; -fx-background-radius: 50; -fx-border-radius: 50;">
-                <graphic>
-                    <FontIcon iconLiteral="fas-home" iconSize="20"/>
-                </graphic>
+            <Button text="🏠" onAction="#onBackToHome" styleClass="btn-back" style="-fx-min-width: 50; -fx-min-height: 50; -fx-background-radius: 50; -fx-border-radius: 50; -fx-font-size: 20px;">
                 <Tooltip text="Về trang chủ Admin"/>
             </Button>
         </HBox>
@@ -34,7 +30,7 @@
             <!-- Header -->
             <VBox alignment="CENTER" spacing="10">
                 <StackPane styleClass="main-icon-container" style="-fx-min-width: 80; -fx-min-height: 80; -fx-max-width: 80; -fx-max-height: 80;">
-                    <FontIcon iconLiteral="fas-key" iconSize="40" styleClass="icon-primary"/>
+                    <Label text="🔑" style="-fx-font-size: 40px;"/>
                 </StackPane>
                 <Label text="ĐỔI MẬT KHẨU THẺ" styleClass="title-large" style="-fx-font-size: 28px;"/>
                 <Label text="Thay đổi PIN cho thẻ người dùng" styleClass="subtitle"/>
@@ -69,29 +65,22 @@
 
                 <!-- Step 1: Card Check -->
                 <VBox fx:id="step1Content" spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 30;">
-                    <FontIcon iconLiteral="fas-id-card" iconSize="60" styleClass="icon-primary" style="-fx-opacity: 0.8;"/>
+                    <Label text="📇" style="-fx-font-size: 60px;"/>
                     <Label text="Đặt thẻ vào đầu đọc" styleClass="title-small"/>
                     <Label fx:id="cardStatusLabel" text="Nhấn nút bên dưới để kiểm tra thẻ" styleClass="subtitle" textAlignment="CENTER" wrapText="true"/>
-                    <Button text="Kiểm tra thẻ" onAction="#onCheckCard" styleClass="btn-primary" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
-                        <graphic>
-                            <FontIcon iconLiteral="fas-search" iconSize="18"/>
-                        </graphic>
+                    <Button text="🔍 Kiểm tra thẻ" onAction="#onCheckCard" styleClass="btn-primary" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
                     </Button>
                 </VBox>
 
                 <!-- Step 2: Admin PIN -->
                 <VBox fx:id="step2Content" spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 30;" visible="false" managed="false">
-                    <FontIcon iconLiteral="fas-shield-alt" iconSize="60" styleClass="icon-primary" style="-fx-opacity: 0.8;"/>
                     <Label text="Nhập Admin PIN" styleClass="title-small"/>
                     <Label text="Xác thực quyền quản trị" styleClass="subtitle"/>
                     
                     <PasswordField fx:id="adminPinField" promptText="Nhập Admin PIN" 
                                   style="-fx-min-width: 300; -fx-pref-height: 40; -fx-font-size: 16px;"/>
                     
-                    <Button text="Xác thực" onAction="#onVerifyAdminPin" styleClass="btn-primary" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
-                        <graphic>
-                            <FontIcon iconLiteral="fas-check" iconSize="18"/>
-                        </graphic>
+                    <Button text="✓ Xác thực" onAction="#onVerifyAdminPin" styleClass="btn-primary" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
                     </Button>
                     
                     <Label fx:id="adminPinErrorLabel" text="" styleClass="error-label" visible="false"/>
@@ -99,7 +88,7 @@
 
                 <!-- Step 3: Change PIN -->
                 <VBox fx:id="step3Content" spacing="15" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 30;" visible="false" managed="false">
-                    <FontIcon iconLiteral="fas-key" iconSize="60" styleClass="icon-success" style="-fx-opacity: 0.8;"/>
+                    <Label text="🔑" style="-fx-font-size: 60px;"/>
                     <Label text="Nhập PIN mới cho thẻ" styleClass="title-small"/>
                     
                     <VBox spacing="10" style="-fx-max-width: 350;">
@@ -112,10 +101,7 @@
                                       style="-fx-pref-height: 40; -fx-font-size: 16px;"/>
                     </VBox>
                     
-                    <Button text="Đổi mật khẩu" onAction="#onChangePin" styleClass="btn-success" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
-                        <graphic>
-                            <FontIcon iconLiteral="fas-check-circle" iconSize="18"/>
-                        </graphic>
+                    <Button text="✓ Đổi mật khẩu" onAction="#onChangePin" styleClass="btn-success" style="-fx-min-width: 200; -fx-pref-height: 45; -fx-font-size: 16px;">
                     </Button>
                     
                     <ProgressIndicator fx:id="changeProgress" visible="false" style="-fx-max-width: 50; -fx-max-height: 50;"/>
@@ -125,10 +111,7 @@
             </VBox>
 
             <!-- Back Button -->
-            <Button text="Quay lại" onAction="#onBack" styleClass="btn-secondary" style="-fx-min-width: 150;">
-                <graphic>
-                    <FontIcon iconLiteral="fas-arrow-left" iconSize="14"/>
-                </graphic>
+            <Button text="← Quay lại" onAction="#onBack" styleClass="btn-secondary" style="-fx-min-width: 150;">
             </Button>
 
             </VBox>

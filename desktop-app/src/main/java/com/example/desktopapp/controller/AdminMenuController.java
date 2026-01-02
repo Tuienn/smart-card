@@ -30,12 +30,6 @@ public class AdminMenuController {
         // Define admin functions
         AdminFunction[] functions = {
             new AdminFunction(
-                "fas-unlock",
-                "Mở khóa thẻ",
-                "Mở khóa thẻ người dùng bị khóa do nhập sai PIN",
-                "admin-unlock-card.fxml"
-            ),
-            new AdminFunction(
                 "fas-key",
                 "Đổi mật khẩu thẻ",
                 "Thay đổi PIN cho thẻ người dùng",
@@ -48,28 +42,28 @@ public class AdminMenuController {
                 "admin-reset-card.fxml"
             ),
             new AdminFunction(
-                "fas-history",
-                "Lịch sử giao dịch",
-                "Xem lịch sử giao dịch của thẻ người dùng",
-                "admin-transaction-history.fxml"
-            ),
-            new AdminFunction(
-                "fas-info-circle",
-                "Thông tin thẻ",
-                "Xem thông tin chi tiết của thẻ người dùng",
-                "admin-card-info.fxml"
-            ),
-            new AdminFunction(
-                "fas-coins",
-                "Quản lý số dư",
-                "Nạp tiền hoặc điều chỉnh số dư cho thẻ",
-                "admin-manage-balance.fxml"
+                "fas-box-open",
+                "Quản lý combo",
+                "Thêm, sửa, xóa combo trong hệ thống",
+                "admin-manage-combos.fxml"
             ),
             new AdminFunction(
                 "fas-gamepad",
                 "Quản lý trò chơi",
                 "Thêm, sửa, xóa trò chơi trong hệ thống",
                 "admin-manage-games.fxml"
+            ),
+            new AdminFunction(
+                "fas-history",
+                "Lịch sử giao dịch",
+                "Xem lịch sử giao dịch của thẻ người dùng",
+                "admin-transaction-history.fxml"
+            ),
+            new AdminFunction(
+                "fas-chart-bar",
+                "Thống kê",
+                "Xem biểu đồ thống kê doanh thu và sản phẩm",
+                "admin-statistics.fxml"
             )
         };
 

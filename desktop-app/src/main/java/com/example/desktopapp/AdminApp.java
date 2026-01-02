@@ -18,14 +18,14 @@ public class AdminApp extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("admin-menu.fxml"), 1200, 800);
+        scene = new Scene(loadFXML("admin-login.fxml"), 1200, 800);
         
         // Load CSS
         String css = AdminApp.class.getResource("styles.css").toExternalForm();
         scene.getStylesheets().add(css);
         
         // Configure stage
-        stage.setTitle("Hệ thống quản trị thẻ - Admin Panel");
+        stage.setTitle("Hệ thống quản trị thẻ - Đăng nhập Admin");
         stage.setScene(scene);
         stage.setMinWidth(900);
         stage.setMinHeight(700);
@@ -76,6 +76,23 @@ public class AdminApp extends Application {
     private static Parent loadFXML(String fxml) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(AdminApp.class.getResource(fxml));
         return fxmlLoader.load();
+    }
+
+    /**
+     * Change scene to a new FXML with a new title
+     * @param fxml the FXML file name
+     * @param title the new window title
+     */
+    public static void changeScene(String fxml, String title) {
+        try {
+            scene.setRoot(loadFXML(fxml));
+            Stage stage = (Stage) scene.getWindow();
+            if (stage != null) {
+                stage.setTitle(title);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {

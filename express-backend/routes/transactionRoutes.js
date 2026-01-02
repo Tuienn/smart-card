@@ -6,7 +6,7 @@ const Transaction = require('../models/Transaction');
 router.get('/', async (req, res) => {
   try {
     const transactions = await Transaction.find()
-      .populate('card_id')
+      .populate('game_id')
       .populate('combo_id');
     res.json({ success: true, data: transactions });
   } catch (error) {
@@ -17,10 +17,12 @@ router.get('/', async (req, res) => {
 // GET transactions by card ID (phải đặt trước /:id để tránh conflict)
 router.get('/card/:cardId', async (req, res) => {
   try {
-    // Normalize cardId to uppercase để match với Card._id
-    const cardId = req.params.cardId.toUpperCase();
-    const transactions = await Transaction.find({ card_id: cardId })
-      .populate('card_id')
+    // Tìm kiếm case-insensitive để match với cả lowercase và uppercase
+    const cardId = req.params.cardId;
+    const transactions = await Transaction.find({ 
+      card_id: { $regex: new RegExp('^' + cardId + '$', 'i') }
+    })
+      .populate('game_id')
       .populate('combo_id')
       .sort({ time_stamp: -1 }); // Sắp xếp mới nhất trước
     res.json({ success: true, data: transactions });
@@ -33,7 +35,7 @@ router.get('/card/:cardId', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const transaction = await Transaction.findById(req.params.id)
-      .populate('card_id')
+      .populate('game_id')
       .populate('combo_id');
     if (!transaction) {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
@@ -49,7 +51,8 @@ router.post('/', async (req, res) => {
   try {
     const transaction = new Transaction(req.body);
     await transaction.save();
-    await transaction.populate(['card_id', 'combo_id']);
+    // Chỉ populate game_id và combo_id, không populate card_id vì nó là String không có ref thực sự
+    await transaction.populate(['game_id', 'combo_id']);
     res.status(201).json({ success: true, data: transaction });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -63,7 +66,7 @@ router.put('/:id', async (req, res) => {
       req.params.id,
       req.body,
       { new: true, runValidators: true }
-    ).populate(['card_id', 'combo_id']);
+    ).populate(['game_id', 'combo_id']);
     if (!transaction) {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
     }

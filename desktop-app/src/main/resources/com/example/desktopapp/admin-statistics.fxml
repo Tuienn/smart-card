@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.desktopapp.controller.AdminStatisticsController"
+      styleClass="root" stylesheets="@styles.css" spacing="20" alignment="TOP_CENTER">
+
+    <!-- Header -->
+    <HBox styleClass="header-box" alignment="CENTER_LEFT" spacing="15">
+        <Button onAction="#onBack" styleClass="btn-icon">
+            <graphic>
+                <FontIcon iconLiteral="fas-arrow-left" iconSize="20" iconColor="white"/>
+            </graphic>
+        </Button>
+        <Label text="Thống Kê" styleClass="header-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Làm mới" onAction="#onRefresh" styleClass="btn-primary">
+            <graphic>
+                <FontIcon iconLiteral="fas-sync-alt" iconSize="16"/>
+            </graphic>
+        </Button>
+    </HBox>
+
+    <!-- Loading State -->
+    <VBox fx:id="loadingBox" alignment="CENTER" spacing="15" styleClass="glass-panel" 
+          VBox.vgrow="ALWAYS" visible="true" managed="true">
+        <ProgressIndicator/>
+        <Label text="Đang tải dữ liệu thống kê..." styleClass="text-secondary"/>
+    </VBox>
+
+    <!-- Content -->
+    <ScrollPane fx:id="contentScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" visible="false" managed="false">
+        <VBox fx:id="contentBox" spacing="20" styleClass="container">
+            
+            <!-- Summary Cards -->
+            <HBox spacing="20" alignment="CENTER">
+                <VBox styleClass="glass-panel, stat-card" alignment="CENTER" spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="💰 Tổng Doanh Thu" styleClass="stat-card-label"/>
+                    <Label fx:id="totalRevenueLabel" text="0 VNĐ" styleClass="stat-card-value"/>
+                </VBox>
+                
+                <VBox styleClass="glass-panel, stat-card" alignment="CENTER" spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="📊 Tổng Giao Dịch" styleClass="stat-card-label"/>
+                    <Label fx:id="totalTransactionsLabel" text="0" styleClass="stat-card-value"/>
+                </VBox>
+                
+                <VBox styleClass="glass-panel, stat-card" alignment="CENTER" spacing="10" HBox.hgrow="ALWAYS">
+                    <Label text="💵 Trung Bình/GD" styleClass="stat-card-label"/>
+                    <Label fx:id="avgTransactionLabel" text="0 VNĐ" styleClass="stat-card-value"/>
+                </VBox>
+            </HBox>
+
+            <!-- Chart 1: Revenue by Month -->
+            <VBox styleClass="glass-panel" spacing="15">
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <Label text="📈 Doanh Thu Theo Tháng" styleClass="chart-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Năm:" styleClass="text-secondary"/>
+                    <ComboBox fx:id="yearSelector" styleClass="combo-box" prefWidth="100"/>
+                </HBox>
+                
+                <BarChart fx:id="revenueByMonthChart" prefHeight="300" legendVisible="false">
+                    <xAxis>
+                        <CategoryAxis fx:id="monthAxis" side="BOTTOM"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="revenueAxis" side="LEFT"/>
+                    </yAxis>
+                </BarChart>
+            </VBox>
+
+            <!-- Chart 2: Top Products -->
+            <VBox styleClass="glass-panel" spacing="15">
+                <HBox alignment="CENTER_LEFT" spacing="15">
+                    <Label text="🏆 Top 10 Sản Phẩm Bán Chạy" styleClass="chart-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <ToggleButton fx:id="showGamesBtn" text="Games" styleClass="btn-toggle"/>
+                    <ToggleButton fx:id="showCombosBtn" text="Combos" styleClass="btn-toggle"/>
+                </HBox>
+                
+                <BarChart fx:id="topProductsChart" prefHeight="350" legendVisible="false">
+                    <xAxis>
+                        <CategoryAxis fx:id="productAxis" side="BOTTOM"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="countAxis" side="LEFT"/>
+                    </yAxis>
+                </BarChart>
+            </VBox>
+
+            <!-- Chart 3: Revenue by Age Group -->
+            <VBox styleClass="glass-panel" spacing="15">
+                <Label text="👥 Doanh Thu Theo Nhóm Tuổi" styleClass="chart-title"/>
+                
+                <BarChart fx:id="revenueByAgeChart" prefHeight="300" legendVisible="false">
+                    <xAxis>
+                        <CategoryAxis fx:id="ageAxis" side="BOTTOM"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="ageRevenueAxis" side="LEFT"/>
+                    </yAxis>
+                </BarChart>
+            </VBox>
+
+        </VBox>
+    </ScrollPane>
+
+    <!-- Error Label -->
+    <Label fx:id="errorLabel" styleClass="error-message" visible="false" managed="false"/>
+
+    <padding>
+        <Insets top="20" right="40" bottom="20" left="40"/>
+    </padding>
+</VBox>

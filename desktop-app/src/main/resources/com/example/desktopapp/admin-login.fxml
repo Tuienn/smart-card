@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.desktopapp.controller.AdminLoginController"
+            styleClass="root">
+    
+    <center>
+        <VBox alignment="CENTER" spacing="25" styleClass="main-container">
+            <padding>
+                <Insets top="50" right="50" bottom="50" left="50"/>
+            </padding>
+
+            <!-- Header -->
+            <VBox alignment="CENTER" spacing="15">
+                <StackPane styleClass="main-icon-container" style="-fx-min-width: 100; -fx-min-height: 100; -fx-max-width: 100; -fx-max-height: 100;">
+                    <Label text="🔐" style="-fx-font-size: 50px;"/>
+                </StackPane>
+                <Label text="ĐĂNG NHẬP QUẢN TRỊ" styleClass="title-large" style="-fx-font-size: 32px;"/>
+                <Label text="Vui lòng đăng nhập để tiếp tục" styleClass="subtitle" style="-fx-font-size: 15px;"/>
+            </VBox>
+
+            <!-- Login Form -->
+            <VBox spacing="20" alignment="CENTER" styleClass="glass-panel" style="-fx-padding: 40; -fx-max-width: 450;">
+                
+                <!-- Username Field -->
+                <VBox spacing="8">
+                    <Label text="Tên đăng nhập:" style="-fx-text-fill: #cbd5e1; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <TextField fx:id="usernameField" 
+                              promptText="Nhập tên đăng nhập" 
+                              style="-fx-pref-height: 45; -fx-font-size: 15px; -fx-background-radius: 8; -fx-border-radius: 8;"/>
+                </VBox>
+
+                <!-- Password Field -->
+                <VBox spacing="8">
+                    <Label text="Mật khẩu:" style="-fx-text-fill: #cbd5e1; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <PasswordField fx:id="passwordField" 
+                                  promptText="Nhập mật khẩu" 
+                                  style="-fx-pref-height: 45; -fx-font-size: 15px; -fx-background-radius: 8; -fx-border-radius: 8;"/>
+                </VBox>
+
+                <!-- Error Label -->
+                <Label fx:id="errorLabel" text="" styleClass="error-label" visible="false" 
+                      style="-fx-text-fill: #ef4444; -fx-font-size: 13px;"/>
+
+                <!-- Login Button -->
+                <Button text="🔓 Đăng nhập" onAction="#onLogin" styleClass="btn-primary" 
+                       style="-fx-min-width: 200; -fx-pref-height: 50; -fx-font-size: 16px; -fx-background-radius: 10; -fx-border-radius: 10;">
+                </Button>
+
+                <!-- Loading Indicator -->
+                <ProgressIndicator fx:id="loadingIndicator" visible="false" 
+                                  style="-fx-max-width: 50; -fx-max-height: 50;"/>
+
+            </VBox>
+
+            <!-- Footer -->
+            <VBox alignment="CENTER" spacing="8" style="-fx-opacity: 0.7;">
+                <Label text="SmartCard Management System v1.0" style="-fx-text-fill: #94a3b8; -fx-font-size: 12px;"/>
+                <Label text="Tài khoản mặc định: admin / 123456" style="-fx-text-fill: #64748b; -fx-font-size: 11px; -fx-font-style: italic;"/>
+            </VBox>
+
+        </VBox>
+    </center>
+
+</BorderPane>
