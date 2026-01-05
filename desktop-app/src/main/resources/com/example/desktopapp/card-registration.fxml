@@ -62,7 +62,7 @@
                         <HBox alignment="CENTER">
                             <StackPane fx:id="avatarContainer" styleClass="avatar-placeholder" 
                                        onMouseClicked="#onAvatarClick">
-                                <ImageView fx:id="avatarImage" fitWidth="110" fitHeight="110" preserveRatio="true">
+                                <ImageView fx:id="avatarImage" fitWidth="110" fitHeight="110" preserveRatio="false">
                                     <clip>
                                         <Circle radius="55" centerX="55" centerY="55"/>
                                     </clip>

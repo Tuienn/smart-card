@@ -7,6 +7,7 @@ import com.example.desktopapp.service.CardService;
 import com.example.desktopapp.service.TransactionService;
 import com.example.desktopapp.service.MomoService;
 import com.example.desktopapp.util.AppConfig;
+import com.example.desktopapp.util.InputValidator;
 import com.example.desktopapp.util.UIUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -129,13 +130,14 @@ public class CardRegistrationController implements Initializable {
         cardService = new CardService();
         momoService = new MomoService();
 
-        // Setup custom amount field listener
+        // Setup input validation
+        InputValidator.setupNameValidation(nameField);
+        InputValidator.setupAgeValidation(ageField);
+        InputValidator.setupAmountValidation(customAmountField);
+        
+        // Setup custom amount field listener for coin display update
         customAmountField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*")) {
-                customAmountField.setText(newVal.replaceAll("[^\\d]", ""));
-            } else {
-                updateCoinDisplay();
-            }
+            updateCoinDisplay();
         });
 
         // Initialize PIN dots array
@@ -263,7 +265,7 @@ public class CardRegistrationController implements Initializable {
             
             // Try progressively smaller sizes until we fit under maxSize
             double scale = 1.0;
-            for (int attempt = 0; attempt < 10; attempt++) {
+            for (int attempt = 0; attempt < 20; attempt++) {
                 // Reduce dimensions by 20% each iteration
                 scale *= 0.8;
                 int targetWidth = (int) (originalWidth * scale);
@@ -1130,9 +1132,8 @@ public class CardRegistrationController implements Initializable {
     @FXML
     private void onNext() {
         if (currentStep == 5) {
-            // Reset for new registration
-            resetForm();
-            goToStep(1);
+            // Go back to home
+            onGoHome();
             return;
         }
 
@@ -1150,29 +1151,26 @@ public class CardRegistrationController implements Initializable {
     private boolean validateCurrentStep() {
         switch (currentStep) {
             case 1:
-                // Validate user info
-                String name = nameField.getText().trim();
-                String age = ageField.getText().trim();
-
-                if (name.isEmpty()) {
-                    showAlert("Lỗi", "Vui lòng nhập họ tên");
+                // Validate user info using InputValidator
+                if (!InputValidator.validateName(nameField)) {
                     nameField.requestFocus();
                     return false;
                 }
-                if (age.isEmpty()) {
-                    showAlert("Lỗi", "Vui lòng nhập tuổi");
+                
+                if (!InputValidator.validateAge(ageField)) {
                     ageField.requestFocus();
                     return false;
                 }
-                if (!age.matches("\\d+") || Integer.parseInt(age) < 1 || Integer.parseInt(age) > 150) {
-                    showAlert("Lỗi", "Tuổi không hợp lệ");
-                    ageField.requestFocus();
+                
+                // Check gender selection
+                if (genderGroup.getSelectedToggle() == null) {
+                    showAlert("Lỗi", "Vui lòng chọn giới tính");
                     return false;
                 }
 
                 // Save user data
-                user.setName(name);
-                user.setAge(age);
+                user.setName(nameField.getText().trim());
+                user.setAge(ageField.getText().trim());
                 user.setAvatar(avatarBytes);
                 return true;
 
@@ -1189,12 +1187,21 @@ public class CardRegistrationController implements Initializable {
                 // Validate payment
                 if (paymentType.equals("coins")) {
                     updateCoinDisplay();
+                    
+                    // Validate custom amount if used
+                    if (customAmountBox.isVisible() && customAmountBox.isManaged()) {
+                        if (!InputValidator.validateAmount(customAmountField)) {
+                            customAmountField.requestFocus();
+                            return false;
+                        }
+                    }
+                    
                     if (user.getAmountVND() <= 0) {
                         showAlert("Lỗi", "Vui lòng chọn số tiền nạp");
                         return false;
                     }
-                    if (user.getAmountVND() < 10000) {
-                        showAlert("Lỗi", "Số tiền tối thiểu là 10,000đ");
+                    if (user.getAmountVND() < InputValidator.MIN_AMOUNT) {
+                        showAlert("Lỗi", "Số tiền tối thiểu là " + currencyFormat.format(InputValidator.MIN_AMOUNT) + "đ");
                         return false;
                     }
                 } else if (paymentType.equals("combo")) {
@@ -1274,8 +1281,8 @@ public class CardRegistrationController implements Initializable {
             case 5:
                 stepTitle.setText("Hoàn thành");
                 nextBtn.setVisible(true);
-                nextBtn.setText(" VỀ BƯỚC ĐẦU");
-                nextBtn.setGraphic(createIcon(FontAwesomeSolid.REDO, "white", 16));
+                nextBtn.setText(" VỀ TRANG CHỦ");
+                nextBtn.setGraphic(createIcon(FontAwesomeSolid.HOME, "white", 16));
                 backBtn.setVisible(false);
                 // Show summary
                 summaryName.setText(user.getName());

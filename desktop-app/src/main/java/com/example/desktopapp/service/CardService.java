@@ -16,7 +16,7 @@ public class CardService {
     private boolean connected = false;
     
     // Debug mode for logging APDU commands
-    private boolean debugMode = true;
+    private boolean debugMode = false;
     
     /**
      * Connect to smart card reader and select applet
@@ -115,39 +115,6 @@ public class CardService {
             connected = true;
             System.out.println("=== Applet Selected Successfully ===");
             
-            // Check if card is initialized
-            try {
-                boolean initialized = isCardInitialized();
-                
-                if (!initialized) {
-                    if (debugMode) {
-                        System.out.println("Card not initialized yet (new card) - authentication skipped");
-                    }
-                    // Keep connection for card registration
-                    return true;
-                }
-                
-                // Card is initialized, perform authentication
-                if (debugMode) {
-                    System.out.println("\n=== Starting Automatic Authentication ===");
-                }
-                
-                boolean authenticated = authenticateCard();
-                
-                if (!authenticated) {
-                    // Disconnect if authentication fails
-                    disconnect();
-                    throw new CardException("Xác thực thẻ thất bại! Thẻ không hợp lệ.");
-                }
-                
-                System.out.println("=== Card Authenticated Successfully ===");
-                
-            } catch (CardException e) {
-                // For errors, disconnect and rethrow
-                disconnect();
-                throw e;
-            }
-            
             return true;
         } else {
             String errorMsg = "Không thể chọn applet. SW=" + String.format("%04X", response.getSW()) + 
@@ -236,6 +203,7 @@ public class CardService {
     
     /**
      * Verify PIN to start session (INS_VERIFY_PIN)
+     * Performs RSA authentication after successful PIN verification
      * @throws PinVerificationException if PIN verification fails (with status word for error handling)
      * @throws CardException for other card communication errors
      */
@@ -261,6 +229,21 @@ public class CardService {
                 APDUConstants.getErrorMessage(response.getSW()),
                 response.getSW()
             );
+        }
+        
+        // PIN verified successfully, now perform RSA authentication
+        if (debugMode) {
+            System.out.println("\n=== Starting RSA Authentication after PIN verification ===");
+        }
+        
+        boolean authenticated = authenticateCard();
+        
+        if (!authenticated) {
+            throw new CardException("Xác thực thẻ thất bại! Thẻ không hợp lệ.");
+        }
+        
+        if (debugMode) {
+            System.out.println("=== Card Authenticated Successfully ===");
         }
     }
     
@@ -292,6 +275,21 @@ public class CardService {
                 "Admin PIN sai: " + APDUConstants.getErrorMessage(response.getSW()),
                 response.getSW()
             );
+        }
+        
+        // PIN verified successfully, now perform RSA authentication
+        if (debugMode) {
+            System.out.println("\n=== Starting RSA Authentication after PIN verification ===");
+        }
+        
+        boolean authenticated = authenticateCard();
+        
+        if (!authenticated) {
+            throw new CardException("Xác thực thẻ thất bại! Thẻ không hợp lệ.");
+        }
+        
+        if (debugMode) {
+            System.out.println("=== Card Authenticated Successfully ===");
         }
     }
     
@@ -643,7 +641,7 @@ public class CardService {
         }
         
         // Debug: Print first 5 and last 5 bytes of written image
-        if (debugMode) {
+        if (true) {
             System.out.println("=== Image Write Complete ===");
             System.out.println("lenght: " + imageData.length);
             System.out.print("First 5 bytes: ");
@@ -874,9 +872,9 @@ public class CardService {
         }
         
         byte[] result = baos.toByteArray();
-        
+
         // Debug: Print first 5 and last 5 bytes of read image
-        if (debugMode && result.length > 0) {
+        if (result.length > 0) {
             System.out.println("=== Image Read Complete ===");
             System.out.println("lenght: " + result.length);
             System.out.print("First 5 bytes: ");

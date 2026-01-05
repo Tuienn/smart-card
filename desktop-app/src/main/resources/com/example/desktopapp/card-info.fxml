@@ -21,7 +21,7 @@
                     <text> Trang chủ</text>
                 </Button>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="resetCardBtn" styleClass="btn, btn-danger" onAction="#onResetCardRequest" 
+                <!-- <Button fx:id="resetCardBtn" styleClass="btn, btn-danger" onAction="#onResetCardRequest" 
                         style="-fx-min-width: 140; -fx-min-height: 38; -fx-font-size: 13px; -fx-font-weight: bold; 
                                -fx-background-color: #dc2626; -fx-text-fill: white;
                                -fx-background-radius: 8; -fx-border-radius: 8; 
@@ -31,7 +31,7 @@
                         <FontIcon iconLiteral="fas-trash-alt" iconSize="14" styleClass="icon-white"/>
                     </graphic>
                     <text> RESET THẺ</text>
-                </Button>
+                </Button> -->
             </HBox>
             
             <Label fx:id="titleLabel" text="Xem thông tin thẻ" styleClass="title-small"/>
@@ -122,9 +122,9 @@
                     <!-- Avatar -->
                     <HBox alignment="CENTER">
                         <StackPane styleClass="avatar-placeholder" style="-fx-border-style: solid; -fx-min-width: 80; -fx-min-height: 80; -fx-max-width: 80; -fx-max-height: 80;">
-                            <ImageView fx:id="avatarImage" fitWidth="80" fitHeight="80" preserveRatio="true">
+                            <ImageView fx:id="avatarImage" fitWidth="80" fitHeight="80" preserveRatio="false">
                                 <clip>
-                                    <Circle radius="55" centerX="55" centerY="55"/>
+                                    <Circle radius="40" centerX="40" centerY="40"/>
                                 </clip>
                             </ImageView>
                             <FontIcon fx:id="avatarPlaceholder" iconLiteral="fas-user" iconSize="48" styleClass="icon-secondary"/>
@@ -472,10 +472,10 @@
                                 <graphic><FontIcon iconLiteral="fas-redo" iconSize="14" styleClass="icon-primary"/></graphic>
                                 <text> THỬ LẠI</text>
                             </Button>
-                            <Button fx:id="unlockCardBtn" styleClass="btn, btn-warning" onAction="#onUnlockCard" visible="false" style="-fx-min-width: 150;">
+                            <!-- <Button fx:id="unlockCardBtn" styleClass="btn, btn-warning" onAction="#onUnlockCard" visible="false" style="-fx-min-width: 150;">
                                 <graphic><FontIcon iconLiteral="fas-unlock" iconSize="14" styleClass="icon-white"/></graphic>
                                 <text> MỞ KHÓA THẺ</text>
-                            </Button>
+                            </Button> -->
                         </HBox>
                         
                         <!-- Warning message for unlock -->
@@ -484,7 +484,7 @@
                                 <FontIcon iconLiteral="fas-exclamation-triangle" iconSize="18" style="-fx-fill: #f59e0b;"/>
                                 <Label text="Cảnh báo quan trọng" style="-fx-font-weight: bold; -fx-text-fill: #f59e0b; -fx-font-size: 14px;"/>
                             </HBox>
-                            <Label text="Cố gắng tự ý mở khóa có thể làm mất thẻ vĩnh viễn." styleClass="text-secondary" style="-fx-text-alignment: center; -fx-font-size: 13px;"/>
+                            <Label text="Cố gắng tự ý mở khóa dưới bất kỳ hình thức nào đều bị nghiêm cấm." styleClass="text-secondary" style="-fx-text-alignment: center; -fx-font-size: 13px;"/>
                             <Label text="Chỉ người có thẩm quyền mới được thực hiện thao tác này." styleClass="text-secondary" style="-fx-text-alignment: center; -fx-font-size: 13px; -fx-font-weight: bold;"/>
                         </VBox>
                     </VBox>

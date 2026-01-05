@@ -75,7 +75,7 @@ public class Entertainment extends Applet {
     private short totalImageSize;
 
     // RSA keys
-    private RSAPrivateKey rsaPrivateKey;
+    private byte[] encryptedPrivateKey; // Encrypted storage for private key components
     private RSAPublicKey rsaPublicKey;
     private KeyPair rsaKeyPair;
 
@@ -84,9 +84,11 @@ public class Entertainment extends Applet {
     private boolean adminSessionAuth;
     private byte[] masterKey; // Transient
     private byte[] tempBuffer; // Transient
+    private AESKey imageEncryptionKey; // Transient key for image encryption session
 
     // Crypto objects
     private Cipher aesCipher;
+    private Cipher imageAesCipher; // Dedicated cipher for image encryption
     private MessageDigest sha1;
     private Signature rsaSignature;
     private RandomData randomGen;
@@ -167,6 +169,7 @@ public class Entertainment extends Applet {
         imageBuffer = new byte[MAX_IMAGE_SIZE];
         imageIV = new byte[16];
         tempImageChunk = new byte[16];
+        encryptedPrivateKey = new byte[384]; // ~256 bytes for key data + IV + padding
 
         pinTryCounter = PIN_TRY_LIMIT;
         adminPinTryCounter = ADMIN_PIN_TRY_LIMIT;
@@ -190,9 +193,11 @@ public class Entertainment extends Applet {
             // Try AES-128 CBC first
             try {
                 aesCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
+                imageAesCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_CBC_NOPAD, false);
             } catch (CryptoException e) {
                 // Fallback to ECB if CBC not supported
                 aesCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+                imageAesCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
             }
             
             // Use SHA-1 for better compatibility
@@ -221,12 +226,10 @@ public class Entertainment extends Applet {
         // Initialize RSA key pair (may not be supported on all cards)
         try {
             rsaKeyPair = new KeyPair(KeyPair.ALG_RSA, RSA_KEY_SIZE);
-            rsaPrivateKey = (RSAPrivateKey) rsaKeyPair.getPrivate();
             rsaPublicKey = (RSAPublicKey) rsaKeyPair.getPublic();
         } catch (CryptoException e) {
             // RSA not supported, continue without it
             rsaKeyPair = null;
-            rsaPrivateKey = null;
             rsaPublicKey = null;
         }
     }
@@ -314,6 +317,8 @@ public class Entertainment extends Applet {
         // Generate RSA key pair if supported
         if (rsaKeyPair != null) {
             rsaKeyPair.genKeyPair();
+            // Encrypt and store private key
+            encryptPrivateKey();
         }
 
         // Initialize encrypted user data with empty values
@@ -793,17 +798,27 @@ public class Entertainment extends Applet {
     }
 
     private void processSignChallenge(APDU apdu) {
-        if (rsaSignature == null || rsaPrivateKey == null) {
+        if (rsaSignature == null || rsaKeyPair == null) {
             ISOException.throwIt(ISO7816.SW_FUNC_NOT_SUPPORTED);
+        }
+        
+        if (!sessionAuth && !adminSessionAuth) {
+            ISOException.throwIt(SW_PIN_VERIFICATION_REQUIRED);
         }
         
         byte[] buffer = apdu.getBuffer();
         short lc = (short) (buffer[ISO7816.OFFSET_LC] & 0xFF);
         apdu.setIncomingAndReceive();
 
+        // Decrypt and load private key temporarily
+        RSAPrivateKey tempPrivateKey = decryptAndLoadPrivateKey();
+        
         // Sign the challenge
-        rsaSignature.init(rsaPrivateKey, Signature.MODE_SIGN);
+        rsaSignature.init(tempPrivateKey, Signature.MODE_SIGN);
         short sigLen = rsaSignature.sign(buffer, ISO7816.OFFSET_CDATA, lc, buffer, (short) 0);
+        
+        // Clear temporary private key
+        tempPrivateKey.clearKey();
 
         apdu.setOutgoingAndSend((short) 0, sigLen);
     }
@@ -914,12 +929,9 @@ public class Entertainment extends Applet {
     /**
      * Helper method to encrypt image chunk data in 16-byte blocks
      * Handles partial blocks by accumulating data in tempImageChunk
-     * NOTE: Cipher must be initialized BEFORE first call (in processWriteImageStart)
+     * Uses doFinal() for each block since update() doesn't work in this JavaCard implementation
      */
     private void encryptImageChunk(byte[] sourceData, short sourceOffset, short dataLength) {
-        // DO NOT re-init cipher here - it would break CBC chain!
-        // Cipher is already initialized in processWriteImageStart
-
         short chunkOffset = 0;
 
         // If we have remainder from previous chunk
@@ -931,8 +943,8 @@ public class Entertainment extends Applet {
                 // Copy needed bytes to complete the block
                 Util.arrayCopy(sourceData, sourceOffset, tempImageChunk, tempChunkLen, needed);
                 
-                // Encrypt the complete 16-byte block
-                aesCipher.update(tempImageChunk, (short) 0, (short) 16, 
+                // Encrypt the complete 16-byte block using doFinal()
+                imageAesCipher.doFinal(tempImageChunk, (short) 0, (short) 16, 
                                imageBuffer, currentWriteOffset);
                 currentWriteOffset += 16;
                 chunkOffset += needed;
@@ -947,7 +959,8 @@ public class Entertainment extends Applet {
 
         // Process remaining full 16-byte blocks from new chunk
         while ((short)(chunkOffset + 16) <= dataLength) {
-            aesCipher.update(sourceData, (short)(sourceOffset + chunkOffset), (short) 16, 
+            // Encrypt each block using doFinal()
+            imageAesCipher.doFinal(sourceData, (short)(sourceOffset + chunkOffset), (short) 16, 
                            imageBuffer, currentWriteOffset);
             currentWriteOffset += 16;
             chunkOffset += 16;
@@ -982,14 +995,20 @@ public class Entertainment extends Applet {
         currentWriteOffset = 0;
         tempChunkLen = 0;
 
-        // Generate IV for image encryption
+        // Generate IV for image encryption (stored but not used in ECB mode)
         randomGen.generateData(imageIV, (short) 0, (short) 16);
 
-        // Initialize cipher ONCE for entire image encryption session
-        AESKey aesKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
-        aesKey.setKey(masterKey, (short) 0);
-        aesCipher.init(aesKey, Cipher.MODE_ENCRYPT, imageIV, (short) 0, (short) 16);
-        aesKey.clearKey();
+        // Initialize cipher for image encryption session
+        // NOTE: Since update() doesn't work, we use ECB mode and call doFinal() for each block
+        imageEncryptionKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
+        imageEncryptionKey.setKey(masterKey, (short) 0);
+        // Use ECB mode since we can't use CBC with update()
+        try {
+            imageAesCipher.init(imageEncryptionKey, Cipher.MODE_ENCRYPT);
+        } catch (CryptoException e) {
+            // Some cards may still require IV parameter even for ECB
+            imageAesCipher.init(imageEncryptionKey, Cipher.MODE_ENCRYPT, imageIV, (short) 0, (short) 16);
+        }
 
         // Get first chunk and encrypt it
         short chunkLen = (short) ((buffer[ISO7816.OFFSET_LC] & 0xFF) - 3);
@@ -1017,7 +1036,7 @@ public class Entertainment extends Applet {
         // Encrypt the chunk using helper method
         encryptImageChunk(buffer, offset, chunkLen);
 
-        // Auto-finalize khi đã nhận đủ data
+        // Auto-finalize when all data received
         short totalReceived = (short)(imageOffset + chunkLen);
         if (totalReceived >= totalImageSize) {
             // Apply PKCS#7 padding to the last block
@@ -1028,9 +1047,8 @@ public class Entertainment extends Applet {
                 tempImageChunk[i] = paddingLen;
             }
 
-            // DO NOT re-init cipher - use existing cipher state to maintain CBC chain
-            // Encrypt final padded block using doFinal to complete the encryption
-            aesCipher.doFinal(tempImageChunk, (short) 0, (short) 16, 
+            // Encrypt final padded block using doFinal
+            imageAesCipher.doFinal(tempImageChunk, (short) 0, (short) 16, 
                              imageBuffer, currentWriteOffset);
             currentWriteOffset += 16;
 
@@ -1038,26 +1056,38 @@ public class Entertainment extends Applet {
             encryptedImageSize = currentWriteOffset;
             imageSize = encryptedImageSize;
 
-            // Clear temp data
+            // Clear temp data and encryption key
             tempChunkLen = 0;
             Util.arrayFillNonAtomic(tempImageChunk, (short) 0, (short) 16, (byte) 0);
+            if (imageEncryptionKey != null) {
+                imageEncryptionKey.clearKey();
+            }
         }
     }
 
     /**
      * Helper method to decrypt image blocks from encrypted storage
      * Returns the actual length of decrypted data (with padding removed if needed)
+     * Uses doFinal() for each block to match encryption behavior
      */
     private short decryptImageBlocks(short startBlock, short endBlock, short requestedOffset, short requestedLength) {
         // Decrypt needed blocks into tempBuffer
         AESKey aesKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
         aesKey.setKey(masterKey, (short) 0);
-        aesCipher.init(aesKey, Cipher.MODE_DECRYPT, imageIV, (short) 0, (short) 16);
+        
+        // Initialize for ECB decryption (matching encryption mode)
+        try {
+            imageAesCipher.init(aesKey, Cipher.MODE_DECRYPT);
+        } catch (CryptoException e) {
+            // Some cards may still require IV parameter even for ECB
+            imageAesCipher.init(aesKey, Cipher.MODE_DECRYPT, imageIV, (short) 0, (short) 16);
+        }
 
         short tempOffset = 0;
         for (short blockIdx = startBlock; blockIdx <= endBlock; blockIdx++) {
             short encryptedBlockOffset = (short)(blockIdx * 16);
-            aesCipher.update(imageBuffer, encryptedBlockOffset, (short) 16, 
+            // Use doFinal() for each block since update() doesn't work
+            imageAesCipher.doFinal(imageBuffer, encryptedBlockOffset, (short) 16, 
                            tempBuffer, tempOffset);
             tempOffset += 16;
         }
@@ -1145,11 +1175,9 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(imageIV, (short) 0, (short) 16, (byte) 0);
         Util.arrayFillNonAtomic(tempImageChunk, (short) 0, (short) 16, (byte) 0);
         Util.arrayFillNonAtomic(masterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
+        Util.arrayFillNonAtomic(encryptedPrivateKey, (short) 0, (short) encryptedPrivateKey.length, (byte) 0);
 
-        // Clear RSA keys
-        if (rsaPrivateKey != null) {
-            rsaPrivateKey.clearKey();
-        }
+        // Clear RSA public key
         if (rsaPublicKey != null) {
             rsaPublicKey.clearKey();
         }
@@ -1342,6 +1370,66 @@ public class Entertainment extends Applet {
         }
         
         Util.arrayFillNonAtomic(temp, (short) 0, (short)temp.length, (byte) 0);
+    }
+
+    private void encryptPrivateKey() {
+        // Extract private key components (modulus and private exponent)
+        RSAPrivateKey privKey = (RSAPrivateKey) rsaKeyPair.getPrivate();
+        
+        // For RSA-1024: modulus = 128 bytes, private exponent = 128 bytes
+        byte[] keyData = new byte[256];
+        short modulusLen = privKey.getModulus(keyData, (short) 0);
+        short exponentLen = privKey.getExponent(keyData, modulusLen);
+        short totalLen = (short)(modulusLen + exponentLen);
+        
+        // Encrypt with master key using AES
+        AESKey aesKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
+        aesKey.setKey(masterKey, (short) 0);
+        
+        // Generate IV
+        byte[] iv = new byte[16];
+        randomGen.generateData(iv, (short) 0, (short) 16);
+        
+        // Store IV at the beginning
+        Util.arrayCopy(iv, (short) 0, encryptedPrivateKey, (short) 0, (short) 16);
+        
+        // Pad to block size (256 bytes -> 256 bytes, already aligned)
+        aesCipher.init(aesKey, Cipher.MODE_ENCRYPT, iv, (short) 0, (short) 16);
+        aesCipher.doFinal(keyData, (short) 0, (short) 256, encryptedPrivateKey, (short) 16);
+        
+        // Clear sensitive data
+        aesKey.clearKey();
+        privKey.clearKey();
+        Util.arrayFillNonAtomic(keyData, (short) 0, (short) 256, (byte) 0);
+    }
+
+    private RSAPrivateKey decryptAndLoadPrivateKey() {
+        // Decrypt private key data
+        AESKey aesKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
+        aesKey.setKey(masterKey, (short) 0);
+        
+        // Extract IV
+        byte[] iv = new byte[16];
+        Util.arrayCopy(encryptedPrivateKey, (short) 0, iv, (short) 0, (short) 16);
+        
+        // Decrypt key data
+        byte[] keyData = new byte[256];
+        aesCipher.init(aesKey, Cipher.MODE_DECRYPT, iv, (short) 0, (short) 16);
+        aesCipher.doFinal(encryptedPrivateKey, (short) 16, (short) 256, keyData, (short) 0);
+        
+        // Create temporary private key object
+        RSAPrivateKey tempPrivateKey = (RSAPrivateKey) KeyBuilder.buildKey(
+            KeyBuilder.TYPE_RSA_PRIVATE, RSA_KEY_SIZE, false);
+        
+        // Set modulus (first 128 bytes) and private exponent (next 128 bytes)
+        tempPrivateKey.setModulus(keyData, (short) 0, (short) 128);
+        tempPrivateKey.setExponent(keyData, (short) 128, (short) 128);
+        
+        // Clear sensitive data
+        aesKey.clearKey();
+        Util.arrayFillNonAtomic(keyData, (short) 0, (short) 256, (byte) 0);
+        
+        return tempPrivateKey;
     }
 
 }

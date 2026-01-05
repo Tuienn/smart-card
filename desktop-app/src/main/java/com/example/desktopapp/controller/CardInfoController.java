@@ -2,6 +2,7 @@ package com.example.desktopapp.controller;
 
 import com.example.desktopapp.MainApp;
 import com.example.desktopapp.service.CardService;
+import com.example.desktopapp.util.InputValidator;
 import com.example.desktopapp.util.UIUtils;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -120,6 +121,14 @@ public class CardInfoController implements Initializable {
         newPinDots = new Label[]{newPinDot1, newPinDot2, newPinDot3, newPinDot4, newPinDot5, newPinDot6};
         confirmPinDots = new Label[]{confirmPinDot1, confirmPinDot2, confirmPinDot3, confirmPinDot4, confirmPinDot5, confirmPinDot6};
         cardService = new CardService();
+        
+        // Setup input validation for edit info fields
+        if (editNameField != null) {
+            InputValidator.setupNameValidation(editNameField);
+        }
+        if (editAgeField != null) {
+            InputValidator.setupAgeValidation(editAgeField);
+        }
         
         // Auto-connect to card on initialize
         connectToCard();
@@ -1023,32 +1032,27 @@ public class CardInfoController implements Initializable {
      */
     @FXML
     private void onSaveInfo() {
-        String name = editNameField.getText().trim();
-        String ageStr = editAgeField.getText().trim();
+        // Validate using InputValidator
+        if (!InputValidator.validateName(editNameField)) {
+            editNameField.requestFocus();
+            return;
+        }
         
-        // Validate inputs
-        if (name.isEmpty()) {
-            editInfoInstructionLabel.setText("⚠ Vui lòng nhập tên");
+        if (!InputValidator.validateAge(editAgeField)) {
+            editAgeField.requestFocus();
+            return;
+        }
+        
+        // Check gender selection
+        if (genderGroup.getSelectedToggle() == null) {
+            editInfoInstructionLabel.setText("⚠ Vui lòng chọn giới tính");
             editInfoInstructionLabel.setStyle("-fx-text-fill: #ef4444;");
             return;
         }
         
-        byte age = 0;
-        if (!ageStr.isEmpty()) {
-            try {
-                int ageInt = Integer.parseInt(ageStr);
-                if (ageInt < 1 || ageInt > 150) {
-                    editInfoInstructionLabel.setText("⚠ Tuổi phải từ 1-150");
-                    editInfoInstructionLabel.setStyle("-fx-text-fill: #ef4444;");
-                    return;
-                }
-                age = (byte) ageInt;
-            } catch (NumberFormatException e) {
-                editInfoInstructionLabel.setText("⚠ Tuổi phải là số");
-                editInfoInstructionLabel.setStyle("-fx-text-fill: #ef4444;");
-                return;
-            }
-        }
+        String name = editNameField.getText().trim();
+        String ageStr = editAgeField.getText().trim();
+        byte age = Byte.parseByte(ageStr);
         
         byte gender = 0; // 0: other, 1: male, 2: female
         if (maleRadio.isSelected()) {

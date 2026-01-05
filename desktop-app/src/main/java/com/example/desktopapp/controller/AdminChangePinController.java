@@ -119,9 +119,16 @@ public class AdminChangePinController {
             return;
         }
         
-        if (newPin.length() < APDUConstants.MIN_PIN_LENGTH || newPin.length() > APDUConstants.MAX_PIN_LENGTH) {
+        // Validate PIN must be exactly 6 digits
+        if (newPin.length() != 6) {
             UIUtils.showError("Lỗi", "PIN không hợp lệ", 
-                "PIN phải có độ dài từ " + APDUConstants.MIN_PIN_LENGTH + " đến " + APDUConstants.MAX_PIN_LENGTH + " ký tự");
+                "PIN phải có đúng 6 số");
+            return;
+        }
+        
+        if (!newPin.matches("\\d{6}")) {
+            UIUtils.showError("Lỗi", "PIN không hợp lệ", 
+                "PIN chỉ được chứa các chữ số từ 0-9");
             return;
         }
 

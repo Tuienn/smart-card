@@ -47,14 +47,14 @@
                         </StackPane>
                         <Label text="Đặt thẻ" styleClass="step-label"/>
                     </VBox>
-                    <Region HBox.hgrow="ALWAYS" style="-fx-max-width: 60; -fx-min-height: 2; -fx-background-color: rgba(99, 102, 241, 0.3);"/>
+                    <Label text="➜" style="-fx-font-size: 24px; -fx-text-fill: rgba(99, 102, 241, 0.5); -fx-padding: 0 10 0 10;"/>
                     <VBox alignment="CENTER" spacing="5">
                         <StackPane fx:id="step2Circle" styleClass="step-circle" style="-fx-min-width: 40; -fx-min-height: 40;">
                             <Label text="2" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
                         </StackPane>
                         <Label text="Admin PIN" styleClass="step-label"/>
                     </VBox>
-                    <Region HBox.hgrow="ALWAYS" style="-fx-max-width: 60; -fx-min-height: 2; -fx-background-color: rgba(99, 102, 241, 0.3);"/>
+                    <Label text="➜" style="-fx-font-size: 24px; -fx-text-fill: rgba(99, 102, 241, 0.5); -fx-padding: 0 10 0 10;"/>
                     <VBox alignment="CENTER" spacing="5">
                         <StackPane fx:id="step3Circle" styleClass="step-circle" style="-fx-min-width: 40; -fx-min-height: 40;">
                             <Label text="3" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
@@ -92,8 +92,8 @@
                     <Label text="Nhập PIN mới cho thẻ" styleClass="title-small"/>
                     
                     <VBox spacing="10" style="-fx-max-width: 350;">
-                        <Label text="PIN mới (4-16 ký tự):" style="-fx-font-size: 14px;"/>
-                        <PasswordField fx:id="newPinField" promptText="Nhập PIN mới" 
+                        <Label text="PIN mới (6 số):" style="-fx-font-size: 14px;"/>
+                        <PasswordField fx:id="newPinField" promptText="Nhập 6 số PIN mới" 
                                       style="-fx-pref-height: 40; -fx-font-size: 16px;"/>
                         
                         <Label text="Xác nhận PIN mới:" style="-fx-font-size: 14px;"/>
