@@ -3,13 +3,25 @@ package com.example.desktopapp.service;
 import com.example.desktopapp.model.UserRegistration;
 import com.example.desktopapp.util.AppConfig;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.smartcardio.*;
 import java.util.List;
+import java.util.Arrays;
 
 /**
  * Service for communicating with JavaCard Entertainment Applet
  */
 public class CardService {
+    
+    // PIN Transport Encryption Key (must match the card's key!)
+    // WARNING: This is a fixed key for demonstration. In production, use secure key exchange!
+    private static final byte[] PIN_TRANSPORT_KEY = {
+        (byte) 0x2B, (byte) 0x7E, (byte) 0x15, (byte) 0x16,
+        (byte) 0x28, (byte) 0xAE, (byte) 0xD2, (byte) 0xA6,
+        (byte) 0xAB, (byte) 0xF7, (byte) 0x15, (byte) 0x88,
+        (byte) 0x09, (byte) 0xCF, (byte) 0x4F, (byte) 0x3C
+    };
     
     private Card card;
     private CardChannel channel;
@@ -178,11 +190,18 @@ public class CardService {
         byte[] pinBytes = user.getPinBytes();
         byte[] userId = user.getUserId();
         
-        // Build data: [PIN_LENGTH(1)] [PIN(4-16)] [USER_ID(16)]
-        byte[] data = new byte[1 + pinBytes.length + userId.length];
-        data[0] = (byte) pinBytes.length;
-        System.arraycopy(pinBytes, 0, data, 1, pinBytes.length);
-        System.arraycopy(userId, 0, data, 1 + pinBytes.length, userId.length);
+        // Encrypt PIN before sending
+        byte[] encryptedPin = encryptPinBytes(pinBytes);
+        
+        // Build data: [ENCRYPTED_PIN_LENGTH(1)] [ENCRYPTED_PIN] [USER_ID(16)]
+        byte[] data = new byte[1 + encryptedPin.length + userId.length];
+        data[0] = (byte) encryptedPin.length;
+        System.arraycopy(encryptedPin, 0, data, 1, encryptedPin.length);
+        System.arraycopy(userId, 0, data, 1 + encryptedPin.length, userId.length);
+        
+        // Clear sensitive data
+        Arrays.fill(pinBytes, (byte) 0);
+        Arrays.fill(encryptedPin, (byte) 0);
         
         CommandAPDU cmd = new CommandAPDU(
             APDUConstants.CLA,
@@ -212,16 +231,20 @@ public class CardService {
             throw new CardException("Chưa kết nối với thẻ");
         }
         
-        byte[] pinBytes = pin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        // Encrypt PIN before sending
+        byte[] encryptedPin = encryptPin(pin);
         
         CommandAPDU cmd = new CommandAPDU(
             APDUConstants.CLA,
             APDUConstants.INS_VERIFY_PIN,
             0x00, 0x00,
-            pinBytes
+            encryptedPin
         );
         
         ResponseAPDU response = transmitCommand(cmd);
+        
+        // Clear encrypted PIN
+        Arrays.fill(encryptedPin, (byte) 0);
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
             // Throw PinVerificationException with status word for proper error handling
@@ -259,16 +282,20 @@ public class CardService {
             throw new CardException("Chưa kết nối với thẻ");
         }
         
-        byte[] adminPinBytes = adminPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        // Encrypt admin PIN before sending
+        byte[] encryptedAdminPin = encryptPin(adminPin);
         
         CommandAPDU cmd = new CommandAPDU(
             APDUConstants.CLA,
             APDUConstants.INS_VERIFY_ADMIN_PIN,
             0x00, 0x00,
-            adminPinBytes
+            encryptedAdminPin
         );
         
         ResponseAPDU response = transmitCommand(cmd);
+        
+        // Clear encrypted PIN
+        Arrays.fill(encryptedAdminPin, (byte) 0);
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
             throw new PinVerificationException(
@@ -307,7 +334,8 @@ public class CardService {
         
         byte[] data;
         if (newPin != null && !newPin.isEmpty()) {
-            data = newPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+            // Encrypt new PIN before sending
+            data = encryptPin(newPin);
         } else {
             data = new byte[0];
         }
@@ -320,6 +348,11 @@ public class CardService {
         );
         
         ResponseAPDU response = transmitCommand(cmd);
+        
+        // Clear encrypted PIN
+        if (data.length > 0) {
+            Arrays.fill(data, (byte) 0);
+        }
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
             throw new CardException("Lỗi mở khóa thẻ: " + APDUConstants.getErrorMessage(response.getSW()));
@@ -339,15 +372,16 @@ public class CardService {
             throw new CardException("Chưa kết nối với thẻ");
         }
         
-        byte[] oldPinBytes = oldPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
-        byte[] newPinBytes = newPin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        // Encrypt both PINs before sending
+        byte[] encryptedOldPin = encryptPin(oldPin);
+        byte[] encryptedNewPin = encryptPin(newPin);
         
-        // Build data: [OLD_PIN_LENGTH(1)] [OLD_PIN] [NEW_PIN_LENGTH(1)] [NEW_PIN]
-        byte[] data = new byte[2 + oldPinBytes.length + newPinBytes.length];
-        data[0] = (byte) oldPinBytes.length;
-        System.arraycopy(oldPinBytes, 0, data, 1, oldPinBytes.length);
-        data[1 + oldPinBytes.length] = (byte) newPinBytes.length;
-        System.arraycopy(newPinBytes, 0, data, 2 + oldPinBytes.length, newPinBytes.length);
+        // Build data: [OLD_PIN_ENC_LENGTH(1)] [ENCRYPTED_OLD_PIN] [NEW_PIN_ENC_LENGTH(1)] [ENCRYPTED_NEW_PIN]
+        byte[] data = new byte[2 + encryptedOldPin.length + encryptedNewPin.length];
+        data[0] = (byte) encryptedOldPin.length;
+        System.arraycopy(encryptedOldPin, 0, data, 1, encryptedOldPin.length);
+        data[1 + encryptedOldPin.length] = (byte) encryptedNewPin.length;
+        System.arraycopy(encryptedNewPin, 0, data, 2 + encryptedOldPin.length, encryptedNewPin.length);
         
         CommandAPDU cmd = new CommandAPDU(
             APDUConstants.CLA,
@@ -357,6 +391,11 @@ public class CardService {
         );
         
         ResponseAPDU response = transmitCommand(cmd);
+        
+        // Clear sensitive data
+        Arrays.fill(encryptedOldPin, (byte) 0);
+        Arrays.fill(encryptedNewPin, (byte) 0);
+        Arrays.fill(data, (byte) 0);
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
             throw new CardException("Lỗi đổi PIN: " + APDUConstants.getErrorMessage(response.getSW()));
@@ -1310,6 +1349,51 @@ public class CardService {
      */
     public boolean isDebugMode() {
         return debugMode;
+    }
+    
+    /**
+     * Encrypt PIN using AES ECB with PKCS7 padding
+     * @param pin PIN to encrypt
+     * @return Encrypted PIN bytes
+     */
+    private byte[] encryptPin(String pin) throws CardException {
+        try {
+            byte[] pinBytes = pin.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+            
+            // Create AES cipher with ECB mode and PKCS5Padding (same as PKCS7 for AES)
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            SecretKeySpec keySpec = new SecretKeySpec(PIN_TRANSPORT_KEY, "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            
+            // Encrypt PIN
+            byte[] encryptedPin = cipher.doFinal(pinBytes);
+            
+            // Clear sensitive data
+            Arrays.fill(pinBytes, (byte) 0);
+            
+            return encryptedPin;
+        } catch (Exception e) {
+            throw new CardException("Failed to encrypt PIN: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Encrypt PIN bytes using AES ECB with PKCS7 padding
+     * @param pinBytes PIN bytes to encrypt
+     * @return Encrypted PIN bytes
+     */
+    private byte[] encryptPinBytes(byte[] pinBytes) throws CardException {
+        try {
+            // Create AES cipher with ECB mode and PKCS5Padding (same as PKCS7 for AES)
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            SecretKeySpec keySpec = new SecretKeySpec(PIN_TRANSPORT_KEY, "AES");
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            
+            // Encrypt PIN
+            return cipher.doFinal(pinBytes);
+        } catch (Exception e) {
+            throw new CardException("Failed to encrypt PIN: " + e.getMessage(), e);
+        }
     }
     
     /**

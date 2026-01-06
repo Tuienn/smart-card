@@ -43,6 +43,15 @@ public class Entertainment extends Applet {
     private static final short MAX_IMAGE_SIZE = (short) 32767; // ~32KB for image (max short value, close to 64KB with two buffers if needed)
     private static final short PBKDF2_ITERATIONS = (short) 500;
     private static final short MAX_ENCRYPTED_DATA_SIZE = (short) 256;
+    
+    // PIN Transport Encryption Key (shared secret between card and app)
+    // WARNING: This is a fixed key for demonstration. In production, use secure key exchange!
+    private static final byte[] PIN_TRANSPORT_KEY = {
+        (byte) 0x2B, (byte) 0x7E, (byte) 0x15, (byte) 0x16,
+        (byte) 0x28, (byte) 0xAE, (byte) 0xD2, (byte) 0xA6,
+        (byte) 0xAB, (byte) 0xF7, (byte) 0x15, (byte) 0x88,
+        (byte) 0x09, (byte) 0xCF, (byte) 0x4F, (byte) 0x3C
+    };
 
     // TLV tags for user data
     private static final byte TAG_NAME = (byte) 0x01;
@@ -89,6 +98,7 @@ public class Entertainment extends Applet {
     // Crypto objects
     private Cipher aesCipher;
     private Cipher imageAesCipher; // Dedicated cipher for image encryption
+    private Cipher pinTransportCipher; // Cipher for PIN encryption/decryption
     private MessageDigest sha1;
     private Signature rsaSignature;
     private RandomData randomGen;
@@ -188,6 +198,16 @@ public class Entertainment extends Applet {
         masterKey = JCSystem.makeTransientByteArray(AES_KEY_SIZE, JCSystem.CLEAR_ON_RESET);
         tempBuffer = JCSystem.makeTransientByteArray((short) 256, JCSystem.CLEAR_ON_DESELECT);
 
+        // Initialize PIN transport cipher
+        try {
+            AESKey pinTransportKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
+            pinTransportKey.setKey(PIN_TRANSPORT_KEY, (short) 0);
+            pinTransportCipher = Cipher.getInstance(Cipher.ALG_AES_BLOCK_128_ECB_NOPAD, false);
+            pinTransportCipher.init(pinTransportKey, Cipher.MODE_DECRYPT);
+        } catch (CryptoException e) {
+            // PIN transport cipher initialization failed - card may not support AES
+        }
+        
         // Initialize crypto objects with fallback options
         try {
             // Try AES-128 CBC first
@@ -258,10 +278,18 @@ public class Entertainment extends Applet {
             ISOException.throwIt(SW_WRONG_DATA);
         }
 
-        // Store PIN temporarily for KEK derivation
-        byte[] pin = new byte[pinLength];
-        Util.arrayCopy(buffer, offset, pin, (short) 0, pinLength);
+        // Decrypt encrypted PIN
+        byte[] encryptedPin = new byte[pinLength];
+        Util.arrayCopy(buffer, offset, encryptedPin, (short) 0, pinLength);
         offset += pinLength;
+        
+        // Decrypt PIN using transport key
+        byte[] pin = new byte[MAX_PIN_SIZE];
+        short actualPinLength = decryptPinTransport(encryptedPin, (short) 0, pinLength, pin);
+        
+        if (actualPinLength == 0 || actualPinLength > MAX_PIN_SIZE || actualPinLength < 4) {
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
 
         // Copy userID
         Util.arrayCopy(buffer, offset, userID, (short) 0, (short) 16);
@@ -281,10 +309,10 @@ public class Entertainment extends Applet {
         // Derive KEK from PIN + salt
         byte[] kek = new byte[AES_KEY_SIZE];
         if (pbkdf2 != null) {
-            pbkdf2.doFinal(pin, (short) 0, pinLength, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+            pbkdf2.doFinal(pin, (short) 0, actualPinLength, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
         } else {
             // Fallback: simple hash-based KDF
-            deriveKeySimple(pin, pinLength, salt, kek);
+            deriveKeySimple(pin, actualPinLength, salt, kek);
         }
 
         // Wrap master key with KEK
@@ -312,7 +340,8 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(kek, (short) 0, AES_KEY_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(adminKek, (short) 0, AES_KEY_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(adminPin, (short) 0, (short) 16, (byte) 0);
-        Util.arrayFillNonAtomic(pin, (short) 0, pinLength, (byte) 0);
+        Util.arrayFillNonAtomic(pin, (short) 0, actualPinLength, (byte) 0);
+        Util.arrayFillNonAtomic(encryptedPin, (short) 0, pinLength, (byte) 0);
 
         // Generate RSA key pair if supported
         if (rsaKeyPair != null) {
@@ -358,19 +387,28 @@ public class Entertainment extends Applet {
             ISOException.throwIt(SW_WRONG_DATA);
         }
 
-        byte[] pin = new byte[lc];
-        Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, pin, (short) 0, lc);
+        // Decrypt encrypted PIN
+        byte[] encryptedPin = new byte[lc];
+        Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, encryptedPin, (short) 0, lc);
+        
+        byte[] pin = new byte[MAX_PIN_SIZE];
+        short actualPinLength = decryptPinTransport(encryptedPin, (short) 0, lc, pin);
+        
+        if (actualPinLength == 0 || actualPinLength > MAX_PIN_SIZE || actualPinLength < 4) {
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
 
         // Derive KEK from PIN + salt
         byte[] kek = new byte[AES_KEY_SIZE];
         if (pbkdf2 != null) {
-            pbkdf2.doFinal(pin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+            pbkdf2.doFinal(pin, (short) 0, actualPinLength, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
         } else {
-            deriveKeySimple(pin, (short) lc, salt, kek);
+            deriveKeySimple(pin, actualPinLength, salt, kek);
         }
 
         // Clear PIN
-        Util.arrayFillNonAtomic(pin, (short) 0, lc, (byte) 0);
+        Util.arrayFillNonAtomic(pin, (short) 0, actualPinLength, (byte) 0);
+        Util.arrayFillNonAtomic(encryptedPin, (short) 0, lc, (byte) 0);
 
         // Unwrap master key
         boolean unwrapSuccess = unwrapKey(wrappedMasterKey, kek, masterKey);
@@ -437,25 +475,46 @@ public class Entertainment extends Applet {
 
         // Parse: oldPinLen | oldPin | newPinLen | newPin
         short offset = ISO7816.OFFSET_CDATA;
-        byte oldPinLen = buffer[offset++];
+        byte oldPinEncLen = buffer[offset++];
         
-        if (oldPinLen < 4 || oldPinLen > MAX_PIN_SIZE) {
+        if (oldPinEncLen < 4 || oldPinEncLen > MAX_PIN_SIZE) {
             ISOException.throwIt(SW_WRONG_DATA);
         }
         
-        byte[] oldPin = new byte[oldPinLen];
-        Util.arrayCopy(buffer, offset, oldPin, (short) 0, oldPinLen);
-        offset += oldPinLen;
+        // Decrypt old PIN
+        byte[] encryptedOldPin = new byte[oldPinEncLen];
+        Util.arrayCopy(buffer, offset, encryptedOldPin, (short) 0, oldPinEncLen);
+        offset += oldPinEncLen;
         
-        byte newPinLen = buffer[offset++];
+        byte[] oldPin = new byte[MAX_PIN_SIZE];
+        short oldPinLen = decryptPinTransport(encryptedOldPin, (short) 0, oldPinEncLen, oldPin);
         
-        if (newPinLen < 4 || newPinLen > MAX_PIN_SIZE) {
+        if (oldPinLen == 0 || oldPinLen > MAX_PIN_SIZE || oldPinLen < 4) {
+            Util.arrayFillNonAtomic(encryptedOldPin, (short) 0, oldPinEncLen, (byte) 0);
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
+        
+        byte newPinEncLen = buffer[offset++];
+        
+        if (newPinEncLen < 4 || newPinEncLen > MAX_PIN_SIZE) {
             Util.arrayFillNonAtomic(oldPin, (short) 0, oldPinLen, (byte) 0);
+            Util.arrayFillNonAtomic(encryptedOldPin, (short) 0, oldPinEncLen, (byte) 0);
             ISOException.throwIt(SW_WRONG_DATA);
         }
         
-        byte[] newPin = new byte[newPinLen];
-        Util.arrayCopy(buffer, offset, newPin, (short) 0, newPinLen);
+        // Decrypt new PIN
+        byte[] encryptedNewPin = new byte[newPinEncLen];
+        Util.arrayCopy(buffer, offset, encryptedNewPin, (short) 0, newPinEncLen);
+        
+        byte[] newPin = new byte[MAX_PIN_SIZE];
+        short newPinLen = decryptPinTransport(encryptedNewPin, (short) 0, newPinEncLen, newPin);
+        
+        if (newPinLen == 0 || newPinLen > MAX_PIN_SIZE || newPinLen < 4) {
+            Util.arrayFillNonAtomic(oldPin, (short) 0, oldPinLen, (byte) 0);
+            Util.arrayFillNonAtomic(encryptedOldPin, (short) 0, oldPinEncLen, (byte) 0);
+            Util.arrayFillNonAtomic(encryptedNewPin, (short) 0, newPinEncLen, (byte) 0);
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
         
         // Step 1: Re-verify old PIN for security
         byte[] oldKek = new byte[AES_KEY_SIZE];
@@ -496,6 +555,8 @@ public class Entertainment extends Applet {
         if (!hashMatch) {
             Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
             Util.arrayFillNonAtomic(newPin, (short) 0, newPinLen, (byte) 0);
+            Util.arrayFillNonAtomic(encryptedOldPin, (short) 0, oldPinEncLen, (byte) 0);
+            Util.arrayFillNonAtomic(encryptedNewPin, (short) 0, newPinEncLen, (byte) 0);
             ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);
         }
         
@@ -517,6 +578,8 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(tempMasterKey, (short) 0, AES_KEY_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(newKek, (short) 0, AES_KEY_SIZE, (byte) 0);
         Util.arrayFillNonAtomic(newPin, (short) 0, newPinLen, (byte) 0);
+        Util.arrayFillNonAtomic(encryptedOldPin, (short) 0, oldPinEncLen, (byte) 0);
+        Util.arrayFillNonAtomic(encryptedNewPin, (short) 0, newPinEncLen, (byte) 0);
         
         // PIN changed successfully, session remains authenticated
     }
@@ -538,19 +601,28 @@ public class Entertainment extends Applet {
             ISOException.throwIt(SW_WRONG_DATA);
         }
 
-        byte[] adminPin = new byte[lc];
-        Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, adminPin, (short) 0, lc);
+        // Decrypt encrypted admin PIN
+        byte[] encryptedAdminPin = new byte[lc];
+        Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, encryptedAdminPin, (short) 0, lc);
+        
+        byte[] adminPin = new byte[MAX_PIN_SIZE];
+        short actualAdminPinLength = decryptPinTransport(encryptedAdminPin, (short) 0, lc, adminPin);
+        
+        if (actualAdminPinLength == 0 || actualAdminPinLength > MAX_PIN_SIZE || actualAdminPinLength < 4) {
+            ISOException.throwIt(SW_WRONG_DATA);
+        }
 
         // Derive admin KEK from admin PIN + salt
         byte[] adminKek = new byte[AES_KEY_SIZE];
         if (pbkdf2 != null) {
-            pbkdf2.doFinal(adminPin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, adminKek, (short) 0);
+            pbkdf2.doFinal(adminPin, (short) 0, actualAdminPinLength, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, adminKek, (short) 0);
         } else {
-            deriveKeySimple(adminPin, (short) lc, salt, adminKek);
+            deriveKeySimple(adminPin, actualAdminPinLength, salt, adminKek);
         }
 
         // Clear admin PIN
-        Util.arrayFillNonAtomic(adminPin, (short) 0, lc, (byte) 0);
+        Util.arrayFillNonAtomic(adminPin, (short) 0, actualAdminPinLength, (byte) 0);
+        Util.arrayFillNonAtomic(encryptedAdminPin, (short) 0, lc, (byte) 0);
 
         // Unwrap master key with admin KEK
         byte[] tempMasterKey = new byte[AES_KEY_SIZE];
@@ -622,20 +694,27 @@ public class Entertainment extends Applet {
 
         // Optionally change PIN if new PIN provided
         if (lc >= 4 && lc <= MAX_PIN_SIZE) {
-            byte[] newPin = new byte[lc];
-            Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, newPin, (short) 0, lc);
+            // Decrypt new PIN
+            byte[] encryptedNewPin = new byte[lc];
+            Util.arrayCopy(buffer, ISO7816.OFFSET_CDATA, encryptedNewPin, (short) 0, lc);
+            
+            byte[] newPin = new byte[MAX_PIN_SIZE];
+            short newPinLen = decryptPinTransport(encryptedNewPin, (short) 0, lc, newPin);
+            
+            if (newPinLen > 0 && newPinLen <= MAX_PIN_SIZE && newPinLen >= 4) {
+                // Re-wrap master key with new PIN
+                byte[] kek = new byte[AES_KEY_SIZE];
+                if (pbkdf2 != null) {
+                    pbkdf2.doFinal(newPin, (short) 0, newPinLen, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
+                } else {
+                    deriveKeySimple(newPin, newPinLen, salt, kek);
+                }
+                wrapKey(masterKey, AES_KEY_SIZE, kek, wrappedMasterKey);
 
-            // Re-wrap master key with new PIN
-            byte[] kek = new byte[AES_KEY_SIZE];
-            if (pbkdf2 != null) {
-                pbkdf2.doFinal(newPin, (short) 0, (short) lc, salt, (short) 0, SALT_SIZE, PBKDF2_ITERATIONS, kek, (short) 0);
-            } else {
-                deriveKeySimple(newPin, (short) lc, salt, kek);
+                Util.arrayFillNonAtomic(kek, (short) 0, AES_KEY_SIZE, (byte) 0);
+                Util.arrayFillNonAtomic(newPin, (short) 0, newPinLen, (byte) 0);
+                Util.arrayFillNonAtomic(encryptedNewPin, (short) 0, lc, (byte) 0);
             }
-            wrapKey(masterKey, AES_KEY_SIZE, kek, wrappedMasterKey);
-
-            Util.arrayFillNonAtomic(kek, (short) 0, AES_KEY_SIZE, (byte) 0);
-            Util.arrayFillNonAtomic(newPin, (short) 0, lc, (byte) 0);
         }
     }
 
@@ -1430,6 +1509,45 @@ public class Entertainment extends Applet {
         Util.arrayFillNonAtomic(keyData, (short) 0, (short) 256, (byte) 0);
         
         return tempPrivateKey;
+    }
+    
+    /**
+     * Decrypt PIN received from desktop app
+     * PIN is sent encrypted with PIN_TRANSPORT_KEY using AES ECB
+     * @param encryptedPin Encrypted PIN data (must be multiple of 16 bytes)
+     * @param decryptedPin Output buffer for decrypted PIN
+     * @return Length of decrypted PIN
+     */
+    private short decryptPinTransport(byte[] encryptedPin, short encOffset, short encLength, byte[] decryptedPin) {
+        if (pinTransportCipher == null) {
+            // Cipher not available, assume PIN is sent in plaintext (fallback)
+            Util.arrayCopy(encryptedPin, encOffset, decryptedPin, (short) 0, encLength);
+            return encLength;
+        }
+        
+        try {
+            // Decrypt PIN using AES ECB
+            // Re-init cipher for decryption (ECB mode doesn't need IV)
+            AESKey pinKey = (AESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_AES, (short) (AES_KEY_SIZE * 8), false);
+            pinKey.setKey(PIN_TRANSPORT_KEY, (short) 0);
+            pinTransportCipher.init(pinKey, Cipher.MODE_DECRYPT);
+            
+            // Decrypt - input must be multiple of 16 bytes (AES block size)
+            short decryptedLen = (short) pinTransportCipher.doFinal(encryptedPin, encOffset, encLength, decryptedPin, (short) 0);
+            
+            // Remove PKCS7 padding to get actual PIN length
+            // Last byte indicates padding length
+            byte paddingLen = decryptedPin[(short)(decryptedLen - 1)];
+            short actualLen = (short)(decryptedLen - paddingLen);
+            
+            // Clear key
+            pinKey.clearKey();
+            
+            return actualLen;
+        } catch (CryptoException e) {
+            // Decryption failed, return 0
+            return 0;
+        }
     }
 
 }
