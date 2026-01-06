@@ -427,6 +427,7 @@ public class CardService {
         ResponseAPDU response = transmitCommand(cmd);
         
         if (response.getSW() != APDUConstants.SW_SUCCESS) {
+            //hoàn tiền ở đây, có thể hoàn tiền mặt hoặc ...
             throw new CardException("Lỗi nạp coins: " + APDUConstants.getErrorMessage(response.getSW()));
         }
     }

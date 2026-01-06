@@ -810,8 +810,19 @@ public class Entertainment extends Applet {
         short newCoins = (short)(currentCoins + amount);
         Util.setShort(tempBuffer, (short) (coinsOffset + 2), newCoins);
 
-        // Encrypt and save
-        encryptUserData(tempBuffer);
+        // Begin atomic transaction to protect against card tear
+        JCSystem.beginTransaction();
+        try {
+            // Encrypt and save - this will write to EEPROM atomically
+            encryptUserData(tempBuffer);
+            
+            // Commit transaction if successful
+            JCSystem.commitTransaction();
+        } catch (Exception e) {
+            // Abort transaction on any error to prevent partial updates
+            JCSystem.abortTransaction();
+            ISOException.throwIt(ISO7816.SW_UNKNOWN);
+        }
     }
 
     private void processPurchaseCombo(APDU apdu) {
